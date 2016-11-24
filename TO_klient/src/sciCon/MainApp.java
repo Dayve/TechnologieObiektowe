@@ -1,14 +1,17 @@
 package sciCon;
+import java.sql.SQLException;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
+import oracle.jdbc.pool.OracleDataSource;
 
 
-public class MainApp extends Application implements Controllers {
+public class MainApp extends Application implements Controllers, dbInterface {
 
     private Stage primaryStage;
     
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws SQLException {
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("sciCon");
 

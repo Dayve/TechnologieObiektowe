@@ -1,5 +1,10 @@
 package sciCon;
 
+
+import java.sql.*;
+
+import oracle.jdbc.pool.OracleDataSource;
+
 public interface dbInterface {
 	
 	public default boolean isLoginValid(String login) {
@@ -19,7 +24,4 @@ public interface dbInterface {
 		}
 	}
 	
-	
-	
-
 }

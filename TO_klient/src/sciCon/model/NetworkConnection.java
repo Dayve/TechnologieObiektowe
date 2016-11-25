@@ -9,31 +9,40 @@ import java.net.UnknownHostException;
 
 public class NetworkConnection {
 
-private BufferedReader in = null;
-private PrintWriter out = null;
-private Socket s = null;
+//static BufferedReader in = null;
+//static PrintWriter out = null;
+//static Socket s = null;
+
+static BufferedReader in = null;
+static PrintWriter out = null;
+static Socket s;
+
+//	public NetworkConnection() {
+//		try {
+//			s = new Socket("localhost", 8080);
+//		} catch(ConnectException e) {
+//			System.out.println("Connection refused!");
+//			e.printStackTrace();
+//		}
+//		catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
-	public NetworkConnection() {
+	public static void sendMessage(String data) {
+		out.println(data);
+	}
+	
+	public static void closeConnection() {
 		try {
-			s = new Socket("localhost", 8080);
-		} catch(ConnectException e) {
-			System.out.println("Connection refused!");
-			e.printStackTrace();
-		}
-		catch (IOException e) {
+			s.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	public NetworkConnection getNetwork() {
-		return this;
-	}
-	
-	public void sendMessage() {
-		out.println("hello");
-	}
-	
-	public void connectToServer() throws IOException
+	public static void connectToServer() throws IOException
 	{
 		try{
 			int port = 8080;
@@ -44,7 +53,6 @@ private Socket s = null;
 	        String answer = in.readLine();
 	        out.println("Hello, just connected.");
 	        System.out.println(answer);
-	        s.close();
 		} catch(UnknownHostException e) {
 			System.out.println("IP not found.");
 		} catch(IOException e) {

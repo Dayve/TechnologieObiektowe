@@ -1,4 +1,5 @@
 package sciCon;
+import java.io.IOException;
 import java.sql.SQLException;
 
 import javafx.application.Application;
@@ -15,7 +16,11 @@ public class Client extends Application implements Controllers, dbInterface {
     @Override
     public void start(Stage primaryStage) throws SQLException {
     	
-//    	network = new NetworkConnection();
+    	try {
+			NetworkConnection.connectToServer();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("sciCon");
 

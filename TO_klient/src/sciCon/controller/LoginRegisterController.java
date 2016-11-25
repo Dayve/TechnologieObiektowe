@@ -15,6 +15,7 @@ import oracle.jdbc.pool.OracleDataSource;
 //import oracle.jdbc.pool.OracleDataSource;
 import sciCon.Controllers;
 import sciCon.dbInterface;
+import sciCon.model.NetworkConnection;
 
 public class LoginRegisterController implements Controllers, dbInterface {
 	
@@ -102,6 +103,7 @@ public class LoginRegisterController implements Controllers, dbInterface {
 		} 
 		
 		controlLabel.setText(message);
+		NetworkConnection.closeConnection();
 	}
 
 	@FXML
@@ -122,8 +124,9 @@ public class LoginRegisterController implements Controllers, dbInterface {
 		String password = passwordField.getText();
 		
 		// here check if login is valid
-		
-    	Stage sourceStage = (Stage) ((Node)event.getSource()).getScene().getWindow();
-    	loadScene(sourceStage, "view/ApplicationLayout.fxml", 900, 600, true);
+		NetworkConnection.sendMessage(login);
+		controlLabel.setText("logging");
+//    	Stage sourceStage = (Stage) ((Node)event.getSource()).getScene().getWindow();
+//    	loadScene(sourceStage, "view/ApplicationLayout.fxml", 900, 600, true);
     }
 }

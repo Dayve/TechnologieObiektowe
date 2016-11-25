@@ -70,11 +70,17 @@ public class SciConServer implements Runnable {
 				out = new PrintWriter(s.getOutputStream(), true);
 				out.println("Execution Count: " + counter + " executions");
 				counter++;
+				String message;
 
 				in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-				while (true) {
-					System.out.println(in.readLine());
+				while(true) {
+					message = in.readLine();
+					if(message != null) {
+						System.out.println(message);
+					}
 				}
+				
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {

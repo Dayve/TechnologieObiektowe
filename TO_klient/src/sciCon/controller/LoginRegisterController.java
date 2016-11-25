@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import oracle.jdbc.pool.OracleDataSource;
+//import oracle.jdbc.pool.OracleDataSource;
 import sciCon.Controllers;
 import sciCon.dbInterface;
 
@@ -34,8 +35,7 @@ public class LoginRegisterController implements Controllers, dbInterface {
 			e.printStackTrace();
 		}
 	}
-	//considering moving this to dbinterface
-	
+
 	private void ExecuteUpdate(String query, int id, String login, String password) {
 		try {
 			Connection conn = ods.getConnection();
@@ -93,12 +93,12 @@ public class LoginRegisterController implements Controllers, dbInterface {
 		}
 		if(showMessage == false) {
 			message = "";
-			int id = 0;
-			ConnectToDb("todb", "todb", "todb");
-			id = ExecuteQuery(id_resolve_query, "x", "ID_UZYT");
-			id++;
-			ExecuteUpdate(register_query, id, login, password);
-			System.out.println("Zarejestrowano");
+//			int id = 0;
+//			ConnectToDb("todb", "todb", "todb");
+//			id = ExecuteQuery(id_resolve_query, "x", "ID_UZYT");
+//			id++;
+//			ExecuteUpdate(register_query, id, login, password);
+//			System.out.println("Zarejestrowano");
 		} 
 		
 		controlLabel.setText(message);

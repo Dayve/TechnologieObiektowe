@@ -3,15 +3,19 @@ import java.sql.SQLException;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import oracle.jdbc.pool.OracleDataSource;
+import sciCon.model.NetworkConnection;
+//import oracle.jdbc.pool.OracleDataSource;
 
 
-public class MainApp extends Application implements Controllers, dbInterface {
+public class Client extends Application implements Controllers, dbInterface {
 
     private Stage primaryStage;
+    private NetworkConnection network = null;
     
     @Override
     public void start(Stage primaryStage) throws SQLException {
+    	
+//    	network = new NetworkConnection();
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("sciCon");
 

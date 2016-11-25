@@ -11,7 +11,7 @@ public interface Controllers {
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable) {
 		try {
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(MainApp.class.getResource(path));
+			loader.setLocation(Client.class.getResource(path));
 			Parent layout = (Parent) loader.load();
 			Scene scene = new Scene(layout);
 			stage.setResizable(resizable);

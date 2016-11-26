@@ -3,10 +3,14 @@ package sciConServer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+
+import sciCon.model.User;
 
 public class SciConServer implements Runnable {
 	private ServerSocket listener;
@@ -25,10 +29,6 @@ public class SciConServer implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public static void main(String[] args0) {
-		
 	}
 
 	private void startServer() throws IOException {
@@ -58,6 +58,8 @@ public class SciConServer implements Runnable {
 		int counter;
 		private BufferedReader in;
 		private PrintWriter out;
+		private ObjectInputStream objIn;
+		private ObjectOutputStream objOut;
 
 		public SomeServerImplementation(Socket socket, int executions) {
 			s = socket;
@@ -67,25 +69,34 @@ public class SciConServer implements Runnable {
 		@Override
 		public void run() {
 			try {
-				out = new PrintWriter(s.getOutputStream(), true);
-				out.println("Execution Count: " + counter + " executions");
-				counter++;
-				String message;
+//				out = new PrintWriter(s.getOutputStream(), true);
+//				out.println("Execution Count: " + counter + " executions");
+//				counter++;
+				
+				objIn = new ObjectInputStream(s.getInputStream());
+				objOut = new ObjectOutputStream(s.getOutputStream());
+//				String message;
+				User user = null;
+				
 
-				in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+//				in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+				
 				while(true) {
-					message = in.readLine();
-					if(message != null) {
-						System.out.println(message);
+					user = (User) objIn.readObject();
+//					message = in.readLine();
+//					System.out.println(message);
+					if(user != null) {
+						System.out.println(user);
 					}
 				}
-				
 				
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
 				try {
 					s.close();
+					objIn.close();
+					objOut.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

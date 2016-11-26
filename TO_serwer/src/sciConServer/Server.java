@@ -35,7 +35,6 @@ public class Server extends Application {
 			primaryStage.setMinHeight(200);
 			primaryStage.show();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

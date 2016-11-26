@@ -16,11 +16,10 @@ public class Client extends Application implements Controllers, dbInterface {
     @Override
     public void start(Stage primaryStage) throws SQLException {
     	
-    	try {
-			NetworkConnection.connectToServer();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//    	Thread net = new Thread(network);
+//		net.start();
+    	
+		network = new NetworkConnection();
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("sciCon");
 

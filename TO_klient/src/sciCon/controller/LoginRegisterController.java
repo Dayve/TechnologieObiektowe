@@ -5,7 +5,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -16,6 +20,7 @@ import oracle.jdbc.pool.OracleDataSource;
 import sciCon.Controllers;
 import sciCon.dbInterface;
 import sciCon.model.NetworkConnection;
+import sciCon.model.User;
 
 public class LoginRegisterController implements Controllers, dbInterface {
 	
@@ -123,9 +128,40 @@ public class LoginRegisterController implements Controllers, dbInterface {
     	String login = loginField.getText();
 		String password = passwordField.getText();
 		
+		User u = new User(login, password);
+		
+		controlLabel.setText(u.toString());
 		// here check if login is valid
-		NetworkConnection.sendMessage(login);
-		controlLabel.setText("logging");
+		if(login != null && login != "" && password != null && password != "") {
+			
+			Service<Void> backgroundThread;
+			backgroundThread = new Service<Void>() {
+				@Override
+				protected Task<Void> createTask() {
+					return new Task<Void>() {
+						@Override
+						protected Void call() throws Exception {
+							System.out.println("K1");
+							NetworkConnection.sendObject(u);
+							NetworkConnection.pron();
+							System.out.println("K2");
+							return null;
+						}
+					};
+				}
+			};
+			
+			backgroundThread.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+				public void handle(WorkerStateEvent event) {
+					System.out.println("done!");
+				}
+			});
+			
+			backgroundThread.restart();
+			}
+		
+//		NetworkConnection.sendMessage(login);
+		
 //    	Stage sourceStage = (Stage) ((Node)event.getSource()).getScene().getWindow();
 //    	loadScene(sourceStage, "view/ApplicationLayout.fxml", 900, 600, true);
     }

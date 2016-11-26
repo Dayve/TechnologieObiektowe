@@ -18,7 +18,7 @@ public class ServerController {
 	}
 	
 	@FXML private void stopServer() {
-		serverThread.interrupt();
+//		serverThread.interrupt();
 		textField.appendText("Server stopped.\n");
 	}
 }

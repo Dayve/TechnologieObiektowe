@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import javafx.application.Application;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.stage.Stage;
 import sciCon.model.NetworkConnection;
 //import oracle.jdbc.pool.OracleDataSource;
@@ -15,25 +17,16 @@ public class Client extends Application implements Controllers, dbInterface {
     
     @Override
     public void start(Stage primaryStage) throws SQLException {
+    	network = new NetworkConnection();
     	
-//    	Thread net = new Thread(network);
-//		net.start();
-    	
-		network = new NetworkConnection();
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("sciCon");
 
-        initStartLayout();
+        initClientLayout();
     }
 
-    
-    public void initStartLayout() {
+    private void initClientLayout() {
     	loadScene(primaryStage, "view/LoginLayout.fxml", 320, 200, false);
-    }
-
-
-    public Stage getPrimaryStage() {
-        return primaryStage;
     }
 
     

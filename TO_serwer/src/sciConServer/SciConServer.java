@@ -1,14 +1,16 @@
 package sciConServer;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import oracle.jdbc.pool.OracleDataSource;
 
 import sciCon.model.User;
 
@@ -35,15 +37,8 @@ public class SciConServer implements Runnable {
 		listener = new ServerSocket(port);
 		try {
 			while (true) {
-				// serverLogs.setText("Starting Server...\n");
-				// AdviceServer s = new
-				// AdviceServer(Integer.parseInt(txtPort.getText()));
-				//
 				System.out.println("Starting server...");
-				SomeServerImplementation ssi = new SomeServerImplementation(listener.accept(),
-						countClientConnections++);
-				// ManageAdviceServer.serverLogs.append("New Client: " +
-				// (countClientConnections - 1) + " connected...\n");
+				ServerImplementation ssi = new ServerImplementation(listener.accept());
 				Thread thread = new Thread(ssi);
 				thread.start();
 				System.out.println("Server started.");
@@ -53,43 +48,136 @@ public class SciConServer implements Runnable {
 		}
 	}
 
-	private class SomeServerImplementation implements Runnable {
+	private class ServerImplementation implements Runnable {
 		private Socket s;
-		int counter;
-		private BufferedReader in;
-		private PrintWriter out;
 		private ObjectInputStream objIn;
 		private ObjectOutputStream objOut;
+		
+		private OracleDataSource ods = null;
+		
+		private void ConnectToDb(String database, String dbUser, String dbPassword){
+			try {
+					ods = new OracleDataSource();
+					ods.setURL("jdbc:oracle:oci:@" + database);
+					ods.setUser(dbUser);
+					ods.setPassword(dbPassword);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		private boolean isLoginValid(String login) {
+			
+			String login_resolve_query = "select login_uzytkownika from uzytkownik where login = (?)";
+			try {
+				ConnectToDb("todb", "todb", "todb");
+				Connection conn = ods.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(login_resolve_query);
+				pstmt.setString(1, login);
+				ResultSet rs = pstmt.executeQuery();
+				if(rs.next()){
+			        return true;
+				}
+		    	pstmt.close();
+		    	conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			return false;
+		}
 
-		public SomeServerImplementation(Socket socket, int executions) {
+		private int doLoginAndPasswordMatch(String login, String password) { // returns user id
+			
+			String loginQuery = "select id_uzytkownika from uzytkownik where login = (?) and haslo = (?)";
+			int resolved_id = 0;
+			try {
+				
+				ConnectToDb("todb", "todb", "todb");
+				Connection conn = ods.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(loginQuery);
+				pstmt.setString(1, login);
+				pstmt.setString(2, password);
+				ResultSet rs = pstmt.executeQuery();
+				if(rs.next()){
+					resolved_id = rs.getInt(0);
+				}
+		    	pstmt.close();
+		    	conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			return resolved_id;
+	}
+
+		private void ExecuteUpdate(String query, int id, String login, String password, String name, String surname) {
+			try {
+				ConnectToDb("todb", "todb", "todb");
+				Connection conn = ods.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(query);
+				pstmt.setInt(1, id);
+				pstmt.setString(2, login);
+				pstmt.setString(3, password);
+				pstmt.setString(4, name);
+				pstmt.setString(5, surname);
+				pstmt.executeUpdate();
+		    	pstmt.close();
+		    	conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		private int ExecuteQuery(String query, String parameterName){
+			int resultId = 0;
+			try {
+				ConnectToDb("todb", "todb", "todb");
+				Connection conn = ods.getConnection();
+				PreparedStatement pstmt = conn.prepareStatement(query);
+				pstmt.setString(1, parameterName);
+				ResultSet rs = pstmt.executeQuery();
+				while(rs.next()){
+			        resultId = rs.getInt(1);
+				}
+		    	pstmt.close();
+		    	conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			return resultId;
+		}
+
+		public ServerImplementation(Socket socket) {
 			s = socket;
-			counter = executions;
 		}
 
 		@Override
 		public void run() {
 			try {
-//				out = new PrintWriter(s.getOutputStream(), true);
-//				out.println("Execution Count: " + counter + " executions");
-//				counter++;
+				
+				String countUsersQuery = "select count(?) from uzytkownik";
+				String registerQuery = "insert into uzytkownik(id_uzytkownika, login, haslo, imie, nazwisko) values(?,?,?,?,?)";
 				
 				objIn = new ObjectInputStream(s.getInputStream());
 				objOut = new ObjectOutputStream(s.getOutputStream());
-//				String message;
-				User user = null;
-				
 
-//				in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-				
+				User user = null;
+
 				while(true) {
 					user = (User) objIn.readObject();
-//					message = in.readLine();
-//					System.out.println(message);
+					
 					if(user != null) {
+						// print user if it's not null
 						System.out.println(user);
+						
+					}
+					if(user != null && user.getName() != null && user.getSurname() != null) {
+						// if name and surname is not null, register user to the database
+						int id = ExecuteQuery(countUsersQuery, "id_uzytkownika");
+						ExecuteUpdate(registerQuery, id, user.getLogin(), user.getPassword(), user.getName(), user.getSurname());
 					}
 				}
-				
+			} catch(SocketException e) {
+				System.out.println("Somebody just disconnected.");
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {

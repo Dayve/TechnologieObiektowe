@@ -18,11 +18,10 @@ public class Server extends Application {
 	public void start(Stage primaryStage) {
 		this.primaryStage = primaryStage;
         this.primaryStage.setTitle("sciCon server");
-        loadServerView();
-//		loadScene(primaryStage, "view/serverLayout.fxml", 320, 200, false);
+        initServerLayout();
 	}
 	
-	private void loadServerView() {
+	private void initServerLayout() {
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Server.class.getResource("serverLayout.fxml"));
 		try {

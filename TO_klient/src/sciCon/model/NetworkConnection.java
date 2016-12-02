@@ -38,9 +38,13 @@ private static Socket s = null;
 	}
 	
 	public static Object getObject() {
+		
 		Object o = null;
 		try {
+			System.out.println("procedura odbioru (s -> c)");
 			o = objIn.readObject();
+			System.out.println("wypisujê obiekt (s -> c)");
+			System.out.println(o);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {

@@ -15,7 +15,6 @@ public interface dbInterface {
 		}
 	}
 	
-	
 	public default boolean isPasswordValid(String password, String rePassword) {
 		if(password.equals(rePassword)) {
 			return true;

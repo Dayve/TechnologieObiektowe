@@ -1,5 +1,7 @@
 package sciCon.controller;
 
+import java.util.ArrayList;
+
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -13,7 +15,9 @@ import javafx.stage.Stage;
 import sciCon.Controllers;
 import sciCon.dbInterface;
 import sciCon.model.NetworkConnection;
+import sciCon.model.Post;
 import sciCon.model.User;
+import sciCon.model.SocketEvent;
 
 public class LoginRegisterController implements Controllers, dbInterface {
 	
@@ -73,8 +77,9 @@ public class LoginRegisterController implements Controllers, dbInterface {
 		String password = passwordField.getText();
 		
 		User u = new User(login, password);
+		SocketEvent e = new SocketEvent("loginReq", u);
 		
-		controlLabel.setText(u.toString());
+		
 		// here check if login is valid
 		if(login != null && login != "" && password != null && password != "") {
 			
@@ -84,7 +89,18 @@ public class LoginRegisterController implements Controllers, dbInterface {
 				return new Task<Void>() {
 					@Override
 					protected Void call() throws Exception {
-						NetworkConnection.sendObject(u);
+//						controlLabel.setText(q.toString());
+						System.out.print("Wysy³am: ");
+						System.out.println(u);
+						NetworkConnection.sendObject(e);
+						
+//						SocketEvent res = (SocketEvent) NetworkConnection.getObject();
+						User resData = (User) NetworkConnection.getObject();
+						System.out.print("Odebrano: ");
+						System.out.println(resData);
+						
+//						loadScene((Stage) ((Node)event.getSource()).getScene().getWindow(), 
+//						"view/ApplicationLayout.fxml", 900, 600, true);
 						return null;
 					}
 				};
@@ -99,24 +115,21 @@ public class LoginRegisterController implements Controllers, dbInterface {
 		
 		backgroundThread.restart();
 		}
-		
-//		NetworkConnection.sendMessage(login);
-		
-//    	Stage sourceStage = (Stage) ((Node)event.getSource()).getScene().getWindow();
-//    	loadScene(sourceStage, "view/ApplicationLayout.fxml", 900, 600, true);
     }
-
-	@FXML
-	private void goToLogin(ActionEvent event) {
+    
+    @FXML
+    private void goToApplication(ActionEvent event) {
 		Stage sourceStage = (Stage) ((Node)event.getSource()).getScene().getWindow();
 		loadScene(sourceStage, "view/LoginLayout.fxml", 320, 200, false);
+	}
+    
+	@FXML
+	private void goToLogin(ActionEvent event) {
+		loadScene(event, "view/LoginLayout.fxml", 320, 200, false);
 	}
 	
 	@FXML
 	private void goToRegistration(ActionEvent event) {
-		Stage sourceStage = (Stage) ((Node)event.getSource()).getScene().getWindow();
-		loadScene(sourceStage, "view/RegisterLayout.fxml", 320, 200, false);
+		loadScene(event, "view/RegisterLayout.fxml", 320, 200, false);
 	}
-
-
 }

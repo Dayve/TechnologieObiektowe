@@ -1,0 +1,11 @@
+ -> How to update your local and github repo:
+
+ -> Once, if not set before:
+    Set the repository that will be our source:
+  git remote add somebodysrepo https://github.com/jsekulowicz/TechnologieObiektowe
+
+ -> Every time:
+  git fetch somebodysrepo		Update local git data
+  git pull somebodysrepo master		Update local files (this will overwrite your own files!)
+  git push myreponame master		Upload changed files to your forked repo (myreponame is often called "origin")
+

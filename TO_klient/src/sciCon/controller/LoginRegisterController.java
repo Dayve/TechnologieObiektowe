@@ -6,12 +6,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import sciCon.Controllers;
-import sciCon.dbInterface;
 import sciCon.model.NetworkConnection;
 import sciCon.model.User;
 import sciCon.model.SocketEvent;
 
-public class LoginRegisterController implements Controllers, dbInterface {
+public class LoginRegisterController implements Controllers {
 
 	@FXML
 	private TextField loginField;
@@ -41,6 +40,7 @@ public class LoginRegisterController implements Controllers, dbInterface {
 
 	@FXML
 	public void reqLogin() {
+		
 		String login = loginField.getText();
 		String password = passwordField.getText();
 

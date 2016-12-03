@@ -4,7 +4,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import sciCon.model.NetworkConnection;
 
-public class Client extends Application implements Controllers, dbInterface {
+public class Client extends Application implements Controllers {
 
     private Stage primaryStage;
     

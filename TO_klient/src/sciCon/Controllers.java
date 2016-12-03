@@ -47,16 +47,14 @@ public interface Controllers {
 		}
 	}
 	
-	default public void runInAnotherThread(java.lang.reflect.Method method, Object... args) {
+	default public void runInAnotherThread(java.lang.reflect.Method method, Object destinationObject, Object... args) {
 		Worker<String> worker = null;
 		
 		worker = new Task<String>() {
 			@Override
 			protected String call() throws Exception {
 				try {
-					for(int i=0 ; i<10 ; ++i) {
-						method.invoke(null, args);
-					}
+					method.invoke(destinationObject, args);
 				} catch (IllegalArgumentException e) {}
 				  catch (IllegalAccessException e) {}
 				  catch (InvocationTargetException e) {}
@@ -64,16 +62,6 @@ public interface Controllers {
 				return "Whatever";
 			}
 		};
-		
-		((Task<String>) worker).setOnSucceeded(event -> {
-			System.out.println("The task succeeded.");
-		});
-		((Task<String>) worker).setOnCancelled(event -> {
-			System.out.println("The task is canceled.");
-		});
-		((Task<String>) worker).setOnFailed(event -> {
-			System.out.println("The task failed.");
-		});
 		
 		new Thread((Runnable) worker).start();
 	}

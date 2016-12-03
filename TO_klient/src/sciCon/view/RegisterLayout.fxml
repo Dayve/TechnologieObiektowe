@@ -11,7 +11,7 @@
       <Label layoutX="65.0" layoutY="112.0" text="Hasło:" />
       <Label layoutX="65.0" layoutY="72.0" text="Login:" />
       <TextField fx:id="loginField" layoutX="112.0" layoutY="70.0" prefHeight="25.0" prefWidth="177.0" />
-      <Button layoutX="188.0" layoutY="289.0" mnemonicParsing="false" onAction="#register" text="Rejestruj" />
+      <Button layoutX="188.0" layoutY="289.0" mnemonicParsing="false" onAction="#registerBtn" text="Rejestruj" />
       <PasswordField fx:id="passwordField" layoutX="112.0" layoutY="110.0" prefHeight="25.0" prefWidth="177.0" />
       <PasswordField fx:id="passwordRepeatField" layoutX="112.0" layoutY="150.0" prefHeight="25.0" prefWidth="177.0" />
       <Label layoutX="20.0" layoutY="152.0" text="Powtórz hasło:" />

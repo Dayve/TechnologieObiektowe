@@ -14,6 +14,9 @@ public class SocketEvent implements Serializable {
 		this.data = data;
 	}
 
+	/*
+	 * 
+	 */
 	public <T> ArrayList<T> getObjects(Class<T> classy) {
 		ArrayList<T> aL = new ArrayList<T>();
 		for (int i = 0; i < data.length; i++) {

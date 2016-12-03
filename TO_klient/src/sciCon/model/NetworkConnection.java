@@ -11,70 +11,40 @@ public class NetworkConnection {
 private static ObjectInputStream objIn = null;
 private static ObjectOutputStream objOut = null;
 private static Socket s = null;
-	
-	public NetworkConnection() {
-		try {
-			s = new Socket("localhost", 8080);
-			objOut = new ObjectOutputStream(s.getOutputStream());
-		} catch(ConnectException e) {
-			System.out.println("Connection refused!");
-			e.printStackTrace();
-		}
-		
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
-	public static void sendObject(Object o) {
+	public static void sendSocketEvent(SocketEvent se) {
 		try {
-			if(o != null)
+			if(se != null)
 			{
-				objOut.writeObject(o);
+				objOut.writeObject(se);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static Object getObject() {
-		
-		Object o = null;
+	public static SocketEvent rcvSocketEvent() {
+		SocketEvent se = null;
 		try {
-			System.out.println("procedura odbioru (s -> c)");
-			o = objIn.readObject();
-			System.out.println("wypisujê obiekt (s -> c)");
-			System.out.println(o);
+			se = (SocketEvent) objIn.readObject();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return o;
+		return se;
 	}
 	
-	public static void closeConnection() {
+	public static void connect(String address, int port) {
 		try {
-			s.close();
+			s = new Socket(address, port);
+			objOut = new ObjectOutputStream(s.getOutputStream());
+			objIn = new ObjectInputStream(s.getInputStream());
+		} catch(ConnectException e) {
+			System.out.println("Connection refused!");
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public static void connectToServer() throws IOException
-	{
-		if(s == null) {
-			try {
-				int port = 8080;
-				String server = "localhost";
-				Socket s = new Socket(server, port);
-		        objIn = new ObjectInputStream(s.getInputStream());
-				objOut = new ObjectOutputStream(s.getOutputStream());
-			} catch(IOException e) {
-				e.printStackTrace();
-				System.out.println("Data for socket not found.");
-			}
-		}
-		
 	}
 }

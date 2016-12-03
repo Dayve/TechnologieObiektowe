@@ -149,72 +149,44 @@ public class SciConServer implements Runnable {
 
 		public ServerImplementation(Socket socket) {
 			s = socket;
+			try {
+				objIn = new ObjectInputStream(s.getInputStream());
+				objOut = new ObjectOutputStream(s.getOutputStream());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		@Override
 		public void run() {
 			try {
 
-//				String countUsersQuery = "select count(?) from uzytkownik";
-//				String registerQuery = "insert into uzytkownik(id_uzytkownika, login, haslo, imie, nazwisko) values(?,?,?,?,?)";
-
-				objIn = new ObjectInputStream(s.getInputStream());
-				objOut = new ObjectOutputStream(s.getOutputStream());
+				// String countUsersQuery = "select count(?) from uzytkownik";
+				// String registerQuery = "insert into
+				// uzytkownik(id_uzytkownika, login, haslo, imie, nazwisko)
+				// values(?,?,?,?,?)";
 
 				SocketEvent e = null;
-				User user = null;
-				// java.lang.reflect.Method method = null;
-				// MethodData methodData = null;
 
 				while (true) {
-
 					e = (SocketEvent) objIn.readObject();
+					// name tells server what to do
 					String eventName = e.getName();
-					System.out.println(eventName);
-					//
 					switch (eventName) {
-					case "loginReq": {
-						System.out.println("zaraz wyœlê obiekt...");
+					// login request
+					case "reqLogin": {
 						User u = (User) e.getObject(User.class);
-						System.out.println(u);
-						objOut.writeObject(u);
-						System.out.println("poszed³ obiekt");
+						objOut.writeObject(e);
 						break;
 					}
-					default: break;
+					case "reqRegister": {
+						System.out.println("somebody tried to register:");
+						User u = e.getObject(User.class);
+						System.out.println(u);
 					}
-
-					// if(user != null) {
-					// // print user if it's not null
-					// System.out.println(user);
-					//
-					// }
-					// if(user != null && user.getName() != null &&
-					// user.getSurname() != null) {
-					// // if name and surname is not null, register user to the
-					// database
-					//// int id = ExecuteQuery(countUsersQuery,
-					// "id_uzytkownika");
-					//// ExecuteUpdate(registerQuery, id, user.getLogin(),
-					// user.getPassword(), user.getName(), user.getSurname());
-					// objOut.writeObject(user);
-					// }
-
-					//
-					// try {
-					// methodData = (MethodData) objIn.readObject();
-					// method =
-					// ClientInvokedMethods.getMethod(methodData.getName(),
-					// methodData.getParamsTypes());
-					// Object[] arguments = methodData.getParams();
-					// } catch (SecurityException e) {}
-					// catch (NoSuchMethodException e) {}
-					//
-					// try {
-					// method.invoke();
-					// } catch (IllegalArgumentException e) {}
-					// catch (IllegalAccessException e) {}
-					// catch (InvocationTargetException e) {}
+					default:
+						break;
+					}
 				}
 			} catch (SocketException e) {
 				System.out.println("Somebody just disconnected.");

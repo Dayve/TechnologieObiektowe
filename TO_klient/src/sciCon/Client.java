@@ -1,27 +1,40 @@
 package sciCon;
-import java.io.IOException;
 import java.sql.SQLException;
-
 import javafx.application.Application;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.stage.Stage;
 import sciCon.model.NetworkConnection;
-//import oracle.jdbc.pool.OracleDataSource;
-
 
 public class Client extends Application implements Controllers, dbInterface {
 
     private Stage primaryStage;
-    private NetworkConnection network = null;
+    
+    public static void ConnectToServer() {
+    	NetworkConnection.connect("localhost", 8080);;
+    }
     
     @Override
     public void start(Stage primaryStage) throws SQLException {
-    	network = new NetworkConnection();
     	
         this.primaryStage = primaryStage;
         this.primaryStage.setTitle("sciCon");
 
+        // get a method to call it using reflection
+        
+        java.lang.reflect.Method m = null;
+        
+		try {
+			m = Client.class.getMethod("ConnectToServer");
+		} catch (NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		
+		// connect to server in another thread
+		
+        runInAnotherThread(m, null);
+        
+        
+        // initialize GUI
+        
         initClientLayout();
     }
 

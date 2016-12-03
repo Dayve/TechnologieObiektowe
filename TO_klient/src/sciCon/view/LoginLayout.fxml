@@ -15,6 +15,6 @@
       <Label layoutX="65.0" layoutY="72.0" text="Login:" />
       <TextField fx:id="loginField" layoutX="112.0" layoutY="70.0" prefHeight="25.0" prefWidth="177.0" />
       <PasswordField fx:id="passwordField" layoutX="112.0" layoutY="110.0" prefHeight="25.0" prefWidth="177.0" />
-      <Button layoutX="132.0" layoutY="150.0" mnemonicParsing="false" onAction="#login" text="Zaloguj" />
+      <Button layoutX="132.0" layoutY="150.0" mnemonicParsing="false" onAction="#loginBtn" text="Zaloguj" />
    </children>
 </AnchorPane>

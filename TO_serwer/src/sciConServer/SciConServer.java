@@ -3,15 +3,9 @@ package sciConServer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import oracle.jdbc.pool.OracleDataSource;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
 
@@ -39,6 +33,7 @@ public class SciConServer implements Runnable {
 				System.out.println("Starting server...");
 				ServerImplementation ssi = new ServerImplementation(listener.accept());
 				Thread thread = new Thread(ssi);
+				// run server implementation in a new thread
 				thread.start();
 				System.out.println("Server started.");
 			}
@@ -51,105 +46,16 @@ public class SciConServer implements Runnable {
 		private Socket s;
 		private ObjectInputStream objIn;
 		private ObjectOutputStream objOut;
-
-		private OracleDataSource ods = null;
-
-		private void ConnectToDb(String database, String dbUser, String dbPassword) {
-			try {
-				ods = new OracleDataSource();
-				ods.setURL("jdbc:oracle:oci:@" + database);
-				ods.setUser(dbUser);
-				ods.setPassword(dbPassword);
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-
-		private boolean isLoginValid(String login) {
-
-			String login_resolve_query = "select login_uzytkownika from uzytkownik where login = (?)";
-			try {
-				ConnectToDb("todb", "todb", "todb");
-				Connection conn = ods.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(login_resolve_query);
-				pstmt.setString(1, login);
-				ResultSet rs = pstmt.executeQuery();
-				if (rs.next()) {
-					return true;
-				}
-				pstmt.close();
-				conn.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			return false;
-		}
-
-		private int doLoginAndPasswordMatch(String login, String password) { // returns
-																				// user
-																				// id
-
-			String loginQuery = "select id_uzytkownika from uzytkownik where login = (?) and haslo = (?)";
-			int resolved_id = 0;
-			try {
-
-				ConnectToDb("todb", "todb", "todb");
-				Connection conn = ods.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(loginQuery);
-				pstmt.setString(1, login);
-				pstmt.setString(2, password);
-				ResultSet rs = pstmt.executeQuery();
-				if (rs.next()) {
-					resolved_id = rs.getInt(0);
-				}
-				pstmt.close();
-				conn.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			return resolved_id;
-		}
-
-		private void ExecuteUpdate(String query, int id, String login, String password, String name, String surname) {
-			try {
-				ConnectToDb("todb", "todb", "todb");
-				Connection conn = ods.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(query);
-				pstmt.setInt(1, id);
-				pstmt.setString(2, login);
-				pstmt.setString(3, password);
-				pstmt.setString(4, name);
-				pstmt.setString(5, surname);
-				pstmt.executeUpdate();
-				pstmt.close();
-				conn.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-
-		private int ExecuteQuery(String query, String parameterName) {
-			int resultId = 0;
-			try {
-				ConnectToDb("todb", "todb", "todb");
-				Connection conn = ods.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(query);
-				pstmt.setString(1, parameterName);
-				ResultSet rs = pstmt.executeQuery();
-				while (rs.next()) {
-					resultId = rs.getInt(1);
-				}
-				pstmt.close();
-				conn.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			return resultId;
-		}
+		private DbConnection dbConn;
 
 		public ServerImplementation(Socket socket) {
+			// connect to database
+			dbConn = new DbConnection("todb", "todb", "todb");
+
+			// define socket
 			s = socket;
 			try {
+				// get input and output streams from socket
 				objIn = new ObjectInputStream(s.getInputStream());
 				objOut = new ObjectOutputStream(s.getOutputStream());
 			} catch (IOException e) {
@@ -157,15 +63,77 @@ public class SciConServer implements Runnable {
 			}
 		}
 
+		private void handleRegistration(User u) {
+			SocketEvent e = null;
+
+			int validationCode = dbConn.isUserValid(u); // 0 - login is valid
+			String message = "";
+
+			if ((validationCode & 1) == 1) {
+				if (message != "") {
+					message += "\n";
+				}
+				message += "Login jest ju¿ w u¿yciu.";
+			}
+
+			if ((validationCode & 2) == 2) {
+				if (message != "") {
+					message += "\n";
+				}
+				message += "Login musi mieæ co najmniej 3 znaki i sk³adaæ siê z liter, cyfr lub znaku \"_\".";
+			}
+
+			if ((validationCode & 4) == 4) {
+				if (message != "") {
+					message += "\n";
+				}
+				message += "Has³o musi mieæ co najmniej 6 znaków.";
+			}
+
+			if ((validationCode & 8) == 8) {
+				if (message != "") {
+					message += "\n";
+				}
+				message += "Imiê i nazwisko musz¹ mieæ co najmniej po 2 znaki.";
+			}
+
+			if (validationCode == 0) { // if user data is valid
+				if (dbConn.registerUser(u)) {
+					message = "Zarejestrowano.";
+					e = new SocketEvent("registerSucceeded", message);
+				} else {
+					message = "Rejestracja nie powiod³a siê. Spróbuj póŸniej.";
+					e = new SocketEvent("registerFailed", message);
+				}
+			} else { // if user data is invalid
+				e = new SocketEvent("registerSucceeded", message);
+			}
+
+			try {
+				objOut.writeObject(e);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+
+		private void handleLogin(User u) {
+			SocketEvent e = null;
+			int userId = dbConn.doLoginAndPasswordMatch(u.getLogin(), u.getPassword());
+			if (userId > -1) {
+				e = new SocketEvent("loginSucceeded", userId);
+			} else {
+				e = new SocketEvent("loginFailed");
+			}
+			try {
+				objOut.writeObject(e);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+
 		@Override
 		public void run() {
 			try {
-
-				// String countUsersQuery = "select count(?) from uzytkownik";
-				// String registerQuery = "insert into
-				// uzytkownik(id_uzytkownika, login, haslo, imie, nazwisko)
-				// values(?,?,?,?,?)";
-
 				SocketEvent e = null;
 
 				while (true) {
@@ -176,13 +144,13 @@ public class SciConServer implements Runnable {
 					// login request
 					case "reqLogin": {
 						User u = (User) e.getObject(User.class);
-						objOut.writeObject(e);
+						handleLogin(u);
 						break;
 					}
 					case "reqRegister": {
-						System.out.println("somebody tried to register:");
 						User u = e.getObject(User.class);
-						System.out.println(u);
+						handleRegistration(u);
+						break;
 					}
 					default:
 						break;

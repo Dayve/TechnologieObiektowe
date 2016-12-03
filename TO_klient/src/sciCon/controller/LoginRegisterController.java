@@ -1,15 +1,10 @@
 package sciCon.controller;
 
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 import sciCon.Controllers;
 import sciCon.dbInterface;
 import sciCon.model.NetworkConnection;
@@ -30,10 +25,21 @@ public class LoginRegisterController implements Controllers, dbInterface {
 	private TextField passwordRepeatField;
 	@FXML
 	private Label controlLabel;
-	Service<Void> backgroundThread = null;
+
+	private int uid = -1; // user ID, assigned after signing in
+	private String message;
+	ActionEvent sharedEvent = null; // loginBtn action event gets here after it's pressed
+	// so runLater can see it and scene can be changed.
+
+	private boolean doPasswordsMatch(String password, String rePassword) {
+		if (password.equals(rePassword)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	@FXML
-	
 	public void reqLogin() {
 		String login = loginField.getText();
 		String password = passwordField.getText();
@@ -41,42 +47,59 @@ public class LoginRegisterController implements Controllers, dbInterface {
 		User u = new User(login, password);
 		SocketEvent e = new SocketEvent("reqLogin", u);
 
-		System.out.print("Wysy³am: ");
-		System.out.println(u);
-
 		NetworkConnection.sendSocketEvent(e);
-
-		System.out.println("Wys³em");
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
-		System.out.print("dostano: ");
-		User resData = res.getObject(User.class);
-		System.out.println(resData);
-	}
-	
-	public void reqRegister() {
+
+		String eventName = res.getName();
 		
+		if (eventName.equals("loginFailed")) {
+			message = "Niepoprawny login lub has³o.";
+		} else if (eventName.equals("loginSucceeded")) {
+			uid = res.getObject(Integer.class);
+		}
+
+		// run in JavaFX after background thread finishes work
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				controlLabel.setText(message);
+				if (uid > -1) {
+					goToApplication(sharedEvent);
+				}
+			}
+		});
+
+	}
+
+	public void reqRegister() {
+
 		String login = loginField.getText();
 		String password = passwordField.getText();
 		String rePassword = passwordRepeatField.getText();
 		String name = nameField.getText();
 		String surname = surnameField.getText();
-		String message = "";
 
-		User u = new User(login, password, name, surname);
-		SocketEvent e = new SocketEvent("reqRegister", u);
+		if (doPasswordsMatch(password, rePassword)) {
+			User u = new User(login, password, name, surname);
+			SocketEvent e = new SocketEvent("reqRegister", u);
 
-		System.out.print("Wysy³am: ");
-		System.out.println(u);
-		
-		NetworkConnection.sendSocketEvent(e);
+			NetworkConnection.sendSocketEvent(e);
+			SocketEvent res = NetworkConnection.rcvSocketEvent();
 
-		System.out.println("Wys³em");
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
-		System.out.print("dostano: ");
-		User resData = res.getObject(User.class);
-		System.out.println(resData);
+			message = res.getObject(String.class);
+		} else {
+			message = "Podane has³a nie s¹ identyczne.";
+		}
+
+		// run in JavaFX after background thread finishes work
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				controlLabel.setText(message);
+			}
+		});
 	}
-	
+
 	@FXML
 	public void registerBtn() {
 
@@ -89,33 +112,11 @@ public class LoginRegisterController implements Controllers, dbInterface {
 		}
 		runInAnotherThread(m, this);
 	}
-	// backgroundThread = new Service<Void>() {
-	// @Override
-	// protected Task<Void> createTask() {
-	// return new Task<Void>() {
-	// @Override
-	// protected Void call() throws Exception {
-	//// NetworkConnection.sendSocketEvent(u);
-	// return null;
-	// }
-	// };
-	// }
-	// };
-	//
-	// backgroundThread.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-	// public void handle(WorkerStateEvent event) {
-	// System.out.println("done!");
-	// }
-	// });
-	// }
-	//
-	// controlLabel.setText(message);
-	// backgroundThread.restart();
-	// }
 
 	@FXML
 	private void loginBtn(ActionEvent event) { // handler
 
+		sharedEvent = event;
 		// here check if login is valid
 		java.lang.reflect.Method m = null;
 		try {
@@ -129,8 +130,8 @@ public class LoginRegisterController implements Controllers, dbInterface {
 
 	@FXML
 	private void goToApplication(ActionEvent event) {
-		Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-		loadScene(sourceStage, "view/LoginLayout.fxml", 320, 200, false);
+//		Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+		loadScene(event, "view/ApplicationLayout.fxml", 900, 600, true);
 	}
 
 	@FXML

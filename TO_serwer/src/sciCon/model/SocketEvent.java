@@ -14,20 +14,22 @@ public class SocketEvent implements Serializable {
 		this.data = data;
 	}
 
-	public <T> ArrayList<T> getObjects(Class<T> classy) {
+	@SuppressWarnings("unchecked")
+	public <T> ArrayList<T> getObjects(Class<T> ofClass) {
 		ArrayList<T> aL = new ArrayList<T>();
 		for (int i = 0; i < data.length; i++) {
-			if (classy.getClass().isAssignableFrom(data[i].getClass())) {
+			if (ofClass.getClass().isAssignableFrom(data[i].getClass())) {
 				aL.add((T) data[i]);
 			}
 		}
 		return aL;
 	}
 	
-	public <T> T getObject(Class<T> classy) {
+	@SuppressWarnings("unchecked")
+	public <T> T getObject(Class<T> ofClass) {
 		T obj = null;
 		for (int i = 0; i < data.length; i++) {
-			if (classy.isInstance(data[i])) {
+			if (ofClass.isInstance(data[i])) {
 				obj = (T) data[i];
 			}
 		}

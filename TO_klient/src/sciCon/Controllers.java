@@ -48,21 +48,22 @@ public interface Controllers {
 	}
 	
 	default public void runInAnotherThread(java.lang.reflect.Method method, Object destinationObject, Object... args) {
-		Worker<String> worker = null;
+		Worker<Void> worker = null;
 		
-		worker = new Task<String>() {
+		worker = new Task<Void>() {
 			@Override
-			protected String call() throws Exception {
+			protected Void call() throws Exception {
 				try {
 					method.invoke(destinationObject, args);
 				} catch (IllegalArgumentException e) {}
 				  catch (IllegalAccessException e) {}
 				  catch (InvocationTargetException e) {}
 				
-				return "Whatever";
+				return null;
 			}
 		};
 		
 		new Thread((Runnable) worker).start();
 	}
 }
+

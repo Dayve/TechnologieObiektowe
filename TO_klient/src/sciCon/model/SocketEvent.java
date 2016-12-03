@@ -17,6 +17,7 @@ public class SocketEvent implements Serializable {
 	/*
 	 * 
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> ArrayList<T> getObjects(Class<T> classy) {
 		ArrayList<T> aL = new ArrayList<T>();
 		for (int i = 0; i < data.length; i++) {
@@ -27,6 +28,7 @@ public class SocketEvent implements Serializable {
 		return aL;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public <T> T getObject(Class<T> classy) {
 		T obj = null;
 		for (int i = 0; i < data.length; i++) {

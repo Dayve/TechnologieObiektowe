@@ -8,6 +8,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -18,6 +20,7 @@ public class ApplicationController implements Controllers {
 	@FXML private TableView<Week> calendarTable; // A TableView representing the calendar
 	@FXML private Button prevMonth;
 	@FXML private Button nextMonth;
+	@FXML private Label currentlyChosenDateLabel;
 	
 	private LocalDate calendarsDate; // It represents the currently selected (clicked) date
 	
@@ -56,9 +59,32 @@ public class ApplicationController implements Controllers {
         for(int i=0; i<daysOfTheWeekColumnTitles.length; ++i) {
         	TableColumn<Week, String> col = new TableColumn<>(daysOfTheWeekColumnTitles[i]);
         	
+        	// Column-wise cell factory:
+        	col.setCellFactory( tc -> {
+        		TableCell<Week, String> cell = new TableCell<Week, String>() {
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty) ;
+                        setText(empty ? null : item);
+                    }
+                };
+                cell.setOnMouseClicked(e -> {
+                	
+                	// TODO: 
+                	// 1) Disable row highlighting
+                	// 2) Create cell highlighting (as in http://code.makery.ch/blog/javafx-8-tableview-cell-renderer/)
+                	
+                    if (!cell.isEmpty()) {
+                    	String cellsContent = cell.getItem();
+                    	if(! cellsContent.isEmpty()) System.out.println("Clicked day: " + cellsContent);
+                    }
+                });
+                return cell ;
+        	});
+        	
         	col.setMinWidth(10);
         	col.setPrefWidth(56);
-        	col.setMaxWidth(5000);
+        	col.setMaxWidth(200);
         	col.setResizable(false);
         	col.setSortable(false);
         	
@@ -69,6 +95,8 @@ public class ApplicationController implements Controllers {
         // Filling the actual table:
         calendarTable.setItems(createThisMonthsWeeksRows());
         calendarTable.getColumns().addAll(dayOfTheWeekColumns);
+        
+        currentlyChosenDateLabel.setText(calendarsDate.toString());
 	}
 	
 	// Generates day numbers (calendarTable rows) for the year and month currently stored in calendarsDate:

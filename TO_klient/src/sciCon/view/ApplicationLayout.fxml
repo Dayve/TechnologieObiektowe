@@ -68,7 +68,7 @@
       <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
          <children>
             <Button layoutX="22.0" layoutY="8.0" mnemonicParsing="false" text="Dodaj wydarzenie" />
-            <Button fx:id="dummyButton" layoutX="166.0" layoutY="8.0" mnemonicParsing="false" onAction="#fillCalendarTable" text="Weź udział" />
+            <Button layoutX="166.0" layoutY="8.0" mnemonicParsing="false" text="Weź udział" />
             <Button layoutX="272.0" layoutY="8.0" mnemonicParsing="false" text="Usuń wydarzenie" />
          </children>
       </AnchorPane>

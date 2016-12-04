@@ -14,33 +14,34 @@ import javafx.concurrent.Worker;
 
 public interface Controllers {
 	
-	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable) {
+	default public void loadScene(Stage stage, String path, int minW, int minH, boolean resizable) {
 		try {
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(Client.class.getResource(path));
 			Parent layout = (Parent) loader.load();
-			Scene scene = new Scene(layout);
+			stage.setMinWidth(minW);
+			stage.setMinHeight(minH);
 			stage.setResizable(resizable);
+			Scene scene = new Scene(layout);
 			stage.setScene(scene);
-			stage.setMinWidth(w);
-			stage.setMinHeight(h);
 			stage.show();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	default public void loadScene(ActionEvent event, String path, int w, int h, boolean resizable) {
+	default public void loadScene(ActionEvent event, String path, int minW, int minH, boolean resizable) {
 		try {
 			Stage sourceStage = (Stage) ((Node)event.getSource()).getScene().getWindow();
+			sourceStage.setMinWidth(minW);
+			sourceStage.setMinHeight(minH);
+			sourceStage.setResizable(resizable);
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(Client.class.getResource(path));
 			Parent layout = (Parent) loader.load();
 			Scene scene = new Scene(layout);
-			sourceStage.setResizable(resizable);
+			
 			sourceStage.setScene(scene);
-			sourceStage.setMinWidth(w);
-			sourceStage.setMinHeight(h);
 			sourceStage.show();
 		} catch (IOException e) {
 			e.printStackTrace();

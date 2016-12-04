@@ -79,10 +79,26 @@ public class DbConnection {
 		return count;
 	}
 
+	private int maxEntry(String column, String table) {
+		int count = 0;
+		try {
+			String countQuery = "select max(" + column + ") from " + table;
+			PreparedStatement pstmt = conn.prepareStatement(countQuery);
+
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				count = rs.getInt(1);
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return count;
+	}
 	public void addConference(String date, String name, String topic, String place, String description, String plan) {
 
 		int id = 0;
-		id = this.countEntries("id_wydarzenia", "wydarzenia") + 1;
+		id = this.maxEntry("id_wydarzenia", "wydarzenia") + 1;
 
 		String addConferenceQuery = "insert into wydarzenie values(?, to_date(?,'YYYY-MM-DD'), ?, ?, ?, ?, ?)";
 
@@ -134,8 +150,7 @@ public class DbConnection {
 
 		boolean succeeded = true;
 		int id = 0;
-		id = this.countEntries("id_uzytkownika", "uzytkownik");
-		id++;
+		id = this.maxEntry("id_uzytkownika", "uzytkownik") + 1;
 
 		String login = u.getLogin();
 		String name = u.getName();

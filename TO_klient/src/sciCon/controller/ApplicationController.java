@@ -1,6 +1,5 @@
 package sciCon.controller;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +46,7 @@ public class ApplicationController implements Controllers {
 	public void fillCalendarTable() {     	
     	// ColumnTitle are used only while displaying the content, 
 		// PropertyValue however must be the same as variable names in Week class.
-        String[] daysOfTheWeekColumnTitles = {"Pn", "Wt", "Åšr", "Czw", "Pt", "Sb", "Nd"};
+        String[] daysOfTheWeekColumnTitles = {"Pn", "Wt", "Œr", "Czw", "Pt", "Sb", "Nd"};
         String[] daysOfTheWeekPropertyValues = {"pn", "wt", "sr", "cz", "pt", "sb", "nd"};
         
         // List of columns:

@@ -65,7 +65,6 @@ public class SciConServer implements Runnable {
 
 		private void handleRegistration(User u) {
 			SocketEvent e = null;
-
 			int validationCode = dbConn.isUserValid(u); // 0 - login is valid
 			String message = "";
 
@@ -96,7 +95,6 @@ public class SciConServer implements Runnable {
 				}
 				message += "Imiê i nazwisko musz¹ mieæ co najmniej po 2 znaki.";
 			}
-
 			if (validationCode == 0) { // if user data is valid
 				if (dbConn.registerUser(u)) {
 					message = "Zarejestrowano.";

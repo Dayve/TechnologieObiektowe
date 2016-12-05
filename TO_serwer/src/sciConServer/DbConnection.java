@@ -95,6 +95,7 @@ public class DbConnection {
 		}
 		return count;
 	}
+	
 	public void addConference(String date, String name, String topic, String place, String description, String plan) {
 
 		int id = 0;

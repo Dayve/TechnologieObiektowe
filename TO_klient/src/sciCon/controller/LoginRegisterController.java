@@ -3,8 +3,13 @@ package sciCon.controller;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 import sciCon.Controllers;
 import sciCon.model.NetworkConnection;
 import sciCon.model.User;
@@ -12,6 +17,10 @@ import sciCon.model.SocketEvent;
 
 public class LoginRegisterController implements Controllers {
 
+	@FXML
+	private AnchorPane loginWindow;
+	@FXML
+	private AnchorPane registrationWindow;
 	@FXML
 	private TextField loginField;
 	@FXML
@@ -129,18 +138,45 @@ public class LoginRegisterController implements Controllers {
 	}
 
 	@FXML
+	public void loginBtnEnterKey(KeyEvent event) {
+	    if (event.getCode() == KeyCode.ENTER) {
+	        loginBtn(new ActionEvent());
+	    }
+	}
+
+	@FXML
+	public void registerBtnEnterKey(KeyEvent event) {
+	    if (event.getCode() == KeyCode.ENTER) {
+	    	registerBtn();
+	    }
+	}
+	
+	@FXML
+	private void goToRegistrationKey(KeyEvent event) {
+	    if (event.getCode() == KeyCode.ENTER) {
+	    	loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 200, false);
+	    }
+	}
+	
+	@FXML
+	public void cancelBtnEnterKey(KeyEvent event) {
+	    if (event.getCode() == KeyCode.ENTER) {
+	    	loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 200, false);
+	    }
+	}
+	
+	@FXML
 	private void goToApplication(ActionEvent event) {
-//		Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-		loadScene(event, "view/ApplicationLayout.fxml", 900, 600, true);
+		loadScene(loginWindow, "view/ApplicationLayout.fxml", 900, 600, true);
 	}
 
 	@FXML
 	private void goToLogin(ActionEvent event) {
-		loadScene(event, "view/LoginLayout.fxml", 320, 200, false);
+		loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 200, false);
 	}
 
 	@FXML
 	private void goToRegistration(ActionEvent event) {
-		loadScene(event, "view/RegisterLayout.fxml", 320, 200, false);
+		loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 200, false);
 	}
 }

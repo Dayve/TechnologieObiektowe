@@ -6,13 +6,17 @@ import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 import sciCon.Controllers;
 import sciCon.model.Week;
 
@@ -21,8 +25,26 @@ public class ApplicationController implements Controllers {
 	@FXML private Button prevMonth;
 	@FXML private Button nextMonth;
 	@FXML private Label currentlyChosenDateLabel;
+	@FXML private TextArea nameField;
+	@FXML private TextArea topicField;
+	@FXML private TextArea placeField;
+	@FXML private TextArea descriptionField;
+	@FXML private TextArea planField;
 	
 	private LocalDate calendarsDate; // It represents the currently selected (clicked) date
+	
+	@FXML public void addConferenceBtn(ActionEvent event) {
+		openNewWindow(event, "view/ConferenceCreatorLayout.fxml", 450, 650, false);
+	}
+	
+	public void reqAddConference() {
+		System.out.println("tutaj pobieram dane konferencji, pakuje do SocketEvent i wysylam do serwera");
+	}
+	
+	public void closeWindow(ActionEvent event) {
+		Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+		stage.close();
+	}
 	
 	@FXML
 	public void initialize() {

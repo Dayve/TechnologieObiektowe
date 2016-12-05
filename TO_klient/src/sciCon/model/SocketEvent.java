@@ -18,10 +18,10 @@ public class SocketEvent implements Serializable {
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> ArrayList<T> getObjects(Class<T> classy) {
+	public <T> ArrayList<T> getObjects(Class<T> _class) {
 		ArrayList<T> aL = new ArrayList<T>();
 		for (int i = 0; i < data.length; i++) {
-			if (classy.getClass().isAssignableFrom(data[i].getClass())) {
+			if (_class.getClass().isAssignableFrom(data[i].getClass())) {
 				aL.add((T) data[i]);
 			}
 		}
@@ -29,10 +29,10 @@ public class SocketEvent implements Serializable {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T> T getObject(Class<T> classy) {
+	public <T> T getObject(Class<T> _class) {
 		T obj = null;
 		for (int i = 0; i < data.length; i++) {
-			if (classy.isInstance(data[i])) {
+			if (_class.isInstance(data[i])) {
 				obj = (T) data[i];
 			}
 		}

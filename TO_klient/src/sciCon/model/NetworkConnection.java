@@ -41,8 +41,13 @@ private static Socket s = null;
 			objOut = new ObjectOutputStream(s.getOutputStream());
 			objIn = new ObjectInputStream(s.getInputStream());
 		} catch(ConnectException e) {
-			System.out.println("Connection refused!");
-			e.printStackTrace();
+			System.out.println("Server is not responding!");
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} NetworkConnection.connect(address, port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

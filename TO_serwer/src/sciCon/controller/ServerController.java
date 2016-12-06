@@ -1,8 +1,8 @@
-package sciConServer;
+package sciCon.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
-import sciConServer.SciConServer;
+import sciCon.SciConServer;
 
 public class ServerController {
 	

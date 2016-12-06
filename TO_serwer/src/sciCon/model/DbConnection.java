@@ -1,9 +1,8 @@
-package sciConServer;
+package sciCon.model;
 
 import java.sql.*;
 
 import oracle.jdbc.pool.OracleDataSource;
-import sciCon.model.User;
 
 public class DbConnection {
 

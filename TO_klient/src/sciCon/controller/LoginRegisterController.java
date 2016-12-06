@@ -1,3 +1,4 @@
+
 package sciCon.controller;
 
 import javafx.application.Platform;
@@ -60,6 +61,7 @@ public class LoginRegisterController implements Controllers {
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
 		String eventName = res.getName();
+	
 		
 		if (eventName.equals("loginFailed")) {
 			message = "Niepoprawny login lub has³o.";

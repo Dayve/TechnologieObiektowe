@@ -1,4 +1,4 @@
-package sciConServer;
+package sciCon;
 
 import java.io.IOException;
 
@@ -21,7 +21,7 @@ public class Server extends Application {
 	
 	private void initServerLayout() {
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(Server.class.getResource("serverLayout.fxml"));
+		loader.setLocation(Server.class.getResource("view/ServerLayout.fxml"));
 		try {
 			Parent layout;
 			layout = (Parent) loader.load();

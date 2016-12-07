@@ -1,6 +1,9 @@
 package sciCon.model;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
 
 import oracle.jdbc.pool.OracleDataSource;
 
@@ -27,7 +30,7 @@ public class DbConnection {
 			PreparedStatement pstmt = conn.prepareStatement(loginQuery);
 			pstmt.setString(1, login);
 			ResultSet rs = pstmt.executeQuery();
-			
+
 			if (rs.next()) {
 				return true;
 			}
@@ -41,7 +44,7 @@ public class DbConnection {
 	/*
 	 * @return user's id if matching pair is found, if not: -1
 	 */
-	public int doLoginAndPasswordMatch(String login, String password) { 
+	public int doLoginAndPasswordMatch(String login, String password) {
 
 		String loginQuery = "select id_uzytkownika from uzytkownik where login = (?) and haslo = (?)";
 		int userId = -1;
@@ -66,7 +69,7 @@ public class DbConnection {
 			String countQuery = "select count(?) from " + table;
 			PreparedStatement pstmt = conn.prepareStatement(countQuery);
 			pstmt.setString(1, column);
-			
+
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
 				count = rs.getInt(1);
@@ -94,34 +97,43 @@ public class DbConnection {
 		}
 		return count;
 	}
-	
-	public void addConference(String date, String name, String topic, String place, String description, String plan) {
+
+	public boolean addConference(Conference c) {
+		boolean succeeded = true;
+
+		String name = c.getName(), subject = c.getSubject(), startTime = c.getStartTime(), endTime = c.getEndTime(),
+				place = c.getPlace(), description = c.getDescription(), agenda = c.getAgenda();
+		LocalDate date = c.getDate();
 
 		int id = 0;
-		id = this.maxEntry("id_wydarzenia", "wydarzenia") + 1;
+		id = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
 
-		String addConferenceQuery = "insert into wydarzenie values(?, to_date(?,'YYYY-MM-DD'), ?, ?, ?, ?, ?)";
+		String addConferenceQuery = "insert into wydarzenie values(?, to_date(?,'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?)";
 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addConferenceQuery);
 			pstmt.setInt(1, id);
-			pstmt.setString(2, date);
+			pstmt.setString(2, date.toString());
 			pstmt.setString(3, name);
-			pstmt.setString(4, topic);
+			pstmt.setString(4, subject);
 			pstmt.setString(5, place);
 			pstmt.setString(6, description);
-			pstmt.setString(7, plan);
+			pstmt.setString(7, agenda);
+			pstmt.setString(8, startTime);
+			pstmt.setString(9, endTime);
 			pstmt.executeUpdate();
 			pstmt.close();
 		} catch (SQLException e) {
-			System.out.println("Adding a conference to database failed.");
+			succeeded = false;
+			System.out.println("Adding a conference to database has failed.");
 		}
+		return succeeded;
 	}
 
 	public int isUserValid(User u) {
 
 		int retCode = 0;
-				
+
 		String login = u.getLogin();
 		String password = u.getPassword();
 		String name = u.getName();
@@ -132,7 +144,7 @@ public class DbConnection {
 		}
 
 		if (!(login.matches("[a-zA-Z0-9_]*")) || login.length() < 3) {
-			retCode |=2;
+			retCode |= 2;
 		}
 
 		if (password.length() < 6) {
@@ -147,7 +159,6 @@ public class DbConnection {
 	}
 
 	public boolean registerUser(User u) {
-
 		boolean succeeded = true;
 		int id = 0;
 		id = this.maxEntry("id_uzytkownika", "uzytkownik") + 1;
@@ -175,5 +186,56 @@ public class DbConnection {
 		}
 
 		return succeeded;
+	}
+
+	public ArrayList<Conference> showConferenceFeed() {
+
+		Date fetchedDate;
+		String name;
+		ArrayList<Conference> conferenceFeed = new ArrayList<Conference>();
+		String conferenceFeedQuery = "select data, nazwa from wydarzenie where data >= current_date";
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(conferenceFeedQuery);
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				fetchedDate = rs.getDate(1);
+				name = rs.getString(2);
+				LocalDate date = fetchedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				conferenceFeed.add(new Conference(name, date));
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return conferenceFeed;
+	}
+
+	public int isConferenceValid(Conference c) {
+		int retCode = 0;
+
+		// String login = u.getLogin();
+		// String password = u.getPassword();
+		// String name = u.getName();
+		// String surname = u.getSurname();
+
+		// check some conditions
+		//
+		// if (doesUserExist(login)) {
+		// retCode |= 1;
+		// }
+		//
+		// if (!(login.matches("[a-zA-Z0-9_]*")) || login.length() < 3) {
+		// retCode |= 2;
+		// }
+		//
+		// if (password.length() < 6) {
+		// retCode |= 4;
+		// }
+		//
+		// if (name.length() < 2 || surname.length() < 2) {
+		// retCode |= 8;
+		// }
+
+		return retCode;
 	}
 }

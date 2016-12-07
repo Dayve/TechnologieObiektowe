@@ -27,18 +27,6 @@ public class ApplicationController implements Controllers {
 	@FXML
 	private Button nextMonth;
 
-	@FXML
-	private TextArea nameField;
-	@FXML
-	private TextArea topicField;
-	@FXML
-	private TextArea placeField;
-	@FXML
-	private TextArea descriptionField;
-	@FXML
-	private TextArea planField;
-	
-	
 	@FXML private TableView<Week> calendarTable; // A TableView representing the calendar
 	@FXML private Label currentlyChosenDateLabel;
 	private LocalDate calendarsDate; // It represents the currently selected (clicked) date
@@ -59,19 +47,8 @@ public class ApplicationController implements Controllers {
 		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate);
 	}
 	
-
 	@FXML
 	public void addConferenceBtn(ActionEvent event) {
 		openNewWindow(event, "view/ConferenceCreatorLayout.fxml", 450, 650, false);
 	}
-
-	public void reqAddConference() {
-		System.out.println("tutaj pobieram dane konferencji, pakuje do SocketEvent i wysylam do serwera");
-	}
-
-	public void closeWindow(ActionEvent event) {
-		Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-		stage.close();
-	}
-
 }

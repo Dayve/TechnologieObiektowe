@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -29,7 +30,7 @@ public interface Controllers {
 			e.printStackTrace();
 		}
 	}
-	
+
 	default public void loadScene(Parent parent, String path, int minW, int minH, boolean resizable) {
 		try {
 			Stage sourceStage = (Stage) parent.getScene().getWindow();
@@ -47,7 +48,7 @@ public interface Controllers {
 			e.printStackTrace();
 		}
 	}
-	
+
 	default public void loadScene(ActionEvent event, String path, int minW, int minH, boolean resizable) {
 		try {
 			Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
@@ -90,20 +91,18 @@ public interface Controllers {
 		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
 		FXMLLoader loader = new FXMLLoader();
-		
+
 		loader.setLocation(Client.class.getResource(path));
 		Stage newStage = new Stage();
 		Scene newScene = null;
 		try {
-			System.out.println("before get resource");
 			newScene = new Scene(loader.load());
-			System.out.println("after get resource");
 			newStage.setMaxHeight(minH);
 			newStage.setMaxWidth(minW);
 			newStage.initOwner(SourceStage);
-			
+
 			newStage.setScene(newScene);
-		
+
 			newStage.setResizable(resizable);
 			newStage.showAndWait();
 		} catch (IOException e) {
@@ -111,8 +110,8 @@ public interface Controllers {
 		}
 	}
 
-	default public void closeWindow(ActionEvent event) {
-		Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-		stage.close();
-	}
+	 default public void closeWindow(ActionEvent event) {
+	 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+	 stage.close();
+	 }
 }

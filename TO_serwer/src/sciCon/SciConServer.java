@@ -6,7 +6,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 
+import sciCon.model.Conference;
 import sciCon.model.DbConnection;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
@@ -131,6 +133,43 @@ public class SciConServer implements Runnable {
 			}
 		}
 
+		private void handleConferenceFeed() {
+			ArrayList<Conference> conferenceFeed = dbConn.showConferenceFeed();
+			SocketEvent e = null;
+			// create SocketEvent w ArrayList arg
+			e = new SocketEvent("sendConferenceFeed", conferenceFeed);
+			try {
+				objOut.writeObject(e);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+
+		private void handleAddConference(Conference c) {
+			
+			int validationCode = dbConn.isConferenceValid(c);
+			String message = "";
+			SocketEvent e = null;
+			
+			if (validationCode == 0) { // if conference data is valid
+				if (dbConn.addConference(c)) {
+					message = "Dodano konferencjê.";
+					e = new SocketEvent("addConferenceSucceeded", message);
+				} else {
+					// message will be stated here depending on conditions (validation code)
+					message = ".";
+					e = new SocketEvent("addConferenceFailed", message);
+				}
+			} else { 
+				e = new SocketEvent("addConferenceFailed", message);
+			}
+			try {
+				objOut.writeObject(e);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+		
 		@Override
 		public void run() {
 			try {
@@ -150,6 +189,14 @@ public class SciConServer implements Runnable {
 					case "reqRegister": {
 						User u = e.getObject(User.class);
 						handleRegistration(u);
+						break;
+					}
+					case "reqConferenceFeed": {
+						handleConferenceFeed();
+					}
+					case "reqAddConference": {
+						Conference c = (Conference) e.getObject(Conference.class);
+						handleAddConference(c);
 						break;
 					}
 					default:

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 import oracle.jdbc.pool.OracleDataSource;
 
-public class DbConnection {
+public class DbConnection implements Validator {
 
 	static OracleDataSource ods = null;
 	static Connection conn = null;
@@ -24,6 +24,22 @@ public class DbConnection {
 		}
 	}
 
+	
+	private String reformatHour(String hour) {
+		if (hour.charAt(0) == '0') {
+			hour = hour.replaceFirst("0", "");
+		}
+
+		if (hour.indexOf(":") < 0) {
+			hour = hour.concat(":00");
+		}
+
+		if (hour.length() == 3) {
+			hour = hour.substring(0, 2) + "0" + hour.charAt(3);
+		}
+		return hour;
+	}
+	
 	public boolean doesUserExist(String login) {
 		String loginQuery = "select login from uzytkownik where login = (?)";
 		try {
@@ -105,8 +121,13 @@ public class DbConnection {
 				place = c.getPlace(), description = c.getDescription(), agenda = c.getAgenda();
 		LocalDate date = c.getDate();
 
-		int id = 0;
-		id = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
+		// reformat startTime and endTime from X:X or X or X:X to XX:XX where X
+		// is single digit
+
+		startTime = reformatHour(startTime);
+		endTime = reformatHour(endTime);
+		
+		int id = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
 
 		String addConferenceQuery = "insert into wydarzenie values(?, to_date(?,'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?)";
 
@@ -128,34 +149,6 @@ public class DbConnection {
 			System.out.println("Adding a conference to database has failed.");
 		}
 		return succeeded;
-	}
-
-	public int isUserValid(User u) {
-
-		int retCode = 0;
-
-		String login = u.getLogin();
-		String password = u.getPassword();
-		String name = u.getName();
-		String surname = u.getSurname();
-
-		if (doesUserExist(login)) {
-			retCode |= 1;
-		}
-
-		if (!(login.matches("[a-zA-Z0-9_]*")) || login.length() < 3) {
-			retCode |= 2;
-		}
-
-		if (password.length() < 6) {
-			retCode |= 4;
-		}
-
-		if (name.length() < 2 || surname.length() < 2) {
-			retCode |= 8;
-		}
-
-		return retCode;
 	}
 
 	public boolean registerUser(User u) {
@@ -188,14 +181,20 @@ public class DbConnection {
 		return succeeded;
 	}
 
-	public ArrayList<Conference> showConferenceFeed() {
+	public ArrayList<Conference> showConferenceFeed(Boolean past) { 
 
+		// !past - show present and future conferences
+		
 		Date fetchedDate;
 		String name;
 		ArrayList<Conference> conferenceFeed = new ArrayList<Conference>();
-		String conferenceFeedQuery = "select data, nazwa from wydarzenie where data >= current_date";
+		String conferenceFeedQuery = past ? "select data, nazwa from wydarzenie where data < current_date" :
+			"select data, nazwa from wydarzenie where data >= current_date";
+//		String futureConferenceFeedQuery = "select data, nazwa from wydarzenie where data >= current_date";
+//		String pastConferenceFeedQuery = "select data, nazwa from wydarzenie where data < current_date";
 		try {
-			PreparedStatement pstmt = conn.prepareStatement(conferenceFeedQuery);
+			PreparedStatement pstmt;
+			pstmt = conn.prepareStatement(conferenceFeedQuery);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
 				fetchedDate = rs.getDate(1);
@@ -208,34 +207,5 @@ public class DbConnection {
 			e.printStackTrace();
 		}
 		return conferenceFeed;
-	}
-
-	public int isConferenceValid(Conference c) {
-		int retCode = 0;
-
-		// String login = u.getLogin();
-		// String password = u.getPassword();
-		// String name = u.getName();
-		// String surname = u.getSurname();
-
-		// check some conditions
-		//
-		// if (doesUserExist(login)) {
-		// retCode |= 1;
-		// }
-		//
-		// if (!(login.matches("[a-zA-Z0-9_]*")) || login.length() < 3) {
-		// retCode |= 2;
-		// }
-		//
-		// if (password.length() < 6) {
-		// retCode |= 4;
-		// }
-		//
-		// if (name.length() < 2 || surname.length() < 2) {
-		// retCode |= 8;
-		// }
-
-		return retCode;
 	}
 }

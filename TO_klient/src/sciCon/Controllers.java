@@ -20,6 +20,7 @@ public interface Controllers {
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(Client.class.getResource(path));
 			Parent layout = (Parent) loader.load();
+			stage.hide();
 			stage.setMinWidth(minW);
 			stage.setMinHeight(minH);
 			stage.setResizable(resizable);
@@ -34,6 +35,7 @@ public interface Controllers {
 	default public void loadScene(Parent parent, String path, int minW, int minH, boolean resizable) {
 		try {
 			Stage sourceStage = (Stage) parent.getScene().getWindow();
+			sourceStage.hide();
 			sourceStage.setMinWidth(minW);
 			sourceStage.setMinHeight(minH);
 			sourceStage.setResizable(resizable);
@@ -41,7 +43,6 @@ public interface Controllers {
 			loader.setLocation(Client.class.getResource(path));
 			Parent layout = (Parent) loader.load();
 			Scene scene = new Scene(layout);
-
 			sourceStage.setScene(scene);
 			sourceStage.show();
 		} catch (IOException e) {
@@ -52,14 +53,14 @@ public interface Controllers {
 	default public void loadScene(ActionEvent event, String path, int minW, int minH, boolean resizable) {
 		try {
 			Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+			FXMLLoader loader = new FXMLLoader();
+			Parent layout = (Parent) loader.load();
+			sourceStage.hide();
+			Scene scene = new Scene(layout);
 			sourceStage.setMinWidth(minW);
 			sourceStage.setMinHeight(minH);
 			sourceStage.setResizable(resizable);
-			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(Client.class.getResource(path));
-			Parent layout = (Parent) loader.load();
-			Scene scene = new Scene(layout);
-
 			sourceStage.setScene(scene);
 			sourceStage.show();
 		} catch (IOException e) {

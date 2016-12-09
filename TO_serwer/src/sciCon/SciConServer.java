@@ -12,6 +12,7 @@ import sciCon.model.Conference;
 import sciCon.model.DbConnection;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
+import sciCon.model.Validator;
 
 public class SciConServer implements Runnable {
 	private ServerSocket listener;
@@ -46,7 +47,7 @@ public class SciConServer implements Runnable {
 		}
 	}
 
-	private class ServerImplementation implements Runnable {
+	private class ServerImplementation implements Runnable, Validator {
 		private Socket s;
 		private ObjectInputStream objIn;
 		private ObjectOutputStream objOut;
@@ -69,48 +70,31 @@ public class SciConServer implements Runnable {
 
 		private void handleRegistration(User u) {
 			SocketEvent e = null;
-			int validationCode = dbConn.isUserValid(u); // 0 - login is valid
+			
+			int validationCode = isUserValid(u); // 0 - login is valid
+			String socketEvtName = "registerFailed";
 			String message = "";
-
-			if ((validationCode & 1) == 1) {
-				if (message != "") {
-					message += "\n";
+			
+			if (dbConn.doesUserExist(u.getLogin())) {
+				message = "Login jest juÅ¼ w uÅ¼yciu.";
+			} else {
+				
+				message = interpretValidationCode(validationCode,
+						"Zarejestrowano",
+						"Login musi mieÄ‡ co najmniej 3 znaki i skÅ‚adaÄ‡ siÄ™ z liter, cyfr lub znaku \"_\".",
+						"HasÅ‚o musi mieÄ‡ co najmniej 6 znakÃ³w.",
+						"ImiÄ™ i nazwisko muszÄ… mieÄ‡ co najmniej po 2 znaki.");
+				
+				if (validationCode == 0) {
+					if(!dbConn.registerUser(u)) {
+						message = "Rejestracja nie powiodÅ‚a siÄ™. BÅ‚Ä…d serwera.";
+					} else {
+						socketEvtName = "registerSucceeded";
+					}
 				}
-				message += "Login jest ju¿ w u¿yciu.";
 			}
-
-			if ((validationCode & 2) == 2) {
-				if (message != "") {
-					message += "\n";
-				}
-				message += "Login musi mieæ co najmniej 3 znaki i sk³adaæ siê z liter, cyfr lub znaku \"_\".";
-			}
-
-			if ((validationCode & 4) == 4) {
-				if (message != "") {
-					message += "\n";
-				}
-				message += "Has³o musi mieæ co najmniej 6 znaków.";
-			}
-
-			if ((validationCode & 8) == 8) {
-				if (message != "") {
-					message += "\n";
-				}
-				message += "Imiê i nazwisko musz¹ mieæ co najmniej po 2 znaki.";
-			}
-			if (validationCode == 0) { // if user data is valid
-				if (dbConn.registerUser(u)) {
-					message = "Zarejestrowano.";
-					e = new SocketEvent("registerSucceeded", message);
-				} else {
-					message = "Rejestracja nie powiod³a siê. Spróbuj póŸniej.";
-					e = new SocketEvent("registerFailed", message);
-				}
-			} else { // if user data is invalid
-				e = new SocketEvent("registerSucceeded", message);
-			}
-
+			
+			e = new SocketEvent(socketEvtName, message);
 			try {
 				objOut.writeObject(e);
 			} catch (IOException e1) {
@@ -118,6 +102,38 @@ public class SciConServer implements Runnable {
 			}
 		}
 
+private void handleAddConference(Conference c) {
+			
+			int validationCode = isConferenceValid(c);
+			String socketEvtName = "addConferenceFailed";
+			String message = "";
+			SocketEvent e = null;
+		
+			message = interpretValidationCode(validationCode,
+					"Dodano konferencjÄ™.",
+					"Data jest niepoprawna.",
+					"Niepoprawny format godziny.",
+					"Godzina jest niepoprawna."
+					);
+		
+			if (validationCode == 0) { // if conference data is valid
+				if (!dbConn.addConference(c)) {
+					message = "Nie udaÅ‚o siÄ™ dodaÄ‡ konferencji. BÅ‚Ä…d serwera.";
+				} else {
+					socketEvtName = "addConferenceSucceeded";
+				}
+			}
+			
+			e = new SocketEvent(socketEvtName, message);
+			System.out.println(socketEvtName + ", " + message);
+			
+			try {
+				objOut.writeObject(e);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+	
 		private void handleLogin(User u) {
 			SocketEvent e = null;
 			int userId = dbConn.doLoginAndPasswordMatch(u.getLogin(), u.getPassword());
@@ -133,8 +149,8 @@ public class SciConServer implements Runnable {
 			}
 		}
 
-		private void handleConferenceFeed() {
-			ArrayList<Conference> conferenceFeed = dbConn.showConferenceFeed();
+		private void handleConferenceFeed(boolean past) {
+			ArrayList<Conference> conferenceFeed = dbConn.showConferenceFeed(past);
 			SocketEvent e = null;
 			// create SocketEvent w ArrayList arg
 			e = new SocketEvent("sendConferenceFeed", conferenceFeed);
@@ -145,30 +161,7 @@ public class SciConServer implements Runnable {
 			}
 		}
 
-		private void handleAddConference(Conference c) {
-			
-			int validationCode = dbConn.isConferenceValid(c);
-			String message = "";
-			SocketEvent e = null;
-			
-			if (validationCode == 0) { // if conference data is valid
-				if (dbConn.addConference(c)) {
-					message = "Dodano konferencjê.";
-					e = new SocketEvent("addConferenceSucceeded", message);
-				} else {
-					// message will be stated here depending on conditions (validation code)
-					message = ".";
-					e = new SocketEvent("addConferenceFailed", message);
-				}
-			} else { 
-				e = new SocketEvent("addConferenceFailed", message);
-			}
-			try {
-				objOut.writeObject(e);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-		}
+		
 		
 		@Override
 		public void run() {
@@ -192,7 +185,8 @@ public class SciConServer implements Runnable {
 						break;
 					}
 					case "reqConferenceFeed": {
-						handleConferenceFeed();
+						boolean past = e.getObject(boolean.class);
+						handleConferenceFeed(past);
 					}
 					case "reqAddConference": {
 						Conference c = (Conference) e.getObject(Conference.class);

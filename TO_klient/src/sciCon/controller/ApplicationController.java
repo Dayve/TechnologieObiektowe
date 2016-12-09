@@ -49,6 +49,6 @@ public class ApplicationController implements Controllers {
 	
 	@FXML
 	public void addConferenceBtn(ActionEvent event) {
-		openNewWindow(event, "view/ConferenceCreatorLayout.fxml", 450, 650, false);
+		openNewWindow(event, "view/ConferenceCreatorLayout.fxml", 600, 650, false);
 	}
 }

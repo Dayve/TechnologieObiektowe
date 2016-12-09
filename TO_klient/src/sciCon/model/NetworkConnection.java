@@ -45,7 +45,6 @@ private static Socket s = null;
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} NetworkConnection.connect(address, port);
 		} catch (IOException e) {

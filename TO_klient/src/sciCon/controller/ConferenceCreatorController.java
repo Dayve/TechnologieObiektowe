@@ -40,7 +40,7 @@ public class ConferenceCreatorController implements Controllers {
 			        "00", "01", "02", "03", "04", "05", "06",
 			        "07", "08", "09", "10", "11", "12", "13",
 			        "14", "15", "16", "17", "18", "19", "20",
-			        "21", "22", "23", "24"
+			        "21", "22", "23"
 			    );
 		ObservableList<String> minutes = 
 			    FXCollections.observableArrayList(
@@ -60,9 +60,9 @@ public class ConferenceCreatorController implements Controllers {
 		String subject = subjectField.getText();
 		LocalDate date = dateField.getValue();
 		String startTime = startHr.getSelectionModel().getSelectedItem() + 
-				":" + startMin.getSelectionModel().getSelectedItem();
+				"." + startMin.getSelectionModel().getSelectedItem();
 		String endTime = endHr.getSelectionModel().getSelectedItem() + 
-				":" + endMin.getSelectionModel().getSelectedItem();
+				"." + endMin.getSelectionModel().getSelectedItem();
 		String place = placeField.getText();
 		String description = descriptionField.getText();
 		String agenda = agendaField.getText();

@@ -3,6 +3,7 @@ package sciCon.model;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import oracle.jdbc.pool.OracleDataSource;
@@ -22,22 +23,6 @@ public class DbConnection implements Validator {
 		} catch (SQLException e) {
 			System.out.println("Failed to connect to database.");
 		}
-	}
-
-	
-	private String reformatHour(String hour) {
-		if (hour.charAt(0) == '0') {
-			hour = hour.replaceFirst("0", "");
-		}
-
-		if (hour.indexOf(":") < 0) {
-			hour = hour.concat(":00");
-		}
-
-		if (hour.length() == 3) {
-			hour = hour.substring(0, 2) + "0" + hour.charAt(3);
-		}
-		return hour;
 	}
 	
 	public boolean doesUserExist(String login) {
@@ -120,12 +105,6 @@ public class DbConnection implements Validator {
 		String name = c.getName(), subject = c.getSubject(), startTime = c.getStartTime(), endTime = c.getEndTime(),
 				place = c.getPlace(), description = c.getDescription(), agenda = c.getAgenda();
 		LocalDate date = c.getDate();
-
-		// reformat startTime and endTime from X:X or X or X:X to XX:XX where X
-		// is single digit
-
-		startTime = reformatHour(startTime);
-		endTime = reformatHour(endTime);
 		
 		int id = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
 
@@ -181,11 +160,11 @@ public class DbConnection implements Validator {
 		return succeeded;
 	}
 
-	public ArrayList<Conference> showConferenceFeed(Boolean past) { 
+	public ArrayList<Conference> fetchConferenceFeed(Boolean past) {
 
 		// !past - show present and future conferences
 		
-		Date fetchedDate;
+		String fetchedDate;
 		String name;
 		ArrayList<Conference> conferenceFeed = new ArrayList<Conference>();
 		String conferenceFeedQuery = past ? "select data, nazwa from wydarzenie where data < current_date" :
@@ -197,9 +176,14 @@ public class DbConnection implements Validator {
 			pstmt = conn.prepareStatement(conferenceFeedQuery);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
-				fetchedDate = rs.getDate(1);
+				fetchedDate = rs.getString(1).substring(0, 10);
 				name = rs.getString(2);
-				LocalDate date = fetchedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+				LocalDate date = LocalDate.parse(fetchedDate, formatter);
+				
+//				LocalDate date = new LocalDate(fetchedDate);
+//				LocalDate date = fetchedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 				conferenceFeed.add(new Conference(name, date));
 			}
 			pstmt.close();

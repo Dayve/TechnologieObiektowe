@@ -111,10 +111,9 @@ private void handleAddConference(Conference c) {
 		
 			message = interpretValidationCode(validationCode,
 					"Dodano konferencję.",
-					"Data jest niepoprawna.",
-					"Niepoprawny format godziny.",
-					"Godzina jest niepoprawna."
-					);
+					"Należy wypełnić wszystkie pola z godziną.",
+					"Podaj czas rozpoczęcia późniejszy niż obecny.",
+					"Konferencja nie może kończyć się wcześniej niż się zaczyna.");
 		
 			if (validationCode == 0) { // if conference data is valid
 				if (!dbConn.addConference(c)) {
@@ -125,7 +124,6 @@ private void handleAddConference(Conference c) {
 			}
 			
 			e = new SocketEvent(socketEvtName, message);
-			System.out.println(socketEvtName + ", " + message);
 			
 			try {
 				objOut.writeObject(e);
@@ -150,10 +148,10 @@ private void handleAddConference(Conference c) {
 		}
 
 		private void handleConferenceFeed(boolean past) {
-			ArrayList<Conference> conferenceFeed = dbConn.showConferenceFeed(past);
+			ArrayList<Conference> conferenceFeed = dbConn.fetchConferenceFeed(past);
 			SocketEvent e = null;
 			// create SocketEvent w ArrayList arg
-			e = new SocketEvent("sendConferenceFeed", conferenceFeed);
+			e = new SocketEvent("fetchConferenceFeed", conferenceFeed);
 			try {
 				objOut.writeObject(e);
 			} catch (IOException e1) {
@@ -161,8 +159,6 @@ private void handleAddConference(Conference c) {
 			}
 		}
 
-		
-		
 		@Override
 		public void run() {
 			try {
@@ -185,8 +181,10 @@ private void handleAddConference(Conference c) {
 						break;
 					}
 					case "reqConferenceFeed": {
-						boolean past = e.getObject(boolean.class);
+						Boolean past = false;
+						past = Boolean.valueOf(e.getObject(Boolean.class));
 						handleConferenceFeed(past);
+						break;
 					}
 					case "reqAddConference": {
 						Conference c = (Conference) e.getObject(Conference.class);

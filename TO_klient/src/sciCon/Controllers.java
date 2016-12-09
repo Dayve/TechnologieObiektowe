@@ -88,7 +88,7 @@ public interface Controllers {
 		new Thread((Runnable) worker).start();
 	}
 
-	default public void openNewWindow(ActionEvent event, String path, int minW, int minH, boolean resizable) {
+	default public void openNewWindow(ActionEvent event, String path, int minW, int minH, boolean resizable, String title) {
 		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
 		FXMLLoader loader = new FXMLLoader();
@@ -105,6 +105,9 @@ public interface Controllers {
 			newStage.setScene(newScene);
 
 			newStage.setResizable(resizable);
+			if(title != null) {
+				newStage.setTitle(title);
+			}
 			newStage.showAndWait();
 		} catch (IOException e) {
 			e.printStackTrace();

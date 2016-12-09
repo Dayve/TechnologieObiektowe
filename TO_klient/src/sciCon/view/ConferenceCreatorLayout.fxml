@@ -11,37 +11,32 @@
 
 <AnchorPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.ConferenceCreatorController">
    <children>
-      <Button layoutX="342.0" layoutY="540.0" mnemonicParsing="false" onAction="#addConferenceBtn" text="Dodaj" />
-      <Button layoutX="181.0" layoutY="540.0" mnemonicParsing="false" onAction="#closeWindowBtn" text="Zamknij okno" />
-      <Label layoutX="133.0" layoutY="15.0" text="Dodawanie konferencji">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Label>
-      <Label layoutX="56.0" layoutY="80.0" text="Nazwa:" />
-      <Label layoutX="58.0" layoutY="120.0" text="Temat:" />
-      <Label layoutX="51.0" layoutY="200.0" text="Miejsce:" />
-      <Label layoutX="67.0" layoutY="280.0" text="Opis:" />
-      <Label layoutX="68.0" layoutY="400.0" text="Plan:" />
-      <Label layoutX="14.0" layoutY="160.0" text="Data i godzina:" />
-      <Label layoutX="213.0" layoutY="160.0" text="godz." />
-      <Label layoutX="371.0" layoutY="160.0" text="do" />
-      <TextField fx:id="nameField" layoutX="109.0" layoutY="76.0" prefWidth="400.0" />
-      <TextField fx:id="subjectField" layoutX="109.0" layoutY="116.0" prefWidth="400.0" />
-      <TextArea fx:id="placeField" layoutX="109.0" layoutY="197.0" prefHeight="60.0" prefWidth="400.0" wrapText="true" />
-      <TextArea fx:id="descriptionField" layoutX="109.0" layoutY="280.0" prefHeight="110.0" prefWidth="400.0" wrapText="true" />
-      <TextArea fx:id="agendaField" layoutX="109.0" layoutY="400.0" prefHeight="110.0" prefWidth="400.0" wrapText="true" />
-      <DatePicker fx:id="dateField" layoutX="109.0" layoutY="155.0" prefWidth="100.0" />
-      <Label fx:id="controlLabel" alignment="CENTER" layoutX="50.0" layoutY="45.0" prefWidth="350.0">
+      <Button layoutX="342.0" layoutY="550.0" mnemonicParsing="false" onAction="#addConferenceBtn" text="Dodaj" />
+      <Button layoutX="181.0" layoutY="549.0" mnemonicParsing="false" onAction="#closeWindowBtn" text="Zamknij okno" />
+      <Label layoutX="56.0" layoutY="84.0" text="Nazwa:" />
+      <Label layoutX="58.0" layoutY="124.0" text="Temat:" />
+      <Label layoutX="51.0" layoutY="204.0" text="Miejsce:" />
+      <Label layoutX="67.0" layoutY="284.0" text="Opis:" />
+      <Label layoutX="68.0" layoutY="404.0" text="Plan:" />
+      <Label layoutX="14.0" layoutY="164.0" text="Data i godzina:" />
+      <Label layoutX="213.0" layoutY="164.0" text="godz." />
+      <Label layoutX="371.0" layoutY="164.0" text="do" />
+      <TextField fx:id="nameField" layoutX="109.0" layoutY="80.0" prefWidth="400.0" />
+      <TextField fx:id="subjectField" layoutX="109.0" layoutY="120.0" prefWidth="400.0" />
+      <TextArea fx:id="placeField" layoutX="109.0" layoutY="201.0" prefHeight="60.0" prefWidth="400.0" wrapText="true" />
+      <TextArea fx:id="descriptionField" layoutX="109.0" layoutY="284.0" prefHeight="110.0" prefWidth="400.0" wrapText="true" />
+      <TextArea fx:id="agendaField" layoutX="109.0" layoutY="404.0" prefHeight="110.0" prefWidth="400.0" wrapText="true" />
+      <DatePicker fx:id="dateField" layoutX="109.0" layoutY="159.0" prefWidth="100.0" />
+      <Label fx:id="controlLabel" alignment="CENTER" layoutX="45.0" layoutY="20.0" prefHeight="45.0" prefWidth="510.0" textAlignment="CENTER" wrapText="true">
          <font>
             <Font size="13.0" />
          </font>
       </Label>
-      <Label layoutX="305.0" layoutY="160.0" text=":" />
-      <ComboBox fx:id="startHr" layoutX="246.0" layoutY="156.0" prefHeight="25.0" prefWidth="55.0" />
-      <ComboBox fx:id="startMin" layoutX="311.0" layoutY="156.0" prefHeight="25.0" prefWidth="55.0" />
-      <Label layoutX="448.0" layoutY="160.0" text=":" />
-      <ComboBox fx:id="endHr" layoutX="390.0" layoutY="156.0" prefHeight="25.0" prefWidth="55.0" />
-      <ComboBox fx:id="endMin" layoutX="454.0" layoutY="156.0" prefHeight="25.0" prefWidth="55.0" />
+      <Label layoutX="305.0" layoutY="164.0" text=":" />
+      <ComboBox fx:id="startHr" layoutX="246.0" layoutY="160.0" prefHeight="25.0" prefWidth="55.0" />
+      <ComboBox fx:id="startMin" layoutX="311.0" layoutY="160.0" prefHeight="25.0" prefWidth="55.0" />
+      <Label layoutX="448.0" layoutY="164.0" text=":" />
+      <ComboBox fx:id="endHr" layoutX="390.0" layoutY="160.0" prefHeight="25.0" prefWidth="55.0" />
+      <ComboBox fx:id="endMin" layoutX="454.0" layoutY="160.0" prefHeight="25.0" prefWidth="55.0" />
    </children>
 </AnchorPane>

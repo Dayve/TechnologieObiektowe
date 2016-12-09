@@ -1,6 +1,7 @@
 package sciCon.model;
 
 import java.time.LocalDate;
+import java.util.Calendar;
 
 public interface Validator {
 	default public int isConferenceValid(Conference c) {
@@ -8,34 +9,34 @@ public interface Validator {
 
 		String startTime = c.getStartTime();
 		String endTime = c.getEndTime();
-		LocalDate date = c.getDate();
-		double dStart = 0;
-		double dEnd = 0;
-
-		if (date.isBefore(LocalDate.now())) {
-			retCode |= 1;
-		}
-
-		if (startTime.indexOf(":") > 0) {
-			startTime = startTime.replaceFirst(":", ".");
+		
+		if(startTime.length() != 5 || endTime.length() != 5) {
+			return 1; // user didn't fill at least one hour combo box
 		}
 		
-		dStart = Float.parseFloat(startTime);
+		LocalDate date = c.getDate();
+		
+		Calendar cal = Calendar.getInstance();
+		int hourNow = cal.get(Calendar.HOUR_OF_DAY);
+		int minNow = cal.get(Calendar.MINUTE);
+		
+		int startHr = Integer.parseInt(startTime.substring(0, 2));
+		int startMin = Integer.parseInt(startTime.substring(3, 5));
+		int endHr = Integer.parseInt(endTime.substring(0, 2));
+		int endMin = Integer.parseInt(endTime.substring(3, 5));
 
-		if (endTime.indexOf(":") > 0) {
-			endTime = endTime.replaceFirst(":", ".");
-		}
-
-		dEnd = Float.parseFloat(endTime);
-
-		if (dStart >= dEnd) {
+		//the start time is less than one hour from now
+		if (date.isBefore(LocalDate.now()) ||  // posted date is before now
+				(date.isEqual(LocalDate.now()) && (startHr < hourNow || 
+						(startHr == hourNow && startMin < minNow)))) {
 			retCode |= 2;
 		}
 
-		if (dStart >= 24.00 || dEnd >= 24.00) {
+		//starts later than finishes
+		if (startHr > endHr || (startHr == endHr && startMin > endMin)) {
 			retCode |= 4;
 		}
-
+		
 		return retCode;
 	}
 
@@ -66,22 +67,20 @@ public interface Validator {
 	default public String interpretValidationCode(int validationCode, String... messages) {
 		String retMessage = "";
 		int messagesLength = messages.length;
-
+		int bit = 1;
+		
 		if (validationCode == 0) {
 			retMessage = messages[0];
 		} else {
-			for (int i = 1; i < messagesLength; i++) {
-
+			for (int counter = 1; counter < messagesLength; bit *= 2, counter++) {
 				// if bit is 1 then append corresponding message from arguments
-				if ((validationCode & i) == i) {
-					retMessage += messages[i] + " \n";
+				if ((validationCode & bit) == bit) {
+					retMessage += messages[counter] + " \n";
 				}
-
-				// remove the last character ("\n")
-				if(retMessage.length() > 0 && retMessage.charAt(retMessage.length() - 1) == '\n') {
-					retMessage = retMessage.substring(0, retMessage.length() - 1);
-				}
-				
+			}
+			// remove the last character ("\n") if there is one or more message
+			if(retMessage.length() > 0 && retMessage.charAt(retMessage.length() - 1) == '\n') {
+				retMessage = retMessage.substring(0, retMessage.length() - 1);
 			}
 		}
 		return retMessage;

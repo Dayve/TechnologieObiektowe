@@ -1,15 +1,18 @@
-package sciCon;
+package sciCon.model;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import sciCon.Client;
+import sciCon.controller.AlertController;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 
@@ -50,7 +53,7 @@ public interface Controllers {
 		}
 	}
 
-	default public void loadScene(ActionEvent event, String path, int minW, int minH, boolean resizable) {
+	default public void loadScene(Event event, String path, int minW, int minH, boolean resizable) {
 		try {
 			Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 			FXMLLoader loader = new FXMLLoader();
@@ -88,7 +91,8 @@ public interface Controllers {
 		new Thread((Runnable) worker).start();
 	}
 
-	default public void openNewWindow(ActionEvent event, String path, int minW, int minH, boolean resizable, String title) {
+	default public void openNewWindow(Event event, String path, int minW, int minH, boolean resizable,
+			String title) {
 		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
 		FXMLLoader loader = new FXMLLoader();
@@ -105,7 +109,7 @@ public interface Controllers {
 			newStage.setScene(newScene);
 
 			newStage.setResizable(resizable);
-			if(title != null) {
+			if (title != null) {
 				newStage.setTitle(title);
 			}
 			newStage.showAndWait();
@@ -114,8 +118,30 @@ public interface Controllers {
 		}
 	}
 
-	 default public void closeWindow(ActionEvent event) {
-	 Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-	 stage.close();
-	 }
+	default public void openAlert(Event event, String message) {
+		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+		FXMLLoader loader = new FXMLLoader();
+		loader.setLocation(Client.class.getResource("view/AlertLayout.fxml"));
+		Stage newStage = new Stage();
+		Scene newScene = null;
+		try {
+			newScene = new Scene(loader.load());
+			newStage.setMaxHeight(320);
+			newStage.setMaxWidth(400);
+			newStage.initOwner(SourceStage);
+			newStage.setScene(newScene);
+			newStage.setResizable(false);
+			newStage.setTitle("Powiadomienie");
+			AlertController controller = loader.<AlertController>getController();
+			controller.setAlertText(message);
+			newStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	default public void closeWindow(Event event) {
+		Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+		stage.close();
+	}
 }

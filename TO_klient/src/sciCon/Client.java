@@ -2,6 +2,7 @@ package sciCon;
 import java.sql.SQLException;
 import javafx.application.Application;
 import javafx.stage.Stage;
+import sciCon.model.Controllers;
 import sciCon.model.NetworkConnection;
 
 public class Client extends Application implements Controllers {

@@ -6,14 +6,15 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import sciCon.Controllers;
 import sciCon.model.Conference;
+import sciCon.model.Controllers;
 import sciCon.model.NetworkConnection;
 import sciCon.model.SocketEvent;
 
@@ -29,8 +30,8 @@ public class ConferenceCreatorController implements Controllers {
 	@FXML private TextArea placeField;
 	@FXML private TextArea descriptionField;
 	@FXML private TextArea agendaField;
-	@FXML private Label controlLabel;
 	
+	private Event sharedEvent;
 	private String message;
 	
 	@FXML
@@ -86,14 +87,15 @@ public class ConferenceCreatorController implements Controllers {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				controlLabel.setText(message);
+				openAlert(sharedEvent, message);
 			}
 		});
 
 	}
 
 	@FXML
-	public void addConferenceBtn() {
+	public void addConferenceBtn(Event evt) {
+		sharedEvent = evt;
 		java.lang.reflect.Method m = null;
 		try {
 			m = ConferenceCreatorController.class.getMethod("reqAddConference");

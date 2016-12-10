@@ -113,7 +113,9 @@ private void handleAddConference(Conference c) {
 					"Dodano konferencję.",
 					"Należy wypełnić wszystkie pola z godziną.",
 					"Podaj czas rozpoczęcia późniejszy niż obecny.",
-					"Konferencja nie może kończyć się wcześniej niż się zaczyna.");
+					"Konferencja nie może kończyć się wcześniej niż się zaczyna.",
+					"Niepoprawnie wprowadzone dane. Nazwa i miejsce: od 3 do 60 znaków. "
+					+ "Temat: od 3 do 40 znaków. Plan nie może być pusty.");
 		
 			if (validationCode == 0) { // if conference data is valid
 				if (!dbConn.addConference(c)) {

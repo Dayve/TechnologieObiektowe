@@ -7,8 +7,8 @@ public interface Validator {
 	default public int isConferenceValid(Conference c) {
 		int retCode = 0;
 
-		String startTime = c.getStartTime();
-		String endTime = c.getEndTime();
+		String name = c.getName(), subject = c.getSubject(), place = c.getPlace(),
+				agenda = c.getAgenda(), startTime = c.getStartTime(), endTime = c.getEndTime();
 		
 		if(startTime.length() != 5 || endTime.length() != 5) {
 			return 1; // user didn't fill at least one hour combo box
@@ -35,6 +35,13 @@ public interface Validator {
 		//starts later than finishes
 		if (startHr > endHr || (startHr == endHr && startMin > endMin)) {
 			retCode |= 4;
+		}
+		
+		if(name.length() < 3 || name.length() > 60 ||
+				subject.length() < 3 || subject.length() > 40 ||
+				place.length() < 3 || place.length() > 60 ||
+				agenda.length() == 0) {
+			retCode |= 8;
 		}
 		
 		return retCode;

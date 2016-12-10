@@ -76,7 +76,7 @@ public class CalendarController{
 	}
 	
 	// Generates day numbers (calendarTable rows) for the year and month currently stored in calendarsDate:
-    public static ObservableList<Week> createThisMonthsWeeksRows(LocalDate calendarsDate){
+    private static ObservableList<Week> createThisMonthsWeeksRows(LocalDate calendarsDate){
         ObservableList<Week> weeksInAMonth = FXCollections.observableArrayList();
         
         int nthDayOfWeekMonthStartsAt = calendarsDate.withDayOfMonth(1).getDayOfWeek().getValue();

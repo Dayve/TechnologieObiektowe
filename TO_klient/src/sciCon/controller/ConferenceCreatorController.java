@@ -10,7 +10,6 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import sciCon.model.Conference;
@@ -48,6 +47,7 @@ public class ConferenceCreatorController implements Controllers {
 			        "00", "05", "10", "15", "20", "25", "30",
 			        "35", "40", "45", "50", "55"
 			    );
+		
 		startHr.getItems().addAll(hours);
 		endHr.getItems().addAll(hours);
 		startMin.getItems().addAll(minutes);

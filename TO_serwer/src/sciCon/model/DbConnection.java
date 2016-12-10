@@ -2,7 +2,6 @@ package sciCon.model;
 
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
@@ -164,27 +163,36 @@ public class DbConnection implements Validator {
 
 		// !past - show present and future conferences
 		
-		String fetchedDate;
-		String name;
+		int id = 0;
+		String name, date, subject, startTime, endTime,
+				place, description, agenda;
 		ArrayList<Conference> conferenceFeed = new ArrayList<Conference>();
-		String conferenceFeedQuery = past ? "select data, nazwa from wydarzenie where data < current_date" :
-			"select data, nazwa from wydarzenie where data >= current_date";
-//		String futureConferenceFeedQuery = "select data, nazwa from wydarzenie where data >= current_date";
-//		String pastConferenceFeedQuery = "select data, nazwa from wydarzenie where data < current_date";
+		String conferenceFeedQuery = past ? "select * from wydarzenie where data < current_date" :
+			"select * from wydarzenie where data >= current_date";
+
 		try {
 			PreparedStatement pstmt;
+			
 			pstmt = conn.prepareStatement(conferenceFeedQuery);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
-				fetchedDate = rs.getString(1).substring(0, 10);
-				name = rs.getString(2);
+				id = rs.getInt(1);
+				date = rs.getString(2).substring(0, 10);
+				name = rs.getString(3);
+				subject = rs.getString(4);
+				place = rs.getString(5);
+				description = rs.getString(6);
+				agenda = rs.getString(7);
+				startTime = rs.getString(8);
+				endTime = rs.getString(9);
 				
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-				LocalDate date = LocalDate.parse(fetchedDate, formatter);
+				LocalDate lDate = LocalDate.parse(date, formatter);
 				
-//				LocalDate date = new LocalDate(fetchedDate);
-//				LocalDate date = fetchedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-				conferenceFeed.add(new Conference(name, date));
+//				conferenceFeed.add(new Conference(id, name, lDate, subject, place, 
+//						description, agenda, startTime, endTime));
+				conferenceFeed.add(new Conference(id, name, lDate, subject, startTime, 
+						endTime, place, description, agenda));
 			}
 			pstmt.close();
 		} catch (SQLException e) {

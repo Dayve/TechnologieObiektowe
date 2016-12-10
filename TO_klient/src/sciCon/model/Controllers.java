@@ -3,9 +3,7 @@ package sciCon.model;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;

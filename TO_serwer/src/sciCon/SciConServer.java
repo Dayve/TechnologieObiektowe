@@ -152,6 +152,7 @@ private void handleAddConference(Conference c) {
 		private void handleConferenceFeed(boolean past) {
 			ArrayList<Conference> conferenceFeed = dbConn.fetchConferenceFeed(past);
 			SocketEvent e = null;
+			
 			// create SocketEvent w ArrayList arg
 			e = new SocketEvent("fetchConferenceFeed", conferenceFeed);
 			try {

@@ -2,30 +2,22 @@ package sciCon.controller;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import sciCon.model.Conference;
 import sciCon.model.Controllers;
 import sciCon.model.NetworkConnection;
 import sciCon.model.SocketEvent;
-import sciCon.model.User;
 import sciCon.model.Week;
 
 public class ApplicationController implements Controllers {
@@ -52,6 +44,7 @@ public class ApplicationController implements Controllers {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void reqConferenceFeed() {
 		
 		Boolean past = false;
@@ -80,6 +73,8 @@ public class ApplicationController implements Controllers {
 	
 	@FXML
 	public void initialize() {
+//		conferenceFeedBox.setPrefWidth(250);
+		conferenceFeedBox.setFillWidth(true);
 		ObservableList<String> feedOptions = 
 			    FXCollections.observableArrayList(
 			        "Nadchodz¹ce konferencje",

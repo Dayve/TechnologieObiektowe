@@ -7,7 +7,16 @@ public class Conference implements Serializable {
 
 	private static final long serialVersionUID = -6259050915073534863L;
 	
+	private int id;
 	private String name;
+	private LocalDate date;
+	private String subject;
+	private String startTime;
+	private String endTime;
+	private String place;
+	private String description;
+	private String agenda;
+	
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
@@ -43,20 +52,18 @@ public class Conference implements Serializable {
 	public String getAgenda() {
 		return agenda;
 	}
-
-	private LocalDate date;
-	private String subject;
-	private String startTime;
-	private String endTime;
-	private String place;
-	private String description;
-	private String agenda;
 	
-	public Conference(String name, LocalDate date) {
-		this.date = date;
-		this.name = name;
+	public int getId() {
+		return id;
 	}
-
+	
+	public Conference(int id, String name, LocalDate date, String subject, String startTime, String endTime, String place,
+			String description, String agenda) {
+		this( name,  date,  subject,  startTime,  endTime,  place,
+				description,  agenda);
+		this.id = id;
+	}
+	
 	public Conference(String name, LocalDate date, String subject, String startTime, String endTime, String place,
 			String description, String agenda) {
 		this.date = date;
@@ -67,5 +74,12 @@ public class Conference implements Serializable {
 		this.place = place;
 		this.description = description;
 		this.agenda = agenda;
+	}
+	
+	@Override
+	public String toString() {
+		return "Data: " + date + "\nTemat: " + subject + "\nCzas rozpoczęcia: " + startTime
+				+ "\nCzas zakończenia: " + endTime + "\nMiejsce: " + place + "\nOpis: " + 
+				description + "\nPlan: " + agenda;
 	}
 }

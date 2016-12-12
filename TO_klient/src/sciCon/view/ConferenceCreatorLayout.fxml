@@ -7,30 +7,59 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="525.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.ConferenceCreatorController">
+<AnchorPane prefHeight="500.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.ConferenceCreatorController">
    <children>
-      <Button layoutX="340.0" layoutY="470.0" mnemonicParsing="false" onAction="#addConferenceBtn" text="Dodaj" />
-      <Button layoutX="180.0" layoutY="470.0" mnemonicParsing="false" onAction="#closeWindowBtn" text="Zamknij okno" />
-      <Label layoutX="56.0" layoutY="34.0" text="Nazwa:" />
-      <Label layoutX="58.0" layoutY="74.0" text="Temat:" />
-      <Label layoutX="51.0" layoutY="154.0" text="Miejsce:" />
-      <Label layoutX="67.0" layoutY="234.0" text="Opis:" />
-      <Label layoutX="68.0" layoutY="354.0" text="Plan:" />
-      <Label layoutX="14.0" layoutY="114.0" text="Data i godzina:" />
-      <Label layoutX="213.0" layoutY="114.0" text="godz." />
-      <Label layoutX="371.0" layoutY="114.0" text="do" />
-      <TextField fx:id="nameField" layoutX="109.0" layoutY="30.0" prefWidth="400.0" />
-      <TextField fx:id="subjectField" layoutX="109.0" layoutY="70.0" prefWidth="400.0" />
-      <TextArea fx:id="placeField" layoutX="109.0" layoutY="150.0" prefHeight="60.0" prefWidth="400.0" wrapText="true" />
-      <TextArea fx:id="descriptionField" layoutX="109.0" layoutY="230.0" prefHeight="100.0" prefWidth="400.0" wrapText="true" />
-      <TextArea fx:id="agendaField" layoutX="109.0" layoutY="350.0" prefHeight="100.0" prefWidth="400.0" wrapText="true" />
-      <DatePicker fx:id="dateField" layoutX="109.0" layoutY="110.0" prefWidth="100.0" />
-      <Label layoutX="305.0" layoutY="114.0" text=":" />
-      <ComboBox fx:id="startHr" layoutX="246.0" layoutY="110.0" prefHeight="25.0" prefWidth="55.0" />
-      <ComboBox fx:id="startMin" layoutX="311.0" layoutY="110.0" prefHeight="25.0" prefWidth="55.0" />
-      <Label layoutX="448.0" layoutY="114.0" text=":" />
-      <ComboBox fx:id="endHr" layoutX="390.0" layoutY="110.0" prefHeight="25.0" prefWidth="55.0" />
-      <ComboBox fx:id="endMin" layoutX="454.0" layoutY="110.0" prefHeight="25.0" prefWidth="55.0" />
+      <Button layoutX="130.0" layoutY="450.0" mnemonicParsing="false" onAction="#closeWindowBtn" prefHeight="30.0" text="Zamknij okno">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <Label layoutX="153.0" layoutY="124.0" text="godz.">
+         <font>
+            <Font size="13.0" />
+         </font></Label>
+      <Label layoutX="312.0" layoutY="124.0" text="do">
+         <font>
+            <Font size="13.0" />
+         </font></Label>
+      <TextField fx:id="nameField" layoutX="50.0" layoutY="30.0" prefHeight="30.0" prefWidth="400.0" promptText="Nazwa konferencji">
+         <font>
+            <Font size="13.0" />
+         </font></TextField>
+      <TextField fx:id="subjectField" layoutX="50.0" layoutY="75.0" prefHeight="30.0" prefWidth="400.0" promptText="Temat konferencji">
+         <font>
+            <Font size="13.0" />
+         </font></TextField>
+      <DatePicker fx:id="dateField" layoutX="50.0" layoutY="120.0" prefHeight="30.0" prefWidth="100.0" />
+      <ComboBox fx:id="startHr" layoutX="187.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
+      <ComboBox fx:id="startMin" layoutX="252.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
+      <ComboBox fx:id="endHr" layoutX="331.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
+      <ComboBox fx:id="endMin" layoutX="395.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
+      <TextArea fx:id="placeField" layoutX="50.0" layoutY="165.0" prefHeight="60.0" prefWidth="400.0" promptText="Miejsce konferencji" wrapText="true">
+         <font>
+            <Font size="13.0" />
+         </font></TextArea>
+      <TextArea fx:id="descriptionField" layoutX="50.0" layoutY="240.0" prefHeight="90.0" prefWidth="400.0" promptText="Opis konferencji" wrapText="true">
+         <font>
+            <Font size="13.0" />
+         </font></TextArea>
+      <TextArea fx:id="agendaField" layoutX="50.0" layoutY="345.0" prefHeight="90.0" prefWidth="400.0" promptText="Plan konferencji" wrapText="true">
+         <font>
+            <Font size="13.0" />
+         </font></TextArea>
+      <Button layoutX="270.0" layoutY="450.0" mnemonicParsing="false" onAction="#addConferenceBtn" prefHeight="30.0" text="Dodaj">
+         <font>
+            <Font size="13.0" />
+         </font></Button>
+      <Label layoutX="246.0" layoutY="124.0" text=":">
+         <font>
+            <Font size="13.0" />
+         </font></Label>
+      <Label layoutX="389.0" layoutY="124.0" text=":">
+         <font>
+            <Font size="13.0" />
+         </font></Label>
    </children>
 </AnchorPane>

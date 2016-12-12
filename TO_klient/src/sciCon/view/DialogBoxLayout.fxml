@@ -6,11 +6,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="280.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.AlertController">
+<AnchorPane prefHeight="280.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.DialogController">
    <children>
       <ScrollPane hbarPolicy="NEVER" layoutX="25.0" layoutY="25.0" prefHeight="200.0" prefWidth="350.0">
          <content>
-            <TextArea fx:id="alertText" editable="false" prefHeight="198.0" prefWidth="350.0" wrapText="true">
+            <TextArea fx:id="dialogMessage" editable="false" prefHeight="198.0" prefWidth="350.0" wrapText="true">
                <font>
                   <Font size="14.0" />
                </font>

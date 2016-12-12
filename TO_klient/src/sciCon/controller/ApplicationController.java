@@ -15,12 +15,13 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.VBox;
 import sciCon.model.Conference;
-import sciCon.model.Controllers;
+import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.SocketEvent;
+import sciCon.model.User;
 import sciCon.model.Week;
 
-public class ApplicationController implements Controllers {
+public class ApplicationController implements Controller {
 
 	@FXML private Button prevMonth;
 	@FXML private Button nextMonth;
@@ -29,6 +30,9 @@ public class ApplicationController implements Controllers {
 	@FXML private VBox conferenceFeedBox;
 	@FXML private ComboBox<String> conferenceFeedCB;
 	@FXML private ComboBox<String> conferenceFeedNumberCB;
+	@FXML private Label loginLabel;
+	
+	private User currentUser;
 	private ArrayList<Conference> feed;
 	private LocalDate calendarsDate; // It represents the currently selected (clicked) date
 	
@@ -53,7 +57,6 @@ public class ApplicationController implements Controllers {
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
 		String eventName = res.getName();
-	
 		
 		if (eventName.equals("fetchConferenceFeed")) {
 			feed = res.getObject(ArrayList.class);
@@ -68,12 +71,28 @@ public class ApplicationController implements Controllers {
 				}
 			}
 		});
+	}
+	
+	public void reqCurrentUser() {
+		SocketEvent e = new SocketEvent("reqCurrentUser");
+		NetworkConnection.sendSocketEvent(e);
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
+		String eventName = res.getName();
+		if(eventName.equals("currentUserSucceeded")) {
+			currentUser = res.getObject(User.class);
+		}
+		
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				loginLabel.setText(currentUser.getLogin());
+			}
+		});
 	}
 	
 	@FXML
 	public void initialize() {
-//		conferenceFeedBox.setPrefWidth(250);
 		conferenceFeedBox.setFillWidth(true);
 		ObservableList<String> feedOptions = 
 			    FXCollections.observableArrayList(
@@ -81,6 +100,7 @@ public class ApplicationController implements Controllers {
 			        "Wszystkie konferencje",
 			        "Zakoñczone konferencje"
 			    );
+		
 		conferenceFeedCB.getItems().addAll(feedOptions);
 		conferenceFeedCB.setValue("Nadchodz¹ce konferencje");
 		
@@ -95,6 +115,14 @@ public class ApplicationController implements Controllers {
 				currentlyChosenDateLabel, calendarsDate);
 		
 		reqConferenceFeed();
+		
+		java.lang.reflect.Method m = null;
+		try {
+			m = ApplicationController.class.getMethod("reqCurrentUser");
+		} catch (NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		runInAnotherThread(m, this);
 	}
 	
 	public void changeMonthToNext() {

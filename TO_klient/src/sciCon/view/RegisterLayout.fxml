@@ -1,24 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="registrationWindow" prefHeight="285.0" prefWidth="320.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.LoginRegisterController">
+<AnchorPane fx:id="registrationWindow" prefHeight="300.0" prefWidth="320.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.LoginRegisterController">
    <children>
-      <TextField fx:id="loginField" layoutX="112.0" layoutY="30.0" prefHeight="25.0" prefWidth="177.0" />
-      <PasswordField fx:id="passwordField" layoutX="112.0" layoutY="70.0" prefHeight="25.0" prefWidth="177.0" />
-      <PasswordField fx:id="passwordRepeatField" layoutX="112.0" layoutY="110.0" prefHeight="25.0" prefWidth="177.0" />
-      <TextField fx:id="nameField" layoutX="112.0" layoutY="150.0" prefHeight="25.0" prefWidth="177.0" />
-      <TextField fx:id="surnameField" layoutX="112.0" layoutY="190.0" prefHeight="25.0" prefWidth="177.0" />
-      <Button layoutX="188.0" layoutY="230.0" mnemonicParsing="false" onAction="#registerBtn" onKeyReleased="#registerBtnEnterKey" text="Rejestruj" />
-      <Button layoutX="112.0" layoutY="230.0" mnemonicParsing="false" onAction="#goToLogin" onKeyReleased="#cancelBtnEnterKey" text="Anuluj" />
-      <Label layoutX="65.0" layoutY="72.0" text="Hasło:" />
-      <Label layoutX="65.0" layoutY="32.0" text="Login:" />
-      <Label layoutX="20.0" layoutY="112.0" text="Powtórz hasło:" />
-      <Label layoutX="69.0" layoutY="154.0" text="Imię:" />
-      <Label layoutX="45.0" layoutY="194.0" text="Nazwisko:" />
+      <Button layoutX="85.0" layoutY="250.0" mnemonicParsing="false" onAction="#goToLogin" onKeyReleased="#cancelBtnEnterKey" text="Anuluj">
+         <font>
+            <Font size="13.0" />
+         </font></Button>
+      <TextField fx:id="loginField" layoutX="50.0" layoutY="25.0" prefHeight="30.0" prefWidth="220.0" promptText="Login">
+         <font>
+            <Font size="13.0" />
+         </font></TextField>
+      <PasswordField fx:id="passwordField" layoutX="50.0" layoutY="70.0" prefHeight="30.0" prefWidth="220.0" promptText="Hasło">
+         <font>
+            <Font size="13.0" />
+         </font></PasswordField>
+      <PasswordField fx:id="passwordRepeatField" layoutX="50.0" layoutY="115.0" prefHeight="30.0" prefWidth="220.0" promptText="Powtórz hasło">
+         <font>
+            <Font size="13.0" />
+         </font></PasswordField>
+      <TextField fx:id="nameField" layoutX="50.0" layoutY="160.0" prefHeight="30.0" prefWidth="220.0" promptText="Imię">
+         <font>
+            <Font size="13.0" />
+         </font></TextField>
+      <TextField fx:id="surnameField" layoutX="50.0" layoutY="205.0" prefHeight="30.0" prefWidth="220.0" promptText="Nazwisko">
+         <font>
+            <Font size="13.0" />
+         </font></TextField>
+      <Button layoutX="168.0" layoutY="250.0" mnemonicParsing="false" onAction="#registerBtn" onKeyReleased="#registerBtnEnterKey" text="Rejestruj">
+         <font>
+            <Font size="13.0" />
+         </font></Button>
    </children>
 </AnchorPane>

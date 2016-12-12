@@ -10,20 +10,22 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import sciCon.Client;
-import sciCon.controller.AlertController;
+import sciCon.controller.DialogController;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
 
-public interface Controllers {
+public interface Controller {
 
-	default public void loadScene(Stage stage, String path, int minW, int minH, boolean resizable) {
+	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {
 		try {
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(Client.class.getResource(path));
 			Parent layout = (Parent) loader.load();
 			stage.hide();
+			stage.setWidth(w);
+			stage.setHeight(h + 25);
 			stage.setMinWidth(minW);
-			stage.setMinHeight(minH);
+			stage.setMinHeight(minH + 25);
 			stage.setResizable(resizable);
 			Scene scene = new Scene(layout);
 			stage.setScene(scene);
@@ -33,40 +35,14 @@ public interface Controllers {
 		}
 	}
 
-	default public void loadScene(Parent parent, String path, int minW, int minH, boolean resizable) {
-		try {
+	default public void loadScene(Parent parent, String path, int w, int h, boolean resizable, int minW, int minH) {
 			Stage sourceStage = (Stage) parent.getScene().getWindow();
-			sourceStage.hide();
-			sourceStage.setMinWidth(minW);
-			sourceStage.setMinHeight(minH);
-			sourceStage.setResizable(resizable);
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(Client.class.getResource(path));
-			Parent layout = (Parent) loader.load();
-			Scene scene = new Scene(layout);
-			sourceStage.setScene(scene);
-			sourceStage.show();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
-	default public void loadScene(Event event, String path, int minW, int minH, boolean resizable) {
-		try {
+	default public void loadScene(Event event, String path, int w, int h, boolean resizable, int minW, int minH) {
 			Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-			FXMLLoader loader = new FXMLLoader();
-			Parent layout = (Parent) loader.load();
-			sourceStage.hide();
-			Scene scene = new Scene(layout);
-			sourceStage.setMinWidth(minW);
-			sourceStage.setMinHeight(minH);
-			sourceStage.setResizable(resizable);
-			loader.setLocation(Client.class.getResource(path));
-			sourceStage.setScene(scene);
-			sourceStage.show();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
 	default public void runInAnotherThread(java.lang.reflect.Method method, Object destinationObject, Object... args) {
@@ -85,13 +61,11 @@ public interface Controllers {
 				return null;
 			}
 		};
-
 		new Thread((Runnable) worker).start();
 	}
 
-	default public void openNewWindow(Event event, String path, int minW, int minH, boolean resizable,
+	default public void openNewWindow(Stage SourceStage, String path, int minW, int minH, boolean resizable,
 			String title) {
-		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
 		FXMLLoader loader = new FXMLLoader();
 
@@ -100,7 +74,7 @@ public interface Controllers {
 		Scene newScene = null;
 		try {
 			newScene = new Scene(loader.load());
-			newStage.setMaxHeight(minH);
+			newStage.setMaxHeight(minH + 25);
 			newStage.setMaxWidth(minW);
 			newStage.initOwner(SourceStage);
 
@@ -115,23 +89,32 @@ public interface Controllers {
 			e.printStackTrace();
 		}
 	}
+	
+	default public void openNewWindow(Event event, String path, int minW, int minH, boolean resizable,
+			String title) {
+		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-	default public void openAlert(Event event, String message) {
+		openNewWindow(SourceStage, path, minW, minH, resizable, title);
+	}
+	
+	
+
+	default public void openDialogBox(Event event, String message) {
 		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(Client.class.getResource("view/AlertLayout.fxml"));
+		loader.setLocation(Client.class.getResource("view/DialogBoxLayout.fxml"));
 		Stage newStage = new Stage();
 		Scene newScene = null;
 		try {
 			newScene = new Scene(loader.load());
-			newStage.setMaxHeight(320);
+			newStage.setMaxHeight(305);
 			newStage.setMaxWidth(400);
 			newStage.initOwner(SourceStage);
 			newStage.setScene(newScene);
 			newStage.setResizable(false);
 			newStage.setTitle("Powiadomienie");
-			AlertController controller = loader.<AlertController>getController();
-			controller.setAlertText(message);
+			DialogController controller = loader.<DialogController>getController();
+			controller.setDialogMessage(message);
 			newStage.showAndWait();
 		} catch (IOException e) {
 			e.printStackTrace();

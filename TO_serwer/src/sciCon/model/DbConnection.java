@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 import oracle.jdbc.pool.OracleDataSource;
 
-public class DbConnection implements Validator {
+public class DbConnection {
 
 	static OracleDataSource ods = null;
 	static Connection conn = null;

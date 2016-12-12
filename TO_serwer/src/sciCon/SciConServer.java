@@ -161,6 +161,19 @@ private void handleAddConference(Conference c) {
 				e1.printStackTrace();
 			}
 		}
+		
+		private void handleSendCurrentUser() {
+			User currentUser = new User("loginas", null);
+			SocketEvent e = null;
+			
+			e = new SocketEvent("currentUserSucceeded", currentUser);
+			
+			try {
+				objOut.writeObject(e);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
 
 		@Override
 		public void run() {
@@ -193,6 +206,9 @@ private void handleAddConference(Conference c) {
 						Conference c = (Conference) e.getObject(Conference.class);
 						handleAddConference(c);
 						break;
+					}
+					case "reqCurrentUser": {
+						handleSendCurrentUser();
 					}
 					default:
 						break;

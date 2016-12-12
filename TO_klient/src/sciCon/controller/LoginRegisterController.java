@@ -9,12 +9,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import sciCon.model.Controllers;
+import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.User;
 import sciCon.model.SocketEvent;
 
-public class LoginRegisterController implements Controllers {
+public class LoginRegisterController implements Controller {
 
 	@FXML
 	private AnchorPane loginWindow;
@@ -33,7 +33,7 @@ public class LoginRegisterController implements Controllers {
 
 	private int uid = -1; // user ID, assigned after signing in
 	private String message;
-	Event sharedEvent = null; // loginBtn action event gets here after it's pressed
+	private Event sharedEvent = null; // loginBtn action event gets here after it's pressed
 	// so runLater can see it and scene can be changed.
 
 	private boolean doPasswordsMatch(String password, String rePassword) {
@@ -44,7 +44,6 @@ public class LoginRegisterController implements Controllers {
 		}
 	}
 
-	@FXML
 	public void reqLogin() {
 		
 		String login = loginField.getText();
@@ -72,7 +71,7 @@ public class LoginRegisterController implements Controllers {
 				if (uid > -1) {
 					goToApplication(sharedEvent);
 				} else {
-					openAlert(sharedEvent, message);
+					openDialogBox(sharedEvent, message);
 				}
 			}
 		});
@@ -103,13 +102,13 @@ public class LoginRegisterController implements Controllers {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				openAlert(sharedEvent, message);
+				openDialogBox(sharedEvent, message);
 			}
 		});
 	}
 
 	@FXML
-	public void registerBtn(Event event) {
+	private void registerBtn(Event event) {
 		sharedEvent = event;
 		java.lang.reflect.Method m = null;
 		try {
@@ -134,14 +133,14 @@ public class LoginRegisterController implements Controllers {
 	}
 
 	@FXML
-	public void loginBtnEnterKey(KeyEvent event) {
+	private void loginBtnEnterKey(KeyEvent event) {
 	    if (event.getCode() == KeyCode.ENTER) {
 	        loginBtn(new ActionEvent());
 	    }
 	}
 
 	@FXML
-	public void registerBtnEnterKey(KeyEvent event) {
+	private void registerBtnEnterKey(KeyEvent event) {
 	    if (event.getCode() == KeyCode.ENTER) {
 	    	registerBtn(event);
 	    }
@@ -150,29 +149,29 @@ public class LoginRegisterController implements Controllers {
 	@FXML
 	private void goToRegistrationKey(KeyEvent event) {
 	    if (event.getCode() == KeyCode.ENTER) {
-	    	loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 200, false);
+	    	loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 300, false, 0, 0);
 	    }
 	}
 	
 	@FXML
-	public void cancelBtnEnterKey(KeyEvent event) {
+	private void cancelBtnEnterKey(KeyEvent event) {
 	    if (event.getCode() == KeyCode.ENTER) {
-	    	loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 200, false);
+	    	loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
 	    }
 	}
 	
 	@FXML
 	private void goToApplication(Event event) {
-		loadScene(loginWindow, "view/ApplicationLayout.fxml", 900, 600, true);
+		loadScene(loginWindow, "view/ApplicationLayout.fxml", 900, 600, true, 900, 600);
 	}
 
 	@FXML
 	private void goToLogin(Event event) {
-		loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 200, false);
+		loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
 	}
 
 	@FXML
 	private void goToRegistration(Event event) {
-		loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 200, false);
+		loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 300, false, 0, 0);
 	}
 }

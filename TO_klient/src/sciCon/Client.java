@@ -2,10 +2,10 @@ package sciCon;
 import java.sql.SQLException;
 import javafx.application.Application;
 import javafx.stage.Stage;
-import sciCon.model.Controllers;
+import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 
-public class Client extends Application implements Controllers {
+public class Client extends Application implements Controller {
 
     private Stage primaryStage;
     
@@ -40,7 +40,7 @@ public class Client extends Application implements Controllers {
     }
 
     private void initClientLayout() {
-    	loadScene(primaryStage, "view/LoginLayout.fxml", 320, 200, false);
+    	loadScene(primaryStage, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
     }
 
     

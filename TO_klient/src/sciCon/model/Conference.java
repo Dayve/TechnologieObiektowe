@@ -78,8 +78,11 @@ public class Conference implements Serializable {
 	
 	@Override
 	public String toString() {
-		return "Data: " + date + "\nTemat: " + subject + "\nCzas rozpoczêcia: " + startTime
-				+ "\nCzas zakoñczenia: " + endTime + "\nMiejsce: " + place + "\nOpis: " + 
-				description + "\nPlan: " + agenda;
+		String ret = "Data: " + date + "\nTemat: " + subject + "\nCzas rozpoczêcia: " + startTime
+				+ "\nCzas zakoñczenia: " + endTime + "\nMiejsce: " + place + "\nPlan: " + agenda;
+		if (this.description != null) {
+			ret += "\nOpis: " + description;
+		}
+		return ret;
 	}
 }

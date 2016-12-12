@@ -3,14 +3,14 @@ package sciCon.controller;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
-import sciCon.model.Controllers;
+import sciCon.model.Controller;
 
-public class AlertController implements Controllers{
+public class DialogController implements Controller{
 	
-	@FXML private TextArea alertText;
+	@FXML private TextArea dialogMessage;
 	
-	public void setAlertText(String text) {
-		alertText.setText(text);
+	public void setDialogMessage(String text) {
+		dialogMessage.setText(text);
 	}
 	
 	

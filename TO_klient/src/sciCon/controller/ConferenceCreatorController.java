@@ -13,11 +13,11 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import sciCon.model.Conference;
-import sciCon.model.Controllers;
+import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.SocketEvent;
 
-public class ConferenceCreatorController implements Controllers {
+public class ConferenceCreatorController implements Controller {
 	
 	@FXML private TextField nameField;
 	@FXML private TextField subjectField;
@@ -87,7 +87,7 @@ public class ConferenceCreatorController implements Controllers {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				openAlert(sharedEvent, message);
+				openDialogBox(sharedEvent, message);
 			}
 		});
 

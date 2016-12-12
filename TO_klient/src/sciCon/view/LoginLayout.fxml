@@ -5,15 +5,29 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="loginWindow" prefHeight="230.0" prefWidth="320.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.LoginRegisterController">
+<AnchorPane fx:id="loginWindow" prefHeight="250.0" prefWidth="320.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.LoginRegisterController">
    <children>
-      <Button layoutX="115.0" layoutY="175.0" mnemonicParsing="false" onAction="#goToRegistration" onKeyReleased="#goToRegistrationKey" text="Zarejestruj się" />
-      <Label layoutX="96.0" layoutY="150.0" text="Nie masz jeszcze konta?" />
-      <Label layoutX="65.0" layoutY="72.0" text="Hasło:" />
-      <Label layoutX="65.0" layoutY="32.0" text="Login:" />
-      <TextField fx:id="loginField" layoutX="112.0" layoutY="30.0" prefHeight="25.0" prefWidth="177.0" />
-      <PasswordField fx:id="passwordField" layoutX="112.0" layoutY="70.0" prefHeight="25.0" prefWidth="177.0" />
-      <Button layoutX="132.0" layoutY="110.0" mnemonicParsing="false" onAction="#loginBtn" onKeyReleased="#loginBtnEnterKey" text="Zaloguj" />
+      <Button layoutX="110.0" layoutY="200.0" mnemonicParsing="false" onAction="#goToRegistration" onKeyReleased="#goToRegistrationKey" prefWidth="100.0" text="Zarejestruj się">
+         <font>
+            <Font size="13.0" />
+         </font></Button>
+      <Label layoutX="85.0" layoutY="170.0" prefWidth="150.0" text="Nie masz jeszcze konta?">
+         <font>
+            <Font size="14.0" />
+         </font></Label>
+      <TextField fx:id="loginField" layoutX="50.0" layoutY="25.0" prefHeight="30.0" prefWidth="220.0" promptText="Login">
+         <font>
+            <Font size="13.0" />
+         </font></TextField>
+      <PasswordField fx:id="passwordField" layoutX="50.0" layoutY="70.0" minWidth="0.0" prefHeight="30.0" prefWidth="220.0" promptText="Hasło">
+         <font>
+            <Font size="13.0" />
+         </font></PasswordField>
+      <Button layoutX="129.0" layoutY="120.0" mnemonicParsing="false" onAction="#loginBtn" onKeyReleased="#loginBtnEnterKey" prefWidth="62.0" text="Zaloguj">
+         <font>
+            <Font size="13.0" />
+         </font></Button>
    </children>
 </AnchorPane>

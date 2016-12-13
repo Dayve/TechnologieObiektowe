@@ -51,4 +51,16 @@ private static Socket s = null;
 			e.printStackTrace();
 		}
 	}
+	
+	public static void disconnect() {
+			try {
+				s.close();
+				objOut = null;
+				objIn = null;
+				s = null;
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+		
 }

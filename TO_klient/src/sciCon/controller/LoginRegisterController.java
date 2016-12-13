@@ -9,6 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import sciCon.Client;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.User;
@@ -30,12 +31,17 @@ public class LoginRegisterController implements Controller {
 	private TextField passwordField;
 	@FXML
 	private TextField passwordRepeatField;
-
-	private int uid = -1; // user ID, assigned after signing in
+	private boolean flag;
+	
 	private String message;
-	private Event sharedEvent = null; // loginBtn action event gets here after it's pressed
+	private Event sharedEvent = null; // loginBtn action event gets here after
+										// it's pressed
 	// so runLater can see it and scene can be changed.
 
+	public static void ConnectToServer() {
+    	NetworkConnection.connect("localhost", 8080);;
+    }
+	
 	private boolean doPasswordsMatch(String password, String rePassword) {
 		if (password.equals(rePassword)) {
 			return true;
@@ -44,10 +50,29 @@ public class LoginRegisterController implements Controller {
 		}
 	}
 
-	public void reqLogin() {
+	
+	public void initialize() {
 		
+		// get a method to call it using reflection
+        
+        java.lang.reflect.Method m = null;
+        
+		try {
+			m = LoginRegisterController.class.getMethod("ConnectToServer");
+		} catch (NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		
+		// connect to server in another thread
+		
+        runInAnotherThread(m, null);
+	}
+
+	public void reqLogin() {
+
 		String login = loginField.getText();
 		String password = passwordField.getText();
+		flag = false;
 
 		User u = new User(login, password);
 		SocketEvent e = new SocketEvent("reqLogin", u);
@@ -56,26 +81,23 @@ public class LoginRegisterController implements Controller {
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
 		String eventName = res.getName();
-	
-		
+
 		if (eventName.equals("loginFailed")) {
 			message = "Niepoprawny login lub has³o.";
 		} else if (eventName.equals("loginSucceeded")) {
-			uid = res.getObject(Integer.class);
+			flag = true;
+			// run in JavaFX after background thread finishes work
 		}
-
-		// run in JavaFX after background thread finishes work
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				if (uid > -1) {
+				if(flag) {
 					goToApplication(sharedEvent);
 				} else {
-					openDialogBox(sharedEvent, message);
+				openDialogBox(sharedEvent, message);
 				}
 			}
 		});
-
 	}
 
 	public void reqRegister() {
@@ -134,32 +156,32 @@ public class LoginRegisterController implements Controller {
 
 	@FXML
 	private void loginBtnEnterKey(KeyEvent event) {
-	    if (event.getCode() == KeyCode.ENTER) {
-	        loginBtn(new ActionEvent());
-	    }
+		if (event.getCode() == KeyCode.ENTER) {
+			loginBtn(new ActionEvent());
+		}
 	}
 
 	@FXML
 	private void registerBtnEnterKey(KeyEvent event) {
-	    if (event.getCode() == KeyCode.ENTER) {
-	    	registerBtn(event);
-	    }
+		if (event.getCode() == KeyCode.ENTER) {
+			registerBtn(event);
+		}
 	}
-	
+
 	@FXML
 	private void goToRegistrationKey(KeyEvent event) {
-	    if (event.getCode() == KeyCode.ENTER) {
-	    	loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 300, false, 0, 0);
-	    }
+		if (event.getCode() == KeyCode.ENTER) {
+			loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 300, false, 0, 0);
+		}
 	}
-	
+
 	@FXML
 	private void cancelBtnEnterKey(KeyEvent event) {
-	    if (event.getCode() == KeyCode.ENTER) {
-	    	loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
-	    }
+		if (event.getCode() == KeyCode.ENTER) {
+			loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
+		}
 	}
-	
+
 	@FXML
 	private void goToApplication(Event event) {
 		loadScene(loginWindow, "view/ApplicationLayout.fxml", 900, 600, true, 900, 600);

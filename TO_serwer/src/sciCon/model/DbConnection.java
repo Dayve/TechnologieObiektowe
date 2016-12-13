@@ -44,23 +44,32 @@ public class DbConnection {
 	/*
 	 * @return user's id if matching pair is found, if not: -1
 	 */
-	public int doLoginAndPasswordMatch(String login, String password) {
+	public User getUser(String _login, String _password) {
 
-		String loginQuery = "select id_uzytkownika from uzytkownik where login = (?) and haslo = (?)";
-		int userId = -1;
+		String loginQuery = "select id_uzytkownika, login, haslo, imie, nazwisko, email, organizacja"
+				+ " from uzytkownik where login = (?) and haslo = (?)";
+		Integer id = null; 
+		User u = null;
+		String login = null, name = null, surname = null, email = null, organization = null;
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(loginQuery);
-			pstmt.setString(1, login);
-			pstmt.setString(2, password);
+			pstmt.setString(1, _login);
+			pstmt.setString(2, _password);
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
-				userId = rs.getInt(1);
+				id = rs.getInt(1);
+				login = rs.getString(2);
+				name = rs.getString(3);
+				surname = rs.getString(4);
+				email = rs.getString(5);
+				organization = rs.getString(6);
+				u = new User(id, login, name, surname, email, organization);
 			}
 			pstmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return userId;
+		return u;
 	}
 
 	private int countEntries(String column, String table) {

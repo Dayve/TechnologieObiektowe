@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -31,6 +32,7 @@ public class ApplicationController implements Controller {
 	@FXML private ComboBox<String> conferenceFeedCB;
 	@FXML private ComboBox<String> conferenceFeedNumberCB;
 	@FXML private Label loginLabel;
+	Event sharedEvent = null;
 	
 	private User currentUser;
 	private ArrayList<Conference> feed;
@@ -86,9 +88,32 @@ public class ApplicationController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				loginLabel.setText(currentUser.getLogin());
+				loginLabel.setText("Zalogowano: " + currentUser.getLogin() + ".");
 			}
 		});
+	}
+	
+	public void reqLogout() {
+		NetworkConnection.disconnect();
+		
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				loadScene(sharedEvent, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
+			}
+		});
+	}
+	
+	@FXML private void reqLogoutButton(ActionEvent event) {
+		sharedEvent = event;
+		// here check if login is valid
+		java.lang.reflect.Method m = null;
+		try {
+			m = ApplicationController.class.getMethod("reqLogout");
+		} catch (NoSuchMethodException | SecurityException e) {
+			e.printStackTrace();
+		}
+		runInAnotherThread(m, this);
 	}
 	
 	@FXML

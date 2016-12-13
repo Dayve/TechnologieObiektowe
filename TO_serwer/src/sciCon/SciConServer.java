@@ -1,5 +1,6 @@
 package sciCon;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -7,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import sciCon.model.Conference;
 import sciCon.model.DbConnection;
@@ -16,6 +18,7 @@ import sciCon.model.Validator;
 
 public class SciConServer implements Runnable {
 	private ServerSocket listener;
+	public HashMap<Integer, User> loggedUsers = new HashMap<Integer, User>();
 	private int port;
 
 	public SciConServer(int p) {
@@ -52,6 +55,7 @@ public class SciConServer implements Runnable {
 		private ObjectInputStream objIn;
 		private ObjectOutputStream objOut;
 		private DbConnection dbConn;
+		private User loggedUser = null;
 
 		public ServerImplementation(Socket socket) {
 			// connect to database
@@ -136,9 +140,15 @@ private void handleAddConference(Conference c) {
 	
 		private void handleLogin(User u) {
 			SocketEvent e = null;
-			int userId = dbConn.doLoginAndPasswordMatch(u.getLogin(), u.getPassword());
-			if (userId > -1) {
-				e = new SocketEvent("loginSucceeded", userId);
+			// check if user with received login is in the DB
+			User fetchedUser = dbConn.getUser(u.getLogin(), u.getPassword());
+			if (fetchedUser != null) {
+				// send back user data (without password), 
+				e = new SocketEvent("loginSucceeded");
+
+				// register user in server's memory (hashmap) and client-server process memory
+				loggedUser = fetchedUser;
+				loggedUsers.put(fetchedUser.getId(), fetchedUser);
 			} else {
 				e = new SocketEvent("loginFailed");
 			}
@@ -163,10 +173,9 @@ private void handleAddConference(Conference c) {
 		}
 		
 		private void handleSendCurrentUser() {
-			User currentUser = new User("loginas", null);
 			SocketEvent e = null;
 			
-			e = new SocketEvent("currentUserSucceeded", currentUser);
+			e = new SocketEvent("currentUserSucceeded", loggedUser);
 			
 			try {
 				objOut.writeObject(e);
@@ -181,7 +190,13 @@ private void handleAddConference(Conference c) {
 				SocketEvent e = null;
 
 				while (true) {
-					e = (SocketEvent) objIn.readObject();
+					try{
+						e = (SocketEvent) objIn.readObject();
+					} catch(EOFException eof) {
+						System.out.println("Somebody lost connection.");
+						break;
+					}
+					
 					// name tells server what to do
 					String eventName = e.getName();
 					switch (eventName) {
@@ -220,6 +235,10 @@ private void handleAddConference(Conference c) {
 				e.printStackTrace();
 			} finally {
 				try {
+					// remove user who was logged in from loggedUsers hashmap
+					if(loggedUser != null) {
+						loggedUsers.remove(loggedUser.getId());
+					}
 					s.close();
 					objIn.close();
 					objOut.close();

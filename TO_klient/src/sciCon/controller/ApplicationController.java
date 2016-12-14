@@ -36,7 +36,7 @@ public class ApplicationController implements Controller {
 	
 	private User currentUser;
 	private ArrayList<Conference> feed;
-	private LocalDate calendarsDate; // It represents the currently selected (clicked) date
+	private static LocalDate calendarsDate; // It represents the currently selected (clicked) date
 	
 	private void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs){
 		int index = 0;
@@ -118,16 +118,17 @@ public class ApplicationController implements Controller {
 	
 	@FXML
 	public void initialize() {
+	
 		conferenceFeedBox.setFillWidth(true);
 		ObservableList<String> feedOptions = 
 			    FXCollections.observableArrayList(
-			        "Nadchodz¹ce konferencje",
+			        "NadchodzÄ…ce konferencje",
 			        "Wszystkie konferencje",
-			        "Zakoñczone konferencje"
+			        "ZakoÅ„czone konferencje"
 			    );
 		
 		conferenceFeedCB.getItems().addAll(feedOptions);
-		conferenceFeedCB.setValue("Nadchodz¹ce konferencje");
+		conferenceFeedCB.setValue("NadchodzÄ…ce konferencje");
 		
 		ObservableList<String> feedNumberOptions = 
 			    FXCollections.observableArrayList("20","50","100","...");
@@ -135,11 +136,14 @@ public class ApplicationController implements Controller {
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
 		
+		// Must be calles before CalendarController.fillCalendarTable:
+		reqConferenceFeed();
+		
 		calendarsDate = LocalDate.now();
 		CalendarController.fillCalendarTable(calendarTable, 
-				currentlyChosenDateLabel, calendarsDate);
+				currentlyChosenDateLabel, calendarsDate, feed);
 		
-		reqConferenceFeed();
+		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 		
 		java.lang.reflect.Method m = null;
 		try {
@@ -152,16 +156,16 @@ public class ApplicationController implements Controller {
 	
 	public void changeMonthToNext() {
 		calendarsDate = calendarsDate.plusMonths(1);
-		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate);
+		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed);
 	}
 	
 	public void changeMonthToPrevious() {
 		calendarsDate = calendarsDate.minusMonths(1);
-		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate);
+		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed);
 	}
 	
 	@FXML
 	public void addConferenceBtn(ActionEvent event) {
-		openNewWindow(event, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencjê");
+		openNewWindow(event, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencjÄ™");
 	}
 }

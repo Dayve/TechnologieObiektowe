@@ -39,7 +39,7 @@ public class LoginRegisterController implements Controller {
 	// so runLater can see it and scene can be changed.
 
 	public static void ConnectToServer() {
-    	NetworkConnection.connect("localhost", 8080);;
+    	NetworkConnection.connect("localhost", 8080);
     }
 	
 	private boolean doPasswordsMatch(String password, String rePassword) {
@@ -83,7 +83,7 @@ public class LoginRegisterController implements Controller {
 		String eventName = res.getName();
 
 		if (eventName.equals("loginFailed")) {
-			message = "Niepoprawny login lub has³o.";
+			message = "Niepoprawny login lub hasÅ‚o.";
 		} else if (eventName.equals("loginSucceeded")) {
 			flag = true;
 			// run in JavaFX after background thread finishes work
@@ -117,7 +117,7 @@ public class LoginRegisterController implements Controller {
 
 			message = res.getObject(String.class);
 		} else {
-			message = "Podane has³a nie s¹ identyczne.";
+			message = "Podane hasa nie sÄ… identyczne.";
 		}
 
 		// run in JavaFX after background thread finishes work

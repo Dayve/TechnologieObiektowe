@@ -30,6 +30,9 @@ public class ConferenceCreatorController implements Controller {
 	@FXML private TextArea descriptionField;
 	@FXML private TextArea agendaField;
 	
+	// Date which will be used to initialize the DatePicker:
+	private static LocalDate conferenceDestinedDay = LocalDate.now();
+	
 	private Event sharedEvent;
 	private String message;
 	
@@ -52,7 +55,12 @@ public class ConferenceCreatorController implements Controller {
 		endHr.getItems().addAll(hours);
 		startMin.getItems().addAll(minutes);
 		endMin.getItems().addAll(minutes);
-		dateField.setValue(LocalDate.now());
+		dateField.setValue(conferenceDestinedDay);
+	}
+	
+	// This function is called when a day is clicked (from CalendarController):
+	public static void setChosenDay(LocalDate when) {
+		conferenceDestinedDay = when;
 	}
 
 	@FXML
@@ -77,11 +85,11 @@ public class ConferenceCreatorController implements Controller {
 		String eventName = res.getName();
 
 		if (eventName.equals("addConferenceSucceeded")) {
-			message = "Dodano konferencjê.";
+			message = "Dodano konferencjÄ™.";
 		} else if (eventName.equals("addConferenceFailed")) {
 			message = res.getObject(String.class);
 		} else {
-			message = "Nie uda³o siê dodaæ konferencji. Serwer nie odpowiada.";
+			message = "Nie udaÅ‚o siÄ™ dodaÄ‡ konferencji. Serwer nie odpowiada.";
 		}
 
 		Platform.runLater(new Runnable() {

@@ -1,8 +1,15 @@
 package sciCon.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Week {
+	@Override
+	public String toString() {
+		return "Week [pn=" + pn + ", wt=" + wt + ", sr=" + sr + ", cz=" + cz + ", pt=" + pt + ", sb=" + sb + ", nd="
+				+ nd + "]";
+	}
+
 	public String pn, wt, sr, cz, pt, sb, nd;
 
 	public Week(List<String> initializerList) throws IllegalArgumentException {
@@ -28,6 +35,19 @@ public class Week {
 			this.sb = initializerList.get(5);
 			this.nd = initializerList.get(6);
 		}
+	}
+	
+	public List<String> getValuesAsStringList() {
+		List<String> returned = new ArrayList<String>();
+		returned.add(pn);
+		returned.add(wt);
+		returned.add(sr);
+		returned.add(cz);
+		returned.add(pt);
+		returned.add(sb);
+		returned.add(nd);
+		
+		return returned;
 	}
 
 	public String getPn() {

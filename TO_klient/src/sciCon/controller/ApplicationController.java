@@ -37,11 +37,14 @@ public class ApplicationController implements Controller {
 	private User currentUser;
 	private ArrayList<Conference> feed;
 	private static LocalDate calendarsDate; // It represents the currently selected (clicked) date
+	public enum feedReqPeriod { PAST, FUTURE, ALL };
 	
 	private void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs){
 		int index = 0;
+		vb.getChildren().clear();
 		for(Conference c : cs) {
 			Label feed = new Label(c.toString());
+			feed.setWrapText(true);
 			TitledPane tpane = new TitledPane(c.getName(), feed);
 			tpane.setExpanded(false);
 			
@@ -51,10 +54,16 @@ public class ApplicationController implements Controller {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void reqConferenceFeed() {
+	@FXML private void reqConferenceFeed() {
+		String feedPeriodCB = conferenceFeedCB.getValue();
+		Boolean feedPeriod = null;
+		if(feedPeriodCB.equals("Zakończone konferencje")) {
+			feedPeriod = true;
+		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
+			feedPeriod = false;
+		}
 		
-		Boolean past = false;
-		SocketEvent e = new SocketEvent("reqConferenceFeed", past);
+		SocketEvent e = new SocketEvent("reqConferenceFeed", feedPeriod);
 		NetworkConnection.sendSocketEvent(e);
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
@@ -136,7 +145,7 @@ public class ApplicationController implements Controller {
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
 		
-		// Must be calles before CalendarController.fillCalendarTable:
+		// Must be called before CalendarController.fillCalendarTable:
 		reqConferenceFeed();
 		
 		calendarsDate = LocalDate.now();

@@ -174,10 +174,15 @@ public class DbConnection {
 		
 		int id = 0;
 		String name, date, subject, startTime, endTime,
-				place, description, agenda;
+				place, description, agenda, conferenceFeedQuery;
 		ArrayList<Conference> conferenceFeed = new ArrayList<Conference>();
-		String conferenceFeedQuery = past ? "select * from wydarzenie where data < current_date" :
-			"select * from wydarzenie where data >= current_date";
+		if(past == null) {
+			conferenceFeedQuery = "select * from wydarzenie";
+		} else {
+			conferenceFeedQuery = past ? "select * from wydarzenie where data < current_date" :
+				"select * from wydarzenie where data >= current_date";
+		}
+		
 
 		try {
 			PreparedStatement pstmt;

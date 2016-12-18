@@ -22,6 +22,7 @@ public interface Controller {
 			loader.setLocation(Client.class.getResource(path));
 			Parent layout = (Parent) loader.load();
 			stage.hide();
+			stage.setMaximized(false);
 			stage.setWidth(w);
 			stage.setHeight(h + 25);
 			stage.setMinWidth(minW);

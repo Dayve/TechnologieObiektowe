@@ -4,28 +4,34 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import sciCon.model.Conference;
 import sciCon.model.Week;
 
 public class CalendarController{
 	
-	public static void refreshCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, LocalDate calendarsDate, ArrayList<Conference> conferencesFeed) {
+	public static void refreshCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, VBox listOfSelectedDaysEvents) {
 		calendarTable.getItems().clear();
 		calendarTable.getColumns().clear();
-		fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, conferencesFeed);
+		fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, conferencesFeed, listOfSelectedDaysEvents);
 	}
 	
 
-	public static void fillCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, LocalDate calendarsDate, ArrayList<Conference> conferencesFeed) {     	
+	public static void fillCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, VBox listOfSelectedDaysEvents) {     	
 		// ColumnTitle are used only while displaying the content, 
 		// PropertyValue however must be the same as variable names in Week class.
         String[] daysOfTheWeekColumnTitles = {"Pn", "Wt", "Śr", "Czw", "Pt", "Sb", "Nd"};
@@ -71,7 +77,9 @@ public class CalendarController{
 	                    		if(isAnyConferenceAtDate(clickedDate, conferencesFeed)) {
 	                    			// Perform an action after a day with assigned conference was clicked:
 	                    			System.out.println("There is a conference on: " + clickedDate.toString());
-		                		}	
+	                    			fillVBoxWithSelectedDaysConferences(clickedDate, conferencesFeed, listOfSelectedDaysEvents);
+	                    		}
+	                    		else listOfSelectedDaysEvents.getChildren().clear();
 	                    		
 	                    		ConferenceCreatorController.setChosenDay(clickedDate);
 	                    	}
@@ -98,6 +106,43 @@ public class CalendarController{
         
         // Change label: (this function is called whenever the month is changed, so should be the label)
         currentlyChosenDateLabel.setText(localDateToPolishDateString(calendarsDate));
+	}
+	
+	
+	private static void fillVBoxWithSelectedDaysConferences(LocalDate selectedDate, ArrayList<Conference> feed, VBox listOfSelectedDaysEvents) {
+		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
+		
+		for(Conference c : feed) {
+			if(c.getDate().equals(selectedDate)) selectedDayConferences.add(c);
+		}
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				if(selectedDayConferences != null) {
+					int index = 0;
+					listOfSelectedDaysEvents.getChildren().clear();
+					//System.out.println("conferences count: " + cs.size());
+					TitledPane tpane = null;
+					for(Conference c : selectedDayConferences) {
+						TextArea feed = new TextArea(c.toString());
+						feed.setWrapText(true);
+						feed.setEditable(false);
+						tpane = new TitledPane();
+						tpane.setText(ApplicationController.addNLsIfTooLong(c.getName(), ApplicationController.CHAR_LIMIT_IN_TITLEPANE));
+						tpane.setContent(feed);
+						tpane.setExpanded(false);
+						
+						listOfSelectedDaysEvents.getChildren().add(index, tpane);
+						index++;
+					}
+					AnchorPane.setTopAnchor((Node)listOfSelectedDaysEvents, 0.0);
+					AnchorPane.setBottomAnchor((Node)listOfSelectedDaysEvents, 0.0);
+					AnchorPane.setLeftAnchor((Node)listOfSelectedDaysEvents, 0.0);
+					AnchorPane.setRightAnchor((Node)listOfSelectedDaysEvents, 0.0);
+				}
+			}
+		});
 	}
 
 	

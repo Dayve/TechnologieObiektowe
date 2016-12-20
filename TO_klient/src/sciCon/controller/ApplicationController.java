@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
@@ -36,7 +37,10 @@ public class ApplicationController implements Controller {
 	@FXML private ComboBox<String> conferenceFeedCB;
 	@FXML private ComboBox<String> conferenceFeedNumberCB;
 	@FXML private Label loginLabel;
+	@FXML private VBox listOfSelectedDaysEvents;
 	Event sharedEvent = null;
+	
+	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
 	
 	private User currentUser;
 	private ArrayList<Conference> feed;
@@ -46,16 +50,17 @@ public class ApplicationController implements Controller {
 	private void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs){
 		int index = 0;
 		vb.getChildren().clear();
-		System.out.println("conferences count: " + cs.size());
+		//System.out.println("conferences count: " + cs.size());
 		TitledPane tpane = null;
 		for(Conference c : cs) {
 			TextArea feed = new TextArea(c.toString());
 			feed.setWrapText(true);
 			feed.setEditable(false);
 			tpane = new TitledPane();
-			tpane.setText(c.getName());
+			tpane.setText(addNLsIfTooLong(c.getName(), CHAR_LIMIT_IN_TITLEPANE));
 			tpane.setContent(feed);
 			tpane.setExpanded(false);
+			
 			vb.getChildren().add(index, tpane);
 			index++;
 		}
@@ -64,7 +69,7 @@ public class ApplicationController implements Controller {
 		AnchorPane.setLeftAnchor((Node)vb, 0.0);
 		AnchorPane.setRightAnchor((Node)vb, 0.0);
 	}
-	
+		
 	@SuppressWarnings("unchecked")
 	@FXML private void reqConferenceFeed() {
 		String feedPeriodCB = conferenceFeedCB.getValue();
@@ -148,6 +153,16 @@ public class ApplicationController implements Controller {
 			        "Zakończone konferencje"
 			    );
 		
+		// Dummy content:
+		/*
+		ObservableList<TitledPane> items = FXCollections.observableArrayList(
+				new TitledPane("Tytuł pierwszego", new TextArea("Tekst do pierwszego\nwydarzenia na liście")),
+				new TitledPane("Tytuł drugiego", new TextArea("Tekst do drugiego, lepszego\nwydarzenia na liście bocznej"))
+		);
+		listOfSelectedDaysEvents.setItems(items);
+		*/
+		// --------------
+		
 		conferenceFeedCB.getItems().addAll(feedOptions);
 		conferenceFeedCB.setValue("Nadchodzące konferencje");
 		
@@ -162,7 +177,7 @@ public class ApplicationController implements Controller {
 		
 		calendarsDate = LocalDate.now();
 		CalendarController.fillCalendarTable(calendarTable, 
-				currentlyChosenDateLabel, calendarsDate, feed);
+				currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
 		
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 		
@@ -175,14 +190,32 @@ public class ApplicationController implements Controller {
 		runInAnotherThread(m, this);
 	}
 	
+	public static String addNLsIfTooLong(String givenString, int limit) {
+		String[] separateWords = givenString.split("\\s+");
+		String result = new String();
+		int howMuchCharsSoFar = 0;
+		
+		for(int i=0 ; i<separateWords.length ; ++i) {			
+			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we assume that every word has a space at the end
+			
+			if(howMuchCharsSoFar > limit) {
+				result += "\n";
+				howMuchCharsSoFar = 0;
+			}
+			result += separateWords[i] + " ";
+		}
+		
+		return result;
+	}
+	
 	public void changeMonthToNext() {
 		calendarsDate = calendarsDate.plusMonths(1);
-		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed);
+		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
 	}
 	
 	public void changeMonthToPrevious() {
 		calendarsDate = calendarsDate.minusMonths(1);
-		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed);
+		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
 	}
 	
 	@FXML

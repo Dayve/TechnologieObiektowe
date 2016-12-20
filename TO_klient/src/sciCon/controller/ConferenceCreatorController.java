@@ -1,6 +1,7 @@
 package sciCon.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -67,31 +68,44 @@ public class ConferenceCreatorController implements Controller {
 	public void reqAddConference() {
 		String name = nameField.getText();
 		String subject = subjectField.getText();
-		LocalDate date = dateField.getValue();
-		String startTime = startHr.getSelectionModel().getSelectedItem() + 
-				"." + startMin.getSelectionModel().getSelectedItem();
-		String endTime = endHr.getSelectionModel().getSelectedItem() + 
-				"." + endMin.getSelectionModel().getSelectedItem();
-		String place = placeField.getText();
-		String description = descriptionField.getText();
-		String agenda = agendaField.getText();
+		// get LocalDateTime from LocalDate
+		LocalDateTime date = dateField.getValue().atStartOfDay(); 
+		String startHrCB = startHr.getSelectionModel().getSelectedItem();
+		String startMinCB = startMin.getSelectionModel().getSelectedItem();
+		String endHrCB = endHr.getSelectionModel().getSelectedItem();
+		String endMinCB = endMin.getSelectionModel().getSelectedItem();
 
-		Conference conf = new Conference(name, date, subject, startTime, endTime, place, description, agenda);
+		//check if all hour and min combo boxes are filled
+		
+		if (startHrCB != null && startMinCB != null && endHrCB != null && endMinCB != null) {
 
-		SocketEvent e = new SocketEvent("reqAddConference", conf);
-		NetworkConnection.sendSocketEvent(e);
+			System.out.println("sthr: " + startHrCB + "stmin: " + startMinCB);
+			LocalDateTime startTime = date.plusHours(Long.parseLong(startHrCB)).plusMinutes(Long.parseLong(startMinCB));
+			LocalDateTime endTime = date.plusHours(Long.parseLong(endHrCB)).plusMinutes(Long.parseLong(endMinCB));
 
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
-		String eventName = res.getName();
+			String place = placeField.getText();
+			String description = descriptionField.getText();
+			String agenda = agendaField.getText();
 
-		if (eventName.equals("addConferenceSucceeded")) {
-			message = "Dodano konferencję.";
-		} else if (eventName.equals("addConferenceFailed")) {
-			message = res.getObject(String.class);
+			System.out.println("startTime:" + startTime);
+			Conference conf = new Conference(name, subject, startTime, endTime, place, description, agenda);
+
+			SocketEvent e = new SocketEvent("reqAddConference", conf);
+			NetworkConnection.sendSocketEvent(e);
+
+			SocketEvent res = NetworkConnection.rcvSocketEvent();
+			String eventName = res.getName();
+
+			if (eventName.equals("addConferenceSucceeded")) {
+				message = "Dodano konferencję.";
+			} else if (eventName.equals("addConferenceFailed")) {
+				message = res.getObject(String.class);
+			} else {
+				message = "Nie udało się dodać konferencji. Serwer nie odpowiada.";
+			}
 		} else {
-			message = "Nie udało się dodać konferencji. Serwer nie odpowiada.";
+			message = "Wypełnij wszystkie pola z godziną i minutą.";
 		}
-
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {

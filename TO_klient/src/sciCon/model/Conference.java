@@ -1,7 +1,7 @@
 package sciCon.model;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Conference implements Serializable {
 
@@ -9,10 +9,9 @@ public class Conference implements Serializable {
 	
 	private int id;
 	private String name;
-	private LocalDate date;
 	private String subject;
-	private String startTime;
-	private String endTime;
+	private LocalDateTime startTime;
+	private LocalDateTime endTime;
 	private String place;
 	private String description;
 	private String agenda;
@@ -25,19 +24,16 @@ public class Conference implements Serializable {
 		return name;
 	}
 
-	public LocalDate getDate() {
-		return date;
-	}
 
 	public String getSubject() {
 		return subject;
 	}
 
-	public String getStartTime() {
+	public LocalDateTime getStartTime() {
 		return startTime;
 	}
 
-	public String getEndTime() {
+	public LocalDateTime getEndTime() {
 		return endTime;
 	}
 
@@ -57,16 +53,15 @@ public class Conference implements Serializable {
 		return id;
 	}
 	
-	public Conference(int id, String name, LocalDate date, String subject, String startTime, String endTime, String place,
+	public Conference(int id, String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
 			String description, String agenda) {
-		this( name,  date,  subject,  startTime,  endTime,  place,
+		this( name, subject,  startTime,  endTime,  place,
 				description,  agenda);
 		this.id = id;
 	}
 	
-	public Conference(String name, LocalDate date, String subject, String startTime, String endTime, String place,
+	public Conference(String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
 			String description, String agenda) {
-		this.date = date;
 		this.name = name;
 		this.subject = subject;
 		this.startTime = startTime;
@@ -78,8 +73,8 @@ public class Conference implements Serializable {
 	
 	@Override
 	public String toString() {
-		String ret = "Data: " + date + "\nTemat: " + subject + "\nCzas rozpoczęcia: " + startTime
-				+ "\nCzas zakończenia: " + endTime + "\nMiejsce: " + place + "\nPlan: " + agenda;
+		String ret = "\nTemat: " + subject + "\nCzas rozpoczęcia: " + startTime.toString().replace("T", ", godz. ")
+				+ "\nCzas zakończenia: " + endTime.toString().replace("T", ", godz. ") + "\nMiejsce: " + place + "\nPlan: " + agenda;
 		if (this.description != null) {
 			ret += "\nOpis: " + description;
 		}

@@ -1,9 +1,10 @@
 package sciCon.model;
 
 import java.sql.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import oracle.jdbc.pool.OracleDataSource;
 
@@ -11,7 +12,7 @@ public class DbConnection {
 
 	static OracleDataSource ods = null;
 	static Connection conn = null;
-
+	
 	public DbConnection(String database, String dbUser, String dbPassword) {
 		try {
 			ods = new OracleDataSource();
@@ -110,30 +111,35 @@ public class DbConnection {
 	public boolean addConference(Conference c) {
 		boolean succeeded = true;
 
-		String name = c.getName(), subject = c.getSubject(), startTime = c.getStartTime(), endTime = c.getEndTime(),
-				place = c.getPlace(), description = c.getDescription(), agenda = c.getAgenda();
-		LocalDate date = c.getDate();
+		String name = c.getName(), subject = c.getSubject(), place = c.getPlace(), 
+				description = c.getDescription(), agenda = c.getAgenda();
+		LocalDateTime startTime = c.getStartTime(), endTime = c.getEndTime();
 		
 		int id = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
 
-		String addConferenceQuery = "insert into wydarzenie values(?, to_date(?,'YYYY-MM-DD'), ?, ?, ?, ?, ?, ?, ?)";
+		String addConferenceQuery = "insert into wydarzenie values(?, ?, ?, ?, ?, ?, "
+				+ "to_date(?,'YYYY-MM-DD HH24:MI'), to_date(?,'YYYY-MM-DD HH24:MI'))";
 
+		String insertStartTime = startTime.toString().replace('T', ' ');
+		String insertEndTime = endTime.toString().replace('T', ' ');
+		
+		System.out.println("po tostringu:" + insertStartTime);
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addConferenceQuery);
 			pstmt.setInt(1, id);
-			pstmt.setString(2, date.toString());
-			pstmt.setString(3, name);
-			pstmt.setString(4, subject);
-			pstmt.setString(5, place);
-			pstmt.setString(6, description);
-			pstmt.setString(7, agenda);
-			pstmt.setString(8, startTime);
-			pstmt.setString(9, endTime);
+			pstmt.setString(2, name);
+			pstmt.setString(3, subject);
+			pstmt.setString(4, place);
+			pstmt.setString(5, description);
+			pstmt.setString(6, agenda);
+			pstmt.setString(7, insertStartTime);
+			pstmt.setString(8, insertEndTime);
 			pstmt.executeUpdate();
 			pstmt.close();
 		} catch (SQLException e) {
 			succeeded = false;
 			System.out.println("Adding a conference to database has failed.");
+			e.printStackTrace();
 		}
 		return succeeded;
 	}
@@ -173,40 +179,40 @@ public class DbConnection {
 		// !past - show present and future conferences
 		
 		int id = 0;
-		String name, date, subject, startTime, endTime,
-				place, description, agenda, conferenceFeedQuery;
+		String name, subject, place, description, agenda, 
+			conferenceFeedQuery = "select id_wydarzenia, nazwa, temat, miejsce, opis,"
+				+ "plan, to_char(czas_rozpoczecia,'yyyy-mm-dd hh24:mi'), "
+				+ "to_char(czas_zakonczenia,'yyyy-mm-dd hh24:mi') from wydarzenie";
+		LocalDateTime startTime, endTime;
 		ArrayList<Conference> conferenceFeed = new ArrayList<Conference>();
-		if(past == null) {
-			conferenceFeedQuery = "select * from wydarzenie";
-		} else {
-			conferenceFeedQuery = past ? "select * from wydarzenie where data < current_date" :
-				"select * from wydarzenie where data >= current_date";
+	
+		if(past != null) {
+			conferenceFeedQuery += past ? " where czas_zakonczenia <= current_date" :
+				" where czas_rozpoczecia >= current_date";
 		}
 		
-
 		try {
 			PreparedStatement pstmt;
+			String startTimeStr, endTimeStr;
 			
 			pstmt = conn.prepareStatement(conferenceFeedQuery);
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next()) {
 				id = rs.getInt(1);
-				date = rs.getString(2).substring(0, 10);
-				name = rs.getString(3);
-				subject = rs.getString(4);
-				place = rs.getString(5);
-				description = rs.getString(6);
-				agenda = rs.getString(7);
-				startTime = rs.getString(8);
-				endTime = rs.getString(9);
+				name = rs.getString(2);
+				subject = rs.getString(3);
+				place = rs.getString(4);
+				description = rs.getString(5);
+				agenda = rs.getString(6);
+				startTimeStr = rs.getString(7);
+				endTimeStr = rs.getString(8);
 				
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-				LocalDate lDate = LocalDate.parse(date, formatter);
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+				startTime = LocalDateTime.parse(startTimeStr, formatter);
+				endTime = LocalDateTime.parse(endTimeStr, formatter);
 				
-//				conferenceFeed.add(new Conference(id, name, lDate, subject, place, 
-//						description, agenda, startTime, endTime));
-				conferenceFeed.add(new Conference(id, name, lDate, subject, startTime, 
-						endTime, place, description, agenda));
+				conferenceFeed.add(new Conference(id, name, subject, startTime, endTime, 
+						place, description, agenda));
 			}
 			pstmt.close();
 		} catch (SQLException e) {

@@ -115,11 +115,12 @@ private void handleAddConference(Conference c) {
 		
 			message = interpretValidationCode(validationCode,
 					"Dodano konferencję.",
-					"Należy wypełnić wszystkie pola z godziną.",
-					"Podaj czas rozpoczęcia późniejszy niż obecny.",
+					"Podaj czas rozpoczęcia późniejszy niż obecny o co najmniej godzinę.",
 					"Konferencja nie może kończyć się wcześniej niż się zaczyna.",
-					"Niepoprawnie wprowadzone dane. Nazwa i miejsce: od 3 do 60 znaków. "
-					+ "Temat: od 3 do 40 znaków. Plan nie może być pusty.");
+					"Nazwa nie może być krótsza niż 3 i dłuższa niż 40 znaków.",
+					"Temat nie może być krótszy niż 3 i dłuższy niż 60 znaków.",
+					"Zawartość pola \"Miejsce\" nie może być krótsza niż 3 i dłuższy niż 60 znaków.",
+					"Pole \"Plan\" nie może być puste.");
 		
 			if (validationCode == 0) { // if conference data is valid
 				if (!dbConn.addConference(c)) {

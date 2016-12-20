@@ -1,49 +1,40 @@
 package sciCon.model;
 
-import java.time.LocalDate;
-import java.util.Calendar;
+import java.time.LocalDateTime;
 
 public interface Validator {
 	default public int isConferenceValid(Conference c) {
 		int retCode = 0;
 
-		String name = c.getName(), subject = c.getSubject(), place = c.getPlace(),
-				agenda = c.getAgenda(), startTime = c.getStartTime(), endTime = c.getEndTime();
+		String name = c.getName(), subject = c.getSubject(), place = c.getPlace(), agenda = c.getAgenda();
+		LocalDateTime startTime = c.getStartTime(), endTime = c.getEndTime();
 		
-		if(startTime.length() != 5 || endTime.length() != 5) {
-			return 1; // user didn't fill at least one hour combo box
+		// the start time is less than one hour from now
+		if (startTime.isBefore(LocalDateTime.now().plusHours(1))) {
+			retCode |= 1;
 		}
-		
-		LocalDate date = c.getDate();
-		
-		Calendar cal = Calendar.getInstance();
-		int hourNow = cal.get(Calendar.HOUR_OF_DAY);
-		int minNow = cal.get(Calendar.MINUTE);
-		
-		int startHr = Integer.parseInt(startTime.substring(0, 2));
-		int startMin = Integer.parseInt(startTime.substring(3, 5));
-		int endHr = Integer.parseInt(endTime.substring(0, 2));
-		int endMin = Integer.parseInt(endTime.substring(3, 5));
 
-		//the start time is less than one hour from now
-		if (date.isBefore(LocalDate.now()) ||  // posted date is before now
-				(date.isEqual(LocalDate.now()) && (startHr < hourNow || 
-						(startHr == hourNow && startMin < minNow)))) {
+		// starts later than finishes
+		if (!startTime.isBefore(endTime)) {
 			retCode |= 2;
 		}
 
-		//starts later than finishes
-		if (startHr > endHr || (startHr == endHr && startMin > endMin)) {
+		if (name.length() < 3 || name.length() > 60) {
 			retCode |= 4;
 		}
 		
-		if(name.length() < 3 || name.length() > 60 ||
-				subject.length() < 3 || subject.length() > 40 ||
-				place.length() < 3 || place.length() > 60 ||
-				agenda.length() == 0) {
+		if (subject.length() < 3 || subject.length() > 40) {
 			retCode |= 8;
 		}
 		
+		if (place.length() < 3 || place.length() > 60) {
+			retCode |= 16;
+		}
+		
+		if (agenda.length() == 0) {
+			retCode |= 32;
+		}
+
 		return retCode;
 	}
 
@@ -75,7 +66,7 @@ public interface Validator {
 		String retMessage = "";
 		int messagesLength = messages.length;
 		int bit = 1;
-		
+
 		if (validationCode == 0) {
 			retMessage = messages[0];
 		} else {
@@ -86,7 +77,7 @@ public interface Validator {
 				}
 			}
 			// remove the last character ("\n") if there is one or more message
-			if(retMessage.length() > 0 && retMessage.charAt(retMessage.length() - 1) == '\n') {
+			if (retMessage.length() > 0 && retMessage.charAt(retMessage.length() - 1) == '\n') {
 				retMessage = retMessage.substring(0, retMessage.length() - 1);
 			}
 		}

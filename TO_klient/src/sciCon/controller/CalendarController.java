@@ -113,7 +113,7 @@ public class CalendarController{
 		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
 		
 		for(Conference c : feed) {
-			if(c.getDate().equals(selectedDate)) selectedDayConferences.add(c);
+			if(c.getStartTime().equals(selectedDate)) selectedDayConferences.add(c);
 		}
 
 		Platform.runLater(new Runnable() {
@@ -175,7 +175,7 @@ public class CalendarController{
 	// Returns true if there is a conference (one or more) assigned to a givenDate:
 	private static boolean isAnyConferenceAtDate(LocalDate givenDate, ArrayList<Conference> conferencesFeed) {
 		for(Conference d : conferencesFeed) {
-			if(d.getDate().equals(givenDate)) {
+			if(d.getStartTime().equals(givenDate)) {
 				return true;
 			}
 		}

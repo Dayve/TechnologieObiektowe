@@ -29,6 +29,7 @@ public interface Controller {
 			stage.setMinHeight(minH + 25);
 			stage.setResizable(resizable);
 			Scene scene = new Scene(layout);
+//			scene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
 			stage.setScene(scene);
 			stage.show();
 		} catch (IOException e) {

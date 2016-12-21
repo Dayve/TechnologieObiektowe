@@ -42,7 +42,7 @@ public class ApplicationController implements Controller {
 	
 	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
 	
-	private User currentUser;
+	public static User currentUser;
 	private ArrayList<Conference> feed;
 	private static LocalDate calendarsDate; // It represents the currently selected (clicked) date
 	public enum feedReqPeriod { PAST, FUTURE, ALL };

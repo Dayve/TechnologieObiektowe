@@ -43,7 +43,7 @@ public class DbConnection {
 	}
 
 	/*
-	 * @return user's id if matching pair is found, if not: -1
+	 * @return user if matching pair is found, if not: -1
 	 */
 	public User getUser(String _login, String _password) {
 
@@ -72,7 +72,7 @@ public class DbConnection {
 		}
 		return u;
 	}
-
+	
 	private int countEntries(String column, String table) {
 		int count = 0;
 		try {
@@ -115,18 +115,25 @@ public class DbConnection {
 				description = c.getDescription(), agenda = c.getAgenda();
 		LocalDateTime startTime = c.getStartTime(), endTime = c.getEndTime();
 		
-		int id = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
+		User organizer = c.getFirstOrganizer();
+		
+		int eventId = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
+		int participantId = this.maxEntry("id_uczestnika", "uczestnik") + 1;
 
 		String addConferenceQuery = "insert into wydarzenie values(?, ?, ?, ?, ?, ?, "
 				+ "to_date(?,'YYYY-MM-DD HH24:MI'), to_date(?,'YYYY-MM-DD HH24:MI'))";
+		String addOrganizerQuery = "insert into uczestnik values(?, ?, ?)";
+		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 0)";
 
 		String insertStartTime = startTime.toString().replace('T', ' ');
 		String insertEndTime = endTime.toString().replace('T', ' ');
 		
-		System.out.println("po tostringu:" + insertStartTime);
+		System.out.println("dodanie konferencji - proba");
+		System.out.println(c);
+		System.out.println(organizer);
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addConferenceQuery);
-			pstmt.setInt(1, id);
+			pstmt.setInt(1, eventId);
 			pstmt.setString(2, name);
 			pstmt.setString(3, subject);
 			pstmt.setString(4, place);
@@ -135,6 +142,19 @@ public class DbConnection {
 			pstmt.setString(7, insertStartTime);
 			pstmt.setString(8, insertEndTime);
 			pstmt.executeUpdate();
+			pstmt.close();
+			
+			pstmt = conn.prepareStatement(addOrganizerQuery);
+			pstmt.setInt(1, participantId);
+			pstmt.setInt(2, eventId);
+			pstmt.setInt(3, organizer.getId());
+			pstmt.executeUpdate();
+			pstmt.close();
+			
+			pstmt = conn.prepareStatement(addParticipantRoleQuery);
+			pstmt.setInt(1, participantId);
+			pstmt.executeUpdate();
+			
 			pstmt.close();
 		} catch (SQLException e) {
 			succeeded = false;
@@ -174,12 +194,37 @@ public class DbConnection {
 		return succeeded;
 	}
 
+	private ArrayList<User> fetchConferenceOrganizers(int conferenceId) {
+		ArrayList<User> organizers = new ArrayList<User>();
+		String login = null, name = null, surname = null, fetchOrganizerQuery =
+				"SELECT login, imie, nazwisko FROM uzytkownik WHERE id_uzytkownika = "
+				+ "(SELECT id_uzytkownika FROM uczestnik WHERE id_wydarzenia = (?) "
+				+ "AND id_uczestnika IN (SELECT id_uczestnika FROM rola_uczestnika WHERE id_statusu = 0));";
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(fetchOrganizerQuery);
+			pstmt.setInt(1, conferenceId);
+			
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				login = rs.getString(1);
+				name = rs.getString(2);
+				surname = rs.getString(3);
+				organizers.add(new User(login, name, surname));
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return organizers;
+	}
+	
 	public ArrayList<Conference> fetchConferenceFeed(Boolean past) {
 
 		// !past - show present and future conferences
 		
 		int id = 0;
-		String name, subject, place, description, agenda, 
+		String name = null, subject = null, place = null, description = null, agenda = null, 
 			conferenceFeedQuery = "select id_wydarzenia, nazwa, temat, miejsce, opis,"
 				+ "plan, to_char(czas_rozpoczecia,'yyyy-mm-dd hh24:mi'), "
 				+ "to_char(czas_zakonczenia,'yyyy-mm-dd hh24:mi') from wydarzenie";
@@ -206,18 +251,25 @@ public class DbConnection {
 				agenda = rs.getString(6);
 				startTimeStr = rs.getString(7);
 				endTimeStr = rs.getString(8);
+			
+				System.out.println("dla id: " + id);
+				ArrayList<User> organizers = fetchConferenceOrganizers(id);
 				
+				System.out.println("organizatorzy:!");
+				System.out.println(organizers);
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 				startTime = LocalDateTime.parse(startTimeStr, formatter);
 				endTime = LocalDateTime.parse(endTimeStr, formatter);
 				
 				conferenceFeed.add(new Conference(id, name, subject, startTime, endTime, 
-						place, description, agenda));
+						place, description, agenda, organizers));
+				
 			}
 			pstmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		System.out.println(conferenceFeed.get(0));
 		return conferenceFeed;
 	}
 }

@@ -15,6 +15,12 @@ public class User implements Serializable {
 		this.login = login;
 		this.password = password;
 	}
+	
+	public User(String login, String name, String surname) {
+		this.login = login;
+		this.name = name;
+		this.surname = surname;
+	}
 
 	public User(Integer id, String login, String password, String name, String surname, String organization) {
 		this.id = id;

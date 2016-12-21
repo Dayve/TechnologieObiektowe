@@ -17,6 +17,7 @@ import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.SocketEvent;
+import sciCon.model.User;
 
 public class ConferenceCreatorController implements Controller {
 	
@@ -79,7 +80,6 @@ public class ConferenceCreatorController implements Controller {
 		
 		if (startHrCB != null && startMinCB != null && endHrCB != null && endMinCB != null) {
 
-			System.out.println("sthr: " + startHrCB + "stmin: " + startMinCB);
 			LocalDateTime startTime = date.plusHours(Long.parseLong(startHrCB)).plusMinutes(Long.parseLong(startMinCB));
 			LocalDateTime endTime = date.plusHours(Long.parseLong(endHrCB)).plusMinutes(Long.parseLong(endMinCB));
 
@@ -87,9 +87,20 @@ public class ConferenceCreatorController implements Controller {
 			String description = descriptionField.getText();
 			String agenda = agendaField.getText();
 
-			System.out.println("startTime:" + startTime);
-			Conference conf = new Conference(name, subject, startTime, endTime, place, description, agenda);
-
+//			User organizer = new User(ApplicationController.currentUser.getId(),
+//					ApplicationController.currentUser.getLogin(),
+//					ApplicationController.currentUser.getName(),
+//					ApplicationController.currentUser.getSurname(),
+//					ApplicationController.currentUser.getPassword(),
+//					ApplicationController.currentUser.getOrganization());
+//			
+			
+			System.out.println("tworzę konferencję...");
+			Conference conf = new Conference(name, subject, startTime, endTime, 
+					place, description, agenda, ApplicationController.currentUser);
+			
+			System.out.println(conf);
+			System.out.println("koferencja poszła w świat.");
 			SocketEvent e = new SocketEvent("reqAddConference", conf);
 			NetworkConnection.sendSocketEvent(e);
 

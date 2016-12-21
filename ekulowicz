@@ -1,0 +1,205 @@
+[33mcommit 4e7579a0afa99962748da9d4551e9038598866ff[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Tue Dec 20 19:22:16 2016 +0100
+
+    Added correct date comparison. Conference: added start and end time LocalDateTime fields. More detailed error messages for conference creation.
+
+[33mcommit 2bf45a2b95b5c91df16a4c1eb5519e17a1edd4e2[m
+Merge: 010940d 98abd41
+Author: jsekulowicz <jsekulowicz@users.noreply.github.com>
+Date:   Tue Dec 20 01:18:48 2016 +0100
+
+    Merge pull request #3 from Dayve/master
+    
+    Added selected day's conference feed on the right and NL inserting in conference titles
+
+[33mcommit 98abd412bc66a3cba846fa8a666ccc9faefeaa4d[m
+Author: Dayve <theholcombian@gmail.com>
+Date:   Tue Dec 20 01:02:15 2016 +0100
+
+    Added selected day's conference feed on the right and NL inserting in conference titles
+
+[33mcommit 010940df20d791f4a09373ec10db773eaf02076d[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Dec 18 01:42:17 2016 +0100
+
+    Fixed displaying content of conference feed titled panes. To fix: set max width of these titled panes to equal of parent's width.
+
+[33mcommit 47b952e24264fad9c081f61da679eff94a08c8f3[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sat Dec 17 01:37:44 2016 +0100
+
+    Added fetching conference feed from server. To fix: past conferences (need to compare hour too), displaying conference bars (don't let them be too wide). To add: display creator of the conference.
+
+[33mcommit 20b43def904a526bfac7266849b3bb7ee3843a43[m
+Merge: ad862ee 5d8c697
+Author: jsekulowicz <jsekulowicz@users.noreply.github.com>
+Date:   Wed Dec 14 22:20:47 2016 +0100
+
+    Merge pull request #2 from Dayve/master
+    
+    Days highlighting, clicked date in datePicker
+
+[33mcommit 5d8c6974050ee3d1dff65cad49ca11b9f3937be2[m
+Author: Dayve <theholcombian@gmail.com>
+Date:   Wed Dec 14 21:56:58 2016 +0100
+
+    Added highlighting days which have conferences assigned to them and setting currently chosen day in datepicker
+
+[33mcommit ad862eeb8ed73757b2619a4026d4ce4bde210ee6[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Tue Dec 13 02:28:14 2016 +0100
+
+    Added basic login/logout system (server's threads store logged users' data). To do: handle case when user who's already logged in is trying to log in.
+
+[33mcommit bd2972781810bda1fec0225e0422643dbf68c595[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Mon Dec 12 21:58:04 2016 +0100
+
+    Changed windows layout - replaced labels with prompt text. If conference description is null, it is not displayed now.
+
+[33mcommit 073876ecd5689f752380454cfc1bee9982234962[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Dec 11 00:49:28 2016 +0100
+
+    Fixed displaying conferences.
+
+[33mcommit f37d553b5b30991a9e1aa63ce976c6433e4d1b61[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sat Dec 10 15:04:12 2016 +0100
+
+    Now alerts pop up in new windows, rearranged layouts. Added more constraints to conference creator.
+
+[33mcommit 49e18f1561141068b5e9ce0929c49c372d7046f0[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sat Dec 10 00:11:00 2016 +0100
+
+    Added basic fetchning and displaying events. Fixed conference creation validator and conditions for hours.
+
+[33mcommit 8cf5227f1bfc01c4fe38b0292390e3f4c6b74a46[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Fri Dec 9 01:18:41 2016 +0100
+
+    Added Validator interface with functions for validating data. Windows now disappear during scene change. Replaced textfields for specifying time (conference creation) with combo boxes. To do: remove unneeded validation for time and reformat conference creator window.
+
+[33mcommit 483fa878270e8a3dba5c63faec245e9e3a903c12[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Wed Dec 7 01:38:03 2016 +0100
+
+    Added basic functioning conference creator window (adding conference without checking conditions).
+
+[33mcommit 0116e262242cb1ecabe2f521c96a60376ba068bc[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Tue Dec 6 19:41:35 2016 +0100
+
+    Restructured package hierarchy.
+
+[33mcommit c66e9c62a574e2df5314121f0288b2c7643f8ae0[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Tue Dec 6 00:39:22 2016 +0100
+
+    Added ConferenceCreatorLayout. Fixed switching text fields with tab key. You can now press keys with enter key when selected.
+
+[33mcommit 5e2cf6457c7104fa213fb67bde115667d20804a7[m
+Merge: 0e83dff 48600c8
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Dec 4 15:32:59 2016 +0100
+
+    Merge branch 'master' of https://github.com/Dayve/TechnologieObiektowe
+
+[33mcommit 48600c8ab104661445bcb92f35b4c0aa5ced4973[m
+Author: Dayve <theholcombian@gmail.com>
+Date:   Sun Dec 4 15:23:08 2016 +0100
+
+    Added simple TableView cell selection with println
+
+[33mcommit 0e83dff597791843ead4efd7aea9fd6338186d61[m
+Merge: 41aa8a1 bd92771
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Dec 4 12:23:21 2016 +0100
+
+    Merge branch 'master' of https://github.com/Dayve/TechnologieObiektowe
+
+[33mcommit 41aa8a1ce21bbb3f6cd688d983964c8621b915c0[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Dec 4 02:17:56 2016 +0100
+
+    Adding entries to database now works with max() function instead of count() function.
+
+[33mcommit 8c9fe5e3a3160c35a89d91e66ec45a1d8a0e6c7e[m
+Merge: 3715aca 5c1083b
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Dec 4 00:40:51 2016 +0100
+
+    Added working calendar panel with nextMonth and prevMonth buttons.
+
+[33mcommit bd92771c1e1fa764edec8a0431ea544e39b5d018[m
+Merge: 549f6aa 5c1083b
+Author: jsekulowicz <jsekulowicz@users.noreply.github.com>
+Date:   Sun Dec 4 00:21:25 2016 +0100
+
+    Merge pull request #1 from Dayve/master
+    
+    Added working calendar panel with nextMonth and prevMonth buttons
+
+[33mcommit 3715acae034ef5871543fda8361a17a9f622dcb1[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Dec 4 00:17:03 2016 +0100
+
+    Removed useless dbInterface from client. Added NewConference layout.
+
+[33mcommit 5c1083bdfe48f0cd67b7e838d543e1d884f44efa[m
+Author: Dayve <theholcombian@gmail.com>
+Date:   Sun Dec 4 00:00:02 2016 +0100
+
+    Added working calendar panel with nextMonth and prevMonth buttons
+
+[33mcommit 549f6aa75e5fa58870b53ed9ab34b294cd24d74a[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sat Dec 3 19:47:44 2016 +0100
+
+    Rearranged serverside database connection. Added working logging and registration with proper messages.
+
+[33mcommit 4f50efcbdc17ad14a668c523c97b580907524b23[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sat Dec 3 01:35:31 2016 +0100
+
+    Added working client-server communication using SocketEvent objects. Major code tweaks including multithreading and reflections (LoginRegisterController rework).
+
+[33mcommit 5955e091dd29888c992cb1153a0a0e0582f4501f[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Fri Dec 2 20:57:58 2016 +0100
+
+    Added SocketEvent class designed for making client/server requests. Server -> client response not working.
+
+[33mcommit 5727d63ad78fb12abe79585b0b5582466071a015[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Nov 27 21:14:02 2016 +0100
+
+    Added access to database via server. Added clientside invoked queries (by sending particular objects).
+
+[33mcommit 0080214dd00a5f7e967dcda253fd987eb83d134b[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Sun Nov 27 00:34:03 2016 +0100
+
+    Added working client concurrency with demonstration how it works. Added working object transmission.
+
+[33mcommit ad6f96cba14a193cfdce0a8e2d4a9b7c05cf4252[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Fri Nov 25 23:13:43 2016 +0100
+
+    Added sending messages from client to server. To do: stopping server.
+
+[33mcommit eb394b550354d70ab765c8beab2a90b6db950f16[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Fri Nov 25 20:40:02 2016 +0100
+
+    Rearranged repository, changed gitignored and removed useless files.
+
+[33mcommit f10a24160200c5c899b392a6f083724f9eebfc2c[m
+Author: jsekulowicz <git.jsekulowicz@gmail.com>
+Date:   Fri Nov 25 17:33:01 2016 +0100
+
+    Added basic lame network functionality.
+
+[33mcommit 3c

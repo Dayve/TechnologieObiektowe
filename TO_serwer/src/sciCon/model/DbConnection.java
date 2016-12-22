@@ -128,9 +128,6 @@ public class DbConnection {
 		String insertStartTime = startTime.toString().replace('T', ' ');
 		String insertEndTime = endTime.toString().replace('T', ' ');
 		
-		System.out.println("dodanie konferencji - proba");
-		System.out.println(c);
-		System.out.println(organizer);
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addConferenceQuery);
 			pstmt.setInt(1, eventId);
@@ -199,7 +196,7 @@ public class DbConnection {
 		String login = null, name = null, surname = null, fetchOrganizerQuery =
 				"SELECT login, imie, nazwisko FROM uzytkownik WHERE id_uzytkownika = "
 				+ "(SELECT id_uzytkownika FROM uczestnik WHERE id_wydarzenia = (?) "
-				+ "AND id_uczestnika IN (SELECT id_uczestnika FROM rola_uczestnika WHERE id_statusu = 0));";
+				+ "AND id_uczestnika IN (SELECT id_uczestnika FROM rola_uczestnika WHERE id_statusu = 0))";
 		
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(fetchOrganizerQuery);
@@ -252,11 +249,8 @@ public class DbConnection {
 				startTimeStr = rs.getString(7);
 				endTimeStr = rs.getString(8);
 			
-				System.out.println("dla id: " + id);
 				ArrayList<User> organizers = fetchConferenceOrganizers(id);
 				
-				System.out.println("organizatorzy:!");
-				System.out.println(organizers);
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 				startTime = LocalDateTime.parse(startTimeStr, formatter);
 				endTime = LocalDateTime.parse(endTimeStr, formatter);
@@ -269,7 +263,6 @@ public class DbConnection {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		System.out.println(conferenceFeed.get(0));
 		return conferenceFeed;
 	}
 }

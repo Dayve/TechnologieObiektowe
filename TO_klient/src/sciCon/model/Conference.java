@@ -3,6 +3,7 @@ package sciCon.model;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Conference implements Serializable {
 
@@ -104,10 +105,16 @@ public class Conference implements Serializable {
 	@Override
 	public String toString() {
 		String organizersStr = "";
-		for(User o: organizers) {
-			organizersStr += o.getName() + " " + o.getSurname() + ", ";
+		Iterator<User> it = organizers.iterator();
+		while(it.hasNext()) {
+			User o = it.next();
+			organizersStr += o.getName() + " " + o.getSurname();
+			if(it.hasNext()) {
+				organizersStr += ", ";
+			}
 		}
-		String ret = "\nTemat: " + subject + "\nOrganizatorzy: " + organizersStr
+
+		String ret = "Temat: " + subject + "\nOrganizatorzy: " + organizersStr
 		+ "\nCzas rozpoczęcia: " + startTime.toString().replace("T", ", godz. ")
 		+ "\nCzas zakończenia: " + endTime.toString().replace("T", ", godz. ") + "\nMiejsce: " + place + "\nPlan: " + agenda;
 		if (this.description != null) {

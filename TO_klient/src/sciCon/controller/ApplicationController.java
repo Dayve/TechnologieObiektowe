@@ -50,7 +50,6 @@ public class ApplicationController implements Controller {
 	private void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs){
 		int index = 0;
 		vb.getChildren().clear();
-		//System.out.println("conferences count: " + cs.size());
 		TitledPane tpane = null;
 		for(Conference c : cs) {
 			TextArea feed = new TextArea(c.toString());

@@ -85,22 +85,11 @@ public class ConferenceCreatorController implements Controller {
 
 			String place = placeField.getText();
 			String description = descriptionField.getText();
-			String agenda = agendaField.getText();
+			String agenda = agendaField.getText();	
 
-//			User organizer = new User(ApplicationController.currentUser.getId(),
-//					ApplicationController.currentUser.getLogin(),
-//					ApplicationController.currentUser.getName(),
-//					ApplicationController.currentUser.getSurname(),
-//					ApplicationController.currentUser.getPassword(),
-//					ApplicationController.currentUser.getOrganization());
-//			
-			
-			System.out.println("tworzę konferencję...");
 			Conference conf = new Conference(name, subject, startTime, endTime, 
 					place, description, agenda, ApplicationController.currentUser);
 			
-			System.out.println(conf);
-			System.out.println("koferencja poszła w świat.");
 			SocketEvent e = new SocketEvent("reqAddConference", conf);
 			NetworkConnection.sendSocketEvent(e);
 

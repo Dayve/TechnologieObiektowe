@@ -76,7 +76,6 @@ public class CalendarController{
 	                    		
 	                    		if(isAnyConferenceAtDate(clickedDate, conferencesFeed)) {
 	                    			// Perform an action after a day with assigned conference was clicked:
-	                    			System.out.println("There is a conference on: " + clickedDate.toString());
 	                    			fillVBoxWithSelectedDaysConferences(clickedDate, conferencesFeed, listOfSelectedDaysEvents);
 	                    		}
 	                    		else listOfSelectedDaysEvents.getChildren().clear();
@@ -113,7 +112,7 @@ public class CalendarController{
 		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
 		
 		for(Conference c : feed) {
-			if(c.getStartTime().equals(selectedDate)) selectedDayConferences.add(c);
+			if(c.getStartTime().toLocalDate().equals(selectedDate)) selectedDayConferences.add(c);
 		}
 
 		Platform.runLater(new Runnable() {
@@ -122,7 +121,6 @@ public class CalendarController{
 				if(selectedDayConferences != null) {
 					int index = 0;
 					listOfSelectedDaysEvents.getChildren().clear();
-					//System.out.println("conferences count: " + cs.size());
 					TitledPane tpane = null;
 					for(Conference c : selectedDayConferences) {
 						TextArea feed = new TextArea(c.toString());
@@ -175,7 +173,7 @@ public class CalendarController{
 	// Returns true if there is a conference (one or more) assigned to a givenDate:
 	private static boolean isAnyConferenceAtDate(LocalDate givenDate, ArrayList<Conference> conferencesFeed) {
 		for(Conference d : conferencesFeed) {
-			if(d.getStartTime().equals(givenDate)) {
+			if(d.getStartTime().toLocalDate().equals(givenDate)) {
 				return true;
 			}
 		}

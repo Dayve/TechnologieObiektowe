@@ -9,7 +9,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import sciCon.Client;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.User;

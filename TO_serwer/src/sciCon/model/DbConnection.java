@@ -4,7 +4,6 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 
 import oracle.jdbc.pool.OracleDataSource;
 
@@ -73,23 +72,23 @@ public class DbConnection {
 		return u;
 	}
 	
-	private int countEntries(String column, String table) {
-		int count = 0;
-		try {
-			String countQuery = "select count(?) from " + table;
-			PreparedStatement pstmt = conn.prepareStatement(countQuery);
-			pstmt.setString(1, column);
-
-			ResultSet rs = pstmt.executeQuery();
-			while (rs.next()) {
-				count = rs.getInt(1);
-			}
-			pstmt.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return count;
-	}
+//	private int countEntries(String column, String table) {
+//		int count = 0;
+//		try {
+//			String countQuery = "select count(?) from " + table;
+//			PreparedStatement pstmt = conn.prepareStatement(countQuery);
+//			pstmt.setString(1, column);
+//
+//			ResultSet rs = pstmt.executeQuery();
+//			while (rs.next()) {
+//				count = rs.getInt(1);
+//			}
+//			pstmt.close();
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		}
+//		return count;
+//	}
 
 	private int maxEntry(String column, String table) {
 		int count = 0;

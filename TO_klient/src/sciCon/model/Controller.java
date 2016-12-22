@@ -2,12 +2,17 @@ package sciCon.model;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TitledPane;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import sciCon.Client;
 import sciCon.controller.DialogController;
@@ -16,6 +21,46 @@ import javafx.concurrent.Worker;
 
 public interface Controller {
 
+	default public String addNLsIfTooLong(String givenString, int limit) {
+		String[] separateWords = givenString.split("\\s+");
+		String result = new String();
+		int howMuchCharsSoFar = 0;
+		
+		for(int i=0 ; i<separateWords.length ; ++i) {			
+			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we assume that every word has a space at the end
+			
+			if(howMuchCharsSoFar > limit) {
+				result += "\n";
+				howMuchCharsSoFar = 0;
+			}
+			result += separateWords[i] + " ";
+		}
+		
+		return result;
+	}
+	
+	default public void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs, int charLimit){
+		int index = 0;
+		vb.getChildren().clear();
+		TitledPane tpane = null;
+		for(Conference c : cs) {
+			TextArea feed = new TextArea(c.toString());
+			feed.setWrapText(true);
+			feed.setEditable(false);
+			tpane = new TitledPane();
+			tpane.setText(addNLsIfTooLong(c.getName(), charLimit)); // 
+			tpane.setContent(feed);
+			tpane.setExpanded(false);
+			
+			vb.getChildren().add(index, tpane);
+			index++;
+		}
+		AnchorPane.setTopAnchor((Node)vb, 0.0);
+		AnchorPane.setBottomAnchor((Node)vb, 0.0);
+		AnchorPane.setLeftAnchor((Node)vb, 0.0);
+		AnchorPane.setRightAnchor((Node)vb, 0.0);
+	}
+	
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {
 		try {
 			FXMLLoader loader = new FXMLLoader();

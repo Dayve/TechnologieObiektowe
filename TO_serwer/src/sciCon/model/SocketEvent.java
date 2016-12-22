@@ -1,7 +1,6 @@
 package sciCon.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class SocketEvent implements Serializable {
 
@@ -14,17 +13,6 @@ public class SocketEvent implements Serializable {
 		this.data = data;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> ArrayList<T> getObjects(Class<T> ofClass) {
-		ArrayList<T> aL = new ArrayList<T>();
-		for (int i = 0; i < data.length; i++) {
-			if (ofClass.getClass().isAssignableFrom(data[i].getClass())) {
-				aL.add((T) data[i]);
-			}
-		}
-		return aL;
-	}
-	
 	@SuppressWarnings("unchecked")
 	public <T> T getObject(Class<T> ofClass) {
 		T obj = null;

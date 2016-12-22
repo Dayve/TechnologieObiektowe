@@ -3,13 +3,10 @@ import java.sql.SQLException;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import sciCon.model.Controller;
-import sciCon.model.NetworkConnection;
 
 public class Client extends Application implements Controller {
 
     private Stage primaryStage;
-    
-    
     
     @Override
     public void start(Stage primaryStage) throws SQLException {

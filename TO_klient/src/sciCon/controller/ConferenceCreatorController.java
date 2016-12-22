@@ -17,7 +17,6 @@ import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.SocketEvent;
-import sciCon.model.User;
 
 public class ConferenceCreatorController implements Controller {
 	

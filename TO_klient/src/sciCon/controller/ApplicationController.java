@@ -1,22 +1,16 @@
 package sciCon.controller;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
-
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TitledPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import sciCon.model.Conference;
@@ -44,31 +38,13 @@ public class ApplicationController implements Controller {
 	
 	public static User currentUser;
 	private ArrayList<Conference> feed;
+	
+	private CalendarController calendar = new CalendarController();
 	private static LocalDate calendarsDate; // It represents the currently selected (clicked) date
+	
+	
 	public enum feedReqPeriod { PAST, FUTURE, ALL };
 	
-	private void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs){
-		int index = 0;
-		vb.getChildren().clear();
-		TitledPane tpane = null;
-		for(Conference c : cs) {
-			TextArea feed = new TextArea(c.toString());
-			feed.setWrapText(true);
-			feed.setEditable(false);
-			tpane = new TitledPane();
-			tpane.setText(addNLsIfTooLong(c.getName(), CHAR_LIMIT_IN_TITLEPANE));
-			tpane.setContent(feed);
-			tpane.setExpanded(false);
-			
-			vb.getChildren().add(index, tpane);
-			index++;
-		}
-		AnchorPane.setTopAnchor((Node)vb, 0.0);
-		AnchorPane.setBottomAnchor((Node)vb, 0.0);
-		AnchorPane.setLeftAnchor((Node)vb, 0.0);
-		AnchorPane.setRightAnchor((Node)vb, 0.0);
-	}
-		
 	@SuppressWarnings("unchecked")
 	@FXML private void reqConferenceFeed() {
 		String feedPeriodCB = conferenceFeedCB.getValue();
@@ -94,7 +70,7 @@ public class ApplicationController implements Controller {
 			@Override
 			public void run() {
 				if(feed != null) {
-					fillVBoxWithPanes(conferenceFeedBox, feed);
+					fillVBoxWithPanes(conferenceFeedBox, feed, CHAR_LIMIT_IN_TITLEPANE);
 				}
 			}
 		});
@@ -152,16 +128,6 @@ public class ApplicationController implements Controller {
 			        "Zakończone konferencje"
 			    );
 		
-		// Dummy content:
-		/*
-		ObservableList<TitledPane> items = FXCollections.observableArrayList(
-				new TitledPane("Tytuł pierwszego", new TextArea("Tekst do pierwszego\nwydarzenia na liście")),
-				new TitledPane("Tytuł drugiego", new TextArea("Tekst do drugiego, lepszego\nwydarzenia na liście bocznej"))
-		);
-		listOfSelectedDaysEvents.setItems(items);
-		*/
-		// --------------
-		
 		conferenceFeedCB.getItems().addAll(feedOptions);
 		conferenceFeedCB.setValue("Nadchodzące konferencje");
 		
@@ -175,7 +141,7 @@ public class ApplicationController implements Controller {
 		reqConferenceFeed();
 		
 		calendarsDate = LocalDate.now();
-		CalendarController.fillCalendarTable(calendarTable, 
+		calendar.fillCalendarTable(calendarTable,
 				currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
 		
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
@@ -189,32 +155,14 @@ public class ApplicationController implements Controller {
 		runInAnotherThread(m, this);
 	}
 	
-	public static String addNLsIfTooLong(String givenString, int limit) {
-		String[] separateWords = givenString.split("\\s+");
-		String result = new String();
-		int howMuchCharsSoFar = 0;
-		
-		for(int i=0 ; i<separateWords.length ; ++i) {			
-			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we assume that every word has a space at the end
-			
-			if(howMuchCharsSoFar > limit) {
-				result += "\n";
-				howMuchCharsSoFar = 0;
-			}
-			result += separateWords[i] + " ";
-		}
-		
-		return result;
-	}
-	
 	public void changeMonthToNext() {
 		calendarsDate = calendarsDate.plusMonths(1);
-		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
 	}
 	
 	public void changeMonthToPrevious() {
 		calendarsDate = calendarsDate.minusMonths(1);
-		CalendarController.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed, listOfSelectedDaysEvents);
 	}
 	
 	@FXML

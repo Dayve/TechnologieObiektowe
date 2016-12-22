@@ -73,7 +73,7 @@ public class SciConServer implements Runnable {
 		}
 
 		private void handleRegistration(User u) {
-			SocketEvent e = null;
+			SocketEvent se = null;
 			
 			int validationCode = isUserValid(u); // 0 - login is valid
 			String socketEvtName = "registerFailed";
@@ -98,9 +98,9 @@ public class SciConServer implements Runnable {
 				}
 			}
 			
-			e = new SocketEvent(socketEvtName, message);
+			se = new SocketEvent(socketEvtName, message);
 			try {
-				objOut.writeObject(e);
+				objOut.writeObject(se);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -111,7 +111,7 @@ private void handleAddConference(Conference c) {
 			int validationCode = isConferenceValid(c);
 			String socketEvtName = "addConferenceFailed";
 			String message = "";
-			SocketEvent e = null;
+			SocketEvent se = null;
 		
 			message = interpretValidationCode(validationCode,
 					"Dodano konferencję.",
@@ -130,31 +130,31 @@ private void handleAddConference(Conference c) {
 				}
 			}
 			
-			e = new SocketEvent(socketEvtName, message);
+			se = new SocketEvent(socketEvtName, message);
 			
 			try {
-				objOut.writeObject(e);
-			} catch (IOException e1) {
-				e1.printStackTrace();
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	
 		private void handleLogin(User u) {
-			SocketEvent e = null;
+			SocketEvent se = null;
 			// check if user with received login is in the DB
 			User fetchedUser = dbConn.getUser(u.getLogin(), u.getPassword());
 			if (fetchedUser != null) {
 				// send back user data (without password), 
-				e = new SocketEvent("loginSucceeded");
+				se = new SocketEvent("loginSucceeded");
 
 				// register user in server's memory (hashmap) and client-server process memory
 				loggedUser = fetchedUser;
 				loggedUsers.put(fetchedUser.getId(), fetchedUser);
 			} else {
-				e = new SocketEvent("loginFailed");
+				se = new SocketEvent("loginFailed");
 			}
 			try {
-				objOut.writeObject(e);
+				objOut.writeObject(se);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -162,24 +162,24 @@ private void handleAddConference(Conference c) {
 
 		private void handleConferenceFeed(Boolean past) {
 			ArrayList<Conference> conferenceFeed = dbConn.fetchConferenceFeed(past);
-			SocketEvent e = null;
+			SocketEvent se = null;
 			
 			// create SocketEvent w ArrayList arg
-			e = new SocketEvent("fetchConferenceFeed", conferenceFeed);
+			se = new SocketEvent("fetchConferenceFeed", conferenceFeed);
 			try {
-				objOut.writeObject(e);
+				objOut.writeObject(se);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
 		}
 		
 		private void handleSendCurrentUser() {
-			SocketEvent e = null;
+			SocketEvent se = null;
 			
-			e = new SocketEvent("currentUserSucceeded", loggedUser);
+			se = new SocketEvent("currentUserSucceeded", loggedUser);
 			
 			try {
-				objOut.writeObject(e);
+				objOut.writeObject(se);
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
@@ -188,34 +188,34 @@ private void handleAddConference(Conference c) {
 		@Override
 		public void run() {
 			try {
-				SocketEvent e = null;
+				SocketEvent se = null;
 
 				while (true) {
 					try{
-						e = (SocketEvent) objIn.readObject();
+						se = (SocketEvent) objIn.readObject();
 					} catch(EOFException eof) {
 						System.out.println("Somebody lost connection.");
 						break;
 					}
 					
 					// name tells server what to do
-					String eventName = e.getName();
+					String eventName = se.getName();
 					switch (eventName) {
 					// login request
 					case "reqLogin": {
-						User u = (User) e.getObject(User.class);
+						User u = (User) se.getObject(User.class);
 						handleLogin(u);
 						break;
 					}
 					case "reqRegister": {
-						User u = e.getObject(User.class);
+						User u = se.getObject(User.class);
 						handleRegistration(u);
 						break;
 					}
 					case "reqConferenceFeed": {
 						Boolean past;
 						try{
-							past = Boolean.valueOf(e.getObject(Boolean.class));
+							past = Boolean.valueOf(se.getObject(Boolean.class));
 						} catch (NullPointerException npe) {
 							past = null;
 						}
@@ -223,7 +223,7 @@ private void handleAddConference(Conference c) {
 						break;
 					}
 					case "reqAddConference": {
-						Conference c = (Conference) e.getObject(Conference.class);
+						Conference c = (Conference) se.getObject(Conference.class);
 						handleAddConference(c);
 						break;
 					}

@@ -16,6 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import sciCon.Client;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
@@ -102,9 +103,9 @@ public class ApplicationController implements Controller {
 					@Override
 					public void run() {
 						// fill FeedBox and Calendar in JavaFX UI Thread
+						reqFilterFeed();
 						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed,
 								listOfSelectedDaysEvents);
-						reqFilterFeed();
 					}
 				});
 			}
@@ -162,14 +163,9 @@ public class ApplicationController implements Controller {
 
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
-
-		reqConferenceFeed();
-		reqFilterFeed();
 		
-		// TO DO: make the timer stop after the main application is stopped
-		
-		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(new TimerTask() {
+		Client.timer = new Timer();
+		Client.timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
 				Platform.runLater(new Runnable() {
@@ -179,9 +175,8 @@ public class ApplicationController implements Controller {
 					}
 				});
 			}
-		}, 0, 2000);
+		}, 0, 10000);
 		
-		reqFilterFeed();
 		
 		calendarsDate = LocalDate.now();
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);

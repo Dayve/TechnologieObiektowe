@@ -118,7 +118,6 @@ public class ConferenceCreatorController implements Controller {
 	public void addConferenceBtn(Event evt) {
 		sharedEvent = evt;
 		new Thread(() ->reqAddConference()).start();
-		java.lang.reflect.Method m = null;
 	}
 
 	@FXML

@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -48,6 +46,7 @@ public class ApplicationController implements Controller {
 	private Label loginLabel;
 	@FXML
 	private VBox listOfSelectedDaysEvents;
+	private ConferenceFilter filter;
 	Event sharedEvent = null;
 
 	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
@@ -63,25 +62,34 @@ public class ApplicationController implements Controller {
 		PAST, FUTURE, ALL
 	};
 
+	@FXML private void reqFilterFeed() {
+		String feedPeriodCB = conferenceFeedCB.getValue();
+		filter = ConferenceFilter.ALL;
+		if (feedPeriodCB.equals("Zakończone konferencje")) {
+			filter = ConferenceFilter.PAST;
+		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
+			filter = ConferenceFilter.FUTURE;
+		}
+		ArrayList<Conference> filtered = filterFeed(feed, filter);
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				fillVBoxWithPanes(conferenceFeedBox, filtered, filter, CHAR_LIMIT_IN_TITLEPANE);
+			}
+		});
+	}
+	
 	@SuppressWarnings("unchecked")
 	@FXML
 	public void reqConferenceFeed() {
-		String feedPeriodCB = conferenceFeedCB.getValue();
-		Boolean feedPeriod = null;
-		if (feedPeriodCB.equals("Zakończone konferencje")) {
-			feedPeriod = true;
-		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
-			feedPeriod = false;
-		}
-
-		SocketEvent e = new SocketEvent("reqConferenceFeed", feedPeriod);
+		SocketEvent e = new SocketEvent("reqConferenceFeed");
 		NetworkConnection.sendSocketEvent(e);
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
 		String eventName = res.getName();
 		ArrayList<Conference> tempFeed;
-
-		if (eventName.equals("fetchConferenceFeed")) {
+		
+		if (eventName.equals("updateConferenceFeed")) {
 			// get temp feed to compare it with current one
 			tempFeed = res.getObject(ArrayList.class);
 
@@ -89,14 +97,14 @@ public class ApplicationController implements Controller {
 			// compare if feeds match, if so, don't fill vbox with new content
 			if (tempFeed != null && !tempFeed.toString().equals(feed.toString())) {
 				feed = tempFeed;
-
+				System.out.println();
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
 						// fill FeedBox and Calendar in JavaFX UI Thread
-						fillVBoxWithPanes(conferenceFeedBox, feed, CHAR_LIMIT_IN_TITLEPANE);
-						calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed,
+						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed,
 								listOfSelectedDaysEvents);
+						reqFilterFeed();
 					}
 				});
 			}
@@ -155,7 +163,10 @@ public class ApplicationController implements Controller {
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
 
-		// change the following timer to lambda expression if possible
+		reqConferenceFeed();
+		reqFilterFeed();
+		
+		// TO DO: make the timer stop after the main application is stopped
 		
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(new TimerTask() {
@@ -169,11 +180,15 @@ public class ApplicationController implements Controller {
 				});
 			}
 		}, 0, 2000);
-
+		
+		reqFilterFeed();
+		
 		calendarsDate = LocalDate.now();
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 
 		new Thread(() -> reqCurrentUser()).start();
+		
+		
 	}
 
 	public void changeMonthToNext() {

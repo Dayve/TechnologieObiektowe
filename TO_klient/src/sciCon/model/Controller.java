@@ -1,7 +1,8 @@
 package sciCon.model;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javafx.event.Event;
@@ -16,51 +17,86 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import sciCon.Client;
 import sciCon.controller.DialogController;
-import javafx.concurrent.Task;
-import javafx.concurrent.Worker;
 
 public interface Controller {
+	public enum ConferenceFilter {
+		PAST, FUTURE, ONGOING, ALL
+	};
 
 	default public String addNLsIfTooLong(String givenString, int limit) {
 		String[] separateWords = givenString.split("\\s+");
 		String result = new String();
 		int howMuchCharsSoFar = 0;
-		
-		for(int i=0 ; i<separateWords.length ; ++i) {			
-			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we assume that every word has a space at the end
-			
-			if(howMuchCharsSoFar > limit) {
+
+		for (int i = 0; i < separateWords.length; ++i) {
+			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we
+																// assume that
+																// every word
+																// has a space
+																// at the end
+
+			if (howMuchCharsSoFar > limit) {
 				result += "\n";
 				howMuchCharsSoFar = 0;
 			}
 			result += separateWords[i] + " ";
 		}
-		
+
 		return result;
 	}
-	
-	default public void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs, int charLimit){
+
+	default public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+		LocalDateTime now = LocalDateTime.now();
+		now.format(formatter);
+		ArrayList<Conference> filtered = new ArrayList<Conference>();
+		filtered.addAll(feed);
+		switch (cf) {
+		case PAST: {
+			filtered.removeIf(s -> s.getStartTime().isAfter(now));
+			break;
+		}
+		case FUTURE: {
+			filtered.removeIf(s -> s.getEndTime().isBefore(now));
+			break;
+		}
+		case ONGOING: {
+			filtered.removeIf(s -> s.getStartTime().isBefore(now) && s.getEndTime().isAfter(now));
+			break;
+		}
+		case ALL: {
+			break;
+		}
+
+		default:
+			break;
+		}
+		return filtered;
+	}
+
+	default public void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs, ConferenceFilter cf, int charLimit) {
 		int index = 0;
+		ArrayList<Conference> filtered = filterFeed(cs, cf);
 		vb.getChildren().clear();
 		TitledPane tpane = null;
-		for(Conference c : cs) {
+		for (Conference c : filtered) {
 			TextArea feed = new TextArea(c.toString());
 			feed.setWrapText(true);
 			feed.setEditable(false);
 			tpane = new TitledPane();
-			tpane.setText(addNLsIfTooLong(c.getName(), charLimit)); // 
+			tpane.setText(addNLsIfTooLong(c.getName(), charLimit)); //
 			tpane.setContent(feed);
 			tpane.setExpanded(false);
-			
+
 			vb.getChildren().add(index, tpane);
 			index++;
 		}
-		AnchorPane.setTopAnchor((Node)vb, 0.0);
-		AnchorPane.setBottomAnchor((Node)vb, 0.0);
-		AnchorPane.setLeftAnchor((Node)vb, 0.0);
-		AnchorPane.setRightAnchor((Node)vb, 0.0);
+		AnchorPane.setTopAnchor((Node) vb, 0.0);
+		AnchorPane.setBottomAnchor((Node) vb, 0.0);
+		AnchorPane.setLeftAnchor((Node) vb, 0.0);
+		AnchorPane.setRightAnchor((Node) vb, 0.0);
 	}
-	
+
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {
 		try {
 			FXMLLoader loader = new FXMLLoader();
@@ -74,7 +110,7 @@ public interface Controller {
 			stage.setMinHeight(minH + 25);
 			stage.setResizable(resizable);
 			Scene scene = new Scene(layout);
-//			scene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
+			// scene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
 			stage.setScene(scene);
 			stage.show();
 		} catch (IOException e) {
@@ -83,13 +119,13 @@ public interface Controller {
 	}
 
 	default public void loadScene(Parent parent, String path, int w, int h, boolean resizable, int minW, int minH) {
-			Stage sourceStage = (Stage) parent.getScene().getWindow();
-			loadScene(sourceStage, path, w, h, resizable, minW, minH);
+		Stage sourceStage = (Stage) parent.getScene().getWindow();
+		loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
 	default public void loadScene(Event event, String path, int w, int h, boolean resizable, int minW, int minH) {
-			Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-			loadScene(sourceStage, path, w, h, resizable, minW, minH);
+		Stage sourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+		loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
 	default public void openNewWindow(Stage SourceStage, String path, int minW, int minH, boolean resizable,
@@ -117,15 +153,12 @@ public interface Controller {
 			e.printStackTrace();
 		}
 	}
-	
-	default public void openNewWindow(Event event, String path, int minW, int minH, boolean resizable,
-			String title) {
+
+	default public void openNewWindow(Event event, String path, int minW, int minH, boolean resizable, String title) {
 		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
 		openNewWindow(SourceStage, path, minW, minH, resizable, title);
 	}
-	
-	
 
 	default public void openDialogBox(Event event, String message) {
 		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();

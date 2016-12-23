@@ -215,7 +215,7 @@ public class DbConnection {
 		return organizers;
 	}
 	
-	public ArrayList<Conference> fetchConferenceFeed(Boolean past) {
+	public ArrayList<Conference> fetchConferenceFeed() {
 
 		// !past - show present and future conferences
 		
@@ -226,11 +226,6 @@ public class DbConnection {
 				+ "to_char(czas_zakonczenia,'yyyy-mm-dd hh24:mi') from wydarzenie";
 		LocalDateTime startTime, endTime;
 		ArrayList<Conference> conferenceFeed = new ArrayList<Conference>();
-	
-		if(past != null) {
-			conferenceFeedQuery += past ? " where czas_zakonczenia <= current_date" :
-				" where czas_rozpoczecia >= current_date";
-		}
 		
 		try {
 			PreparedStatement pstmt;

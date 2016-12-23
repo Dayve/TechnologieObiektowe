@@ -160,12 +160,12 @@ private void handleAddConference(Conference c) {
 			}
 		}
 
-		private void handleConferenceFeed(Boolean past) {
-			ArrayList<Conference> conferenceFeed = dbConn.fetchConferenceFeed(past);
+		private void handleConferenceFeed() {
+			ArrayList<Conference> conferenceFeed = dbConn.fetchConferenceFeed();
 			SocketEvent se = null;
 			
 			// create SocketEvent w ArrayList arg
-			se = new SocketEvent("fetchConferenceFeed", conferenceFeed);
+			se = new SocketEvent("updateConferenceFeed", conferenceFeed);
 			try {
 				objOut.writeObject(se);
 			} catch (IOException e1) {
@@ -213,13 +213,7 @@ private void handleAddConference(Conference c) {
 						break;
 					}
 					case "reqConferenceFeed": {
-						Boolean past;
-						try{
-							past = Boolean.valueOf(se.getObject(Boolean.class));
-						} catch (NullPointerException npe) {
-							past = null;
-						}
-						handleConferenceFeed(past);
+						handleConferenceFeed();
 						break;
 					}
 					case "reqAddConference": {

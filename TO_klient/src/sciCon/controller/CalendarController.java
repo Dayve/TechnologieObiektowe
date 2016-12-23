@@ -116,7 +116,7 @@ public class CalendarController implements Controller{
 			if(c.getStartTime().toLocalDate().equals(selectedDate)) selectedDayConferences.add(c);
 		}
 		if(selectedDayConferences != null) {
-			fillVBoxWithPanes(listOfSelectedDaysEvents, selectedDayConferences, 
+			fillVBoxWithPanes(listOfSelectedDaysEvents, selectedDayConferences, ConferenceFilter.ALL,
 					ApplicationController.CHAR_LIMIT_IN_TITLEPANE);
 		}
 	}

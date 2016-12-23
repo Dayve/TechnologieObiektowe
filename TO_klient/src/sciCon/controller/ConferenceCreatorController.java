@@ -117,14 +117,8 @@ public class ConferenceCreatorController implements Controller {
 	@FXML
 	public void addConferenceBtn(Event evt) {
 		sharedEvent = evt;
+		new Thread(() ->reqAddConference()).start();
 		java.lang.reflect.Method m = null;
-		try {
-			m = ConferenceCreatorController.class.getMethod("reqAddConference");
-		} catch (NoSuchMethodException | SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		runInAnotherThread(m, this);
 	}
 
 	@FXML

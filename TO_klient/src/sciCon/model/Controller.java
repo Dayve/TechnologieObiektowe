@@ -92,25 +92,6 @@ public interface Controller {
 			loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
-	default public void runInAnotherThread(java.lang.reflect.Method method, Object destinationObject, Object... args) {
-		Worker<Void> worker = null;
-
-		worker = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				try {
-					method.invoke(destinationObject, args);
-				} catch (IllegalArgumentException e) {
-				} catch (IllegalAccessException e) {
-				} catch (InvocationTargetException e) {
-				}
-
-				return null;
-			}
-		};
-		new Thread((Runnable) worker).start();
-	}
-
 	default public void openNewWindow(Stage SourceStage, String path, int minW, int minH, boolean resizable,
 			String title) {
 

@@ -54,17 +54,7 @@ public class LoginRegisterController implements Controller {
 		
 		// get a method to call it using reflection
         
-        java.lang.reflect.Method m = null;
-        
-		try {
-			m = LoginRegisterController.class.getMethod("ConnectToServer");
-		} catch (NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
-		}
-		
-		// connect to server in another thread
-		
-        runInAnotherThread(m, null);
+		new Thread(() ->ConnectToServer()).start();
 	}
 
 	public void reqLogin() {
@@ -131,26 +121,14 @@ public class LoginRegisterController implements Controller {
 	@FXML
 	private void registerBtn(Event event) {
 		sharedEvent = event;
-		java.lang.reflect.Method m = null;
-		try {
-			m = LoginRegisterController.class.getMethod("reqRegister");
-		} catch (NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
-		}
-		runInAnotherThread(m, this);
+		new Thread(() ->reqRegister()).start();
 	}
 
 	@FXML
 	private void loginBtn(Event event) { // handler
 		sharedEvent = event;
 		// here check if login is valid
-		java.lang.reflect.Method m = null;
-		try {
-			m = LoginRegisterController.class.getMethod("reqLogin");
-		} catch (NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
-		}
-		runInAnotherThread(m, this);
+		new Thread(() ->reqLogin()).start();
 	}
 
 	@FXML

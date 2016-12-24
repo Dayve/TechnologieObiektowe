@@ -51,9 +51,7 @@ public class LoginRegisterController implements Controller {
 
 	
 	public void initialize() {
-		
 		// get a method to call it using reflection
-        
 		new Thread(() ->ConnectToServer()).start();
 	}
 
@@ -90,7 +88,6 @@ public class LoginRegisterController implements Controller {
 	}
 
 	public void reqRegister() {
-
 		String login = loginField.getText();
 		String password = passwordField.getText();
 		String rePassword = passwordRepeatField.getText();
@@ -161,7 +158,7 @@ public class LoginRegisterController implements Controller {
 
 	@FXML
 	private void goToApplication(Event event) {
-		loadScene(loginWindow, "view/ApplicationLayout.fxml", 900, 600, true, 900, 600);
+		loadScene(loginWindow, "view/ApplicationLayout.fxml", 1024, 576, true, 1024, 576);
 	}
 
 	@FXML

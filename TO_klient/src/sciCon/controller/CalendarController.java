@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -22,7 +23,7 @@ import sciCon.model.Week;
 public class CalendarController implements Controller{
 	
 	public void refreshCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, VBox listOfSelectedDaysEvents) {
+			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView listOfSelectedDaysEvents) {
 		calendarTable.getItems().clear();
 		calendarTable.getColumns().clear();
 		fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, conferencesFeed, listOfSelectedDaysEvents);
@@ -30,7 +31,7 @@ public class CalendarController implements Controller{
 	
 
 	public void fillCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, VBox listOfSelectedDaysEvents) {    	
+			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView listOfSelectedDaysEvents) {    	
 		// ColumnTitle are used only while displaying the content, 
 		// PropertyValue however must be the same as variable names in Week class.
         String[] daysOfTheWeekColumnTitles = {"Pn", "Wt", "Śr", "Czw", "Pt", "Sb", "Nd"};
@@ -77,7 +78,7 @@ public class CalendarController implements Controller{
 	                    			// Perform an action after a day with assigned conference was clicked:
 	                    			fillVBoxWithSelectedDaysConferences(clickedDate, conferencesFeed, listOfSelectedDaysEvents);
 	                    		} else {
-	                    			listOfSelectedDaysEvents.getChildren().clear();
+	                    			listOfSelectedDaysEvents.getItems().clear();
 	                    		}
 	                
 	                    		ConferenceCreatorController.setChosenDay(clickedDate);
@@ -109,14 +110,14 @@ public class CalendarController implements Controller{
 	
 	
 	private void fillVBoxWithSelectedDaysConferences(LocalDate selectedDate, 
-			ArrayList<Conference> feed, VBox listOfSelectedDaysEvents) {
+			ArrayList<Conference> feed, ListView listOfSelectedDaysEvents) {
 		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
 		
 		for(Conference c : feed) {
 			if(c.getStartTime().toLocalDate().equals(selectedDate)) selectedDayConferences.add(c);
 		}
 		if(selectedDayConferences != null) {
-			fillVBoxWithPanes(listOfSelectedDaysEvents, selectedDayConferences, ConferenceFilter.ALL,
+			fillListWithLabels(listOfSelectedDaysEvents, selectedDayConferences, ConferenceFilter.ALL,
 					ApplicationController.CHAR_LIMIT_IN_TITLEPANE);
 		}
 	}

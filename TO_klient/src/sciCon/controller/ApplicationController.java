@@ -13,6 +13,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
@@ -36,7 +38,7 @@ public class ApplicationController implements Controller {
 	@FXML
 	private Label currentlyChosenDateLabel;
 	@FXML
-	private VBox conferenceFeedBox;
+	private ListView<Label> conferenceFeedList;
 	@FXML
 	private AnchorPane feedAnchorPane;
 	@FXML
@@ -46,7 +48,8 @@ public class ApplicationController implements Controller {
 	@FXML
 	private Label loginLabel;
 	@FXML
-	private VBox listOfSelectedDaysEvents;
+	private ListView listOfSelectedDaysEvents;
+	private TabPane eventDetailsTP;
 	private ConferenceFilter filter;
 	Event sharedEvent = null;
 
@@ -75,7 +78,7 @@ public class ApplicationController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				fillVBoxWithPanes(conferenceFeedBox, filtered, filter, CHAR_LIMIT_IN_TITLEPANE);
+				fillListWithLabels(conferenceFeedList, filtered, filter, CHAR_LIMIT_IN_TITLEPANE);
 			}
 		});
 	}
@@ -134,7 +137,6 @@ public class ApplicationController implements Controller {
 
 	public void reqLogout() {
 		NetworkConnection.disconnect();
-
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
@@ -152,7 +154,6 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	public void initialize() {
-		
 		ObservableList<String> feedOptions = FXCollections.observableArrayList("Nadchodzące konferencje",
 				"Wszystkie konferencje", "Zakończone konferencje");
 

@@ -54,6 +54,8 @@ private static Socket s = null;
 	
 	public static void disconnect() {
 			try {
+				objIn.close();
+				objOut.close();
 				s.close();
 				// objIn and objOut are closed
 				objOut = null;

@@ -10,9 +10,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.AnchorPane;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import sciCon.Client;
@@ -74,27 +78,25 @@ public interface Controller {
 		return filtered;
 	}
 
-	default public void fillVBoxWithPanes(VBox vb, ArrayList<Conference> cs, ConferenceFilter cf, int charLimit) {
-		int index = 0;
+	default public void fillListWithLabels(ListView<Label> lv, ArrayList<Conference> cs, ConferenceFilter cf, int charLimit) {
 		ArrayList<Conference> filtered = filterFeed(cs, cf);
-		vb.getChildren().clear();
-		TitledPane tpane = null;
+		ObservableList<Label> ol = FXCollections.observableArrayList();
+		lv.getItems().clear();
+		Label label = null;
 		for (Conference c : filtered) {
 			TextArea feed = new TextArea(c.toString());
 			feed.setWrapText(true);
 			feed.setEditable(false);
-			tpane = new TitledPane();
-			tpane.setText(addNLsIfTooLong(c.getName(), charLimit)); //
-			tpane.setContent(feed);
-			tpane.setExpanded(false);
-
-			vb.getChildren().add(index, tpane);
-			index++;
+			feed.setMouseTransparent(true);
+			feed.setFocusTraversable(false);
+			label = new Label(addNLsIfTooLong(c.getName(), charLimit));
+			ol.add(label);
 		}
-		AnchorPane.setTopAnchor((Node) vb, 0.0);
-		AnchorPane.setBottomAnchor((Node) vb, 0.0);
-		AnchorPane.setLeftAnchor((Node) vb, 0.0);
-		AnchorPane.setRightAnchor((Node) vb, 0.0);
+		lv.setItems(ol);
+		AnchorPane.setTopAnchor((Node) lv, 0.0);
+		AnchorPane.setBottomAnchor((Node) lv, 0.0);
+		AnchorPane.setLeftAnchor((Node) lv, 0.0);
+		AnchorPane.setRightAnchor((Node) lv, 0.0);
 	}
 
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {

@@ -74,30 +74,28 @@ public class SciConServer implements Runnable {
 
 		private void handleRegistration(User u) {
 			SocketEvent se = null;
-			
+
 			int validationCode = isUserValid(u); // 0 - login is valid
 			String socketEvtName = "registerFailed";
 			String message = "";
-			
+
 			if (dbConn.doesUserExist(u.getLogin())) {
 				message = "Login jest już w użyciu.";
 			} else {
-				
-				message = interpretValidationCode(validationCode,
-						"Zarejestrowano",
+
+				message = interpretValidationCode(validationCode, "Zarejestrowano",
 						"Login musi mieć co najmniej 3 znaki i składać się z liter, cyfr lub znaku \"_\".",
-						"Hasło musi mieć co najmniej 6 znaków.",
-						"Imię i nazwisko muszą mieć co najmniej po 2 znaki.");
-				
+						"Hasło musi mieć co najmniej 6 znaków.", "Imię i nazwisko muszą mieć co najmniej po 2 znaki.");
+
 				if (validationCode == 0) {
-					if(!dbConn.registerUser(u)) {
+					if (!dbConn.registerUser(u)) {
 						message = "Rejestracja nie powiodła się. Błąd serwera.";
 					} else {
 						socketEvtName = "registerSucceeded";
 					}
 				}
 			}
-			
+
 			se = new SocketEvent(socketEvtName, message);
 			try {
 				objOut.writeObject(se);
@@ -106,22 +104,21 @@ public class SciConServer implements Runnable {
 			}
 		}
 
-private void handleAddConference(Conference c) {
-			
+		private void handleAddConference(Conference c) {
+
 			int validationCode = isConferenceValid(c);
 			String socketEvtName = "addConferenceFailed";
 			String message = "";
 			SocketEvent se = null;
-		
-			message = interpretValidationCode(validationCode,
-					"Dodano konferencję.",
+
+			message = interpretValidationCode(validationCode, "Dodano konferencję.",
 					"Podaj czas rozpoczęcia późniejszy niż obecny o co najmniej godzinę.",
 					"Konferencja nie może kończyć się wcześniej niż się zaczyna.",
 					"Nazwa nie może być krótsza niż 3 i dłuższa niż 40 znaków.",
 					"Temat nie może być krótszy niż 3 i dłuższy niż 60 znaków.",
 					"Zawartość pola \"Miejsce\" nie może być krótsza niż 3 i dłuższy niż 60 znaków.",
 					"Pole \"Plan\" nie może być puste.");
-		
+
 			if (validationCode == 0) { // if conference data is valid
 				if (!dbConn.addConference(c)) {
 					message = "Nie udało się dodać konferencji. Błąd serwera.";
@@ -129,25 +126,41 @@ private void handleAddConference(Conference c) {
 					socketEvtName = "addConferenceSucceeded";
 				}
 			}
-			
+
 			se = new SocketEvent(socketEvtName, message);
-			
+
 			try {
 				objOut.writeObject(se);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-	
+
+		private void handleJoinConference(int userId, int conferenceId) {
+			SocketEvent se = null;
+			if (!dbConn.addParticipant(userId, conferenceId)) {
+				se = new SocketEvent("joinConferenceFailed");;
+			} else {
+				se = new SocketEvent("joinConferenceSucceeded");;
+			}
+
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 		private void handleLogin(User u) {
 			SocketEvent se = null;
 			// check if user with received login is in the DB
 			User fetchedUser = dbConn.getUser(u.getLogin(), u.getPassword());
 			if (fetchedUser != null) {
-				// send back user data (without password), 
+				// send back user data (without password),
 				se = new SocketEvent("loginSucceeded");
 
-				// register user in server's memory (hashmap) and client-server process memory
+				// register user in server's memory (hashmap) and client-server
+				// process memory
 				loggedUser = fetchedUser;
 				loggedUsers.put(fetchedUser.getId(), fetchedUser);
 			} else {
@@ -163,7 +176,7 @@ private void handleAddConference(Conference c) {
 		private void handleConferenceFeed() {
 			ArrayList<Conference> conferenceFeed = dbConn.fetchConferenceFeed();
 			SocketEvent se = null;
-			
+
 			// create SocketEvent w ArrayList arg
 			se = new SocketEvent("updateConferenceFeed", conferenceFeed);
 			try {
@@ -172,12 +185,12 @@ private void handleAddConference(Conference c) {
 				e1.printStackTrace();
 			}
 		}
-		
+
 		private void handleSendCurrentUser() {
 			SocketEvent se = null;
-			
+
 			se = new SocketEvent("currentUserSucceeded", loggedUser);
-			
+
 			try {
 				objOut.writeObject(se);
 			} catch (IOException e1) {
@@ -191,13 +204,13 @@ private void handleAddConference(Conference c) {
 				SocketEvent se = null;
 
 				while (true) {
-					try{
+					try {
 						se = (SocketEvent) objIn.readObject();
-					} catch(EOFException eof) {
+					} catch (EOFException eof) {
 						System.out.println("Somebody lost connection.");
 						break;
 					}
-					
+
 					// name tells server what to do
 					String eventName = se.getName();
 					switch (eventName) {
@@ -221,6 +234,12 @@ private void handleAddConference(Conference c) {
 						handleAddConference(c);
 						break;
 					}
+					case "reqJoinConference": {
+						int userId = (int) se.getObject(int.class);
+						int conferenceId = (int) se.getObject(int.class);
+						handleJoinConference(userId, conferenceId);
+
+					}
 					case "reqCurrentUser": {
 						handleSendCurrentUser();
 					}
@@ -235,7 +254,7 @@ private void handleAddConference(Conference c) {
 			} finally {
 				try {
 					// remove user who was logged in from loggedUsers hashmap
-					if(loggedUser != null) {
+					if (loggedUser != null) {
 						loggedUsers.remove(loggedUser.getId());
 					}
 					s.close();

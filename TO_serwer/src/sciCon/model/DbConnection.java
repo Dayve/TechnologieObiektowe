@@ -107,6 +107,35 @@ public class DbConnection {
 		return count;
 	}
 
+	public boolean addParticipant(int conferenceId, int userId) {
+		boolean succeeded = true;
+		int participantId = this.maxEntry("id_uczestnika", "uczestnik") + 1;
+
+		String addParticipantQuery = "insert into uczestnik values(?, ?, ?)";
+		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 1)";
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(addParticipantQuery);
+			pstmt.setInt(1, participantId);
+			pstmt.setInt(2, conferenceId);
+			pstmt.setInt(3, userId);
+			pstmt.executeUpdate();
+			pstmt.close();
+			
+			pstmt = conn.prepareStatement(addParticipantRoleQuery);
+			pstmt.setInt(1, participantId);
+			pstmt.executeUpdate();
+			
+			pstmt.close();
+		} catch (SQLException e) {
+			succeeded = false;
+			System.out.println("Adding a participant to database has failed.");
+			e.printStackTrace();
+		}
+		return succeeded;
+		
+	}
+	
 	public boolean addConference(Conference c) {
 		boolean succeeded = true;
 
@@ -190,6 +219,31 @@ public class DbConnection {
 		return succeeded;
 	}
 
+	private ArrayList<User> fetchConferenceParticipants(int conferenceId) {
+		ArrayList<User> organizers = new ArrayList<User>();
+		String login = null, name = null, surname = null, fetchParticipantsQuery =
+				"SELECT login, imie, nazwisko FROM uzytkownik WHERE id_uzytkownika = "
+				+ "(SELECT id_uzytkownika FROM uczestnik WHERE id_wydarzenia = (?) "
+				+ "AND id_uczestnika IN (SELECT id_uczestnika FROM rola_uczestnika WHERE id_statusu = 0))";
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(fetchParticipantsQuery);
+			pstmt.setInt(1, conferenceId);
+			
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				login = rs.getString(1);
+				name = rs.getString(2);
+				surname = rs.getString(3);
+				organizers.add(new User(login, name, surname));
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return organizers;
+	}
+	
 	private ArrayList<User> fetchConferenceOrganizers(int conferenceId) {
 		ArrayList<User> organizers = new ArrayList<User>();
 		String login = null, name = null, surname = null, fetchOrganizerQuery =

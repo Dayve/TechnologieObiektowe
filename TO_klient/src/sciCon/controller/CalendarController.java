@@ -15,7 +15,6 @@ import javafx.scene.control.TableView;
 
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.VBox;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.Week;
@@ -23,7 +22,7 @@ import sciCon.model.Week;
 public class CalendarController implements Controller{
 	
 	public void refreshCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView listOfSelectedDaysEvents) {
+			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView<Label> listOfSelectedDaysEvents) {
 		calendarTable.getItems().clear();
 		calendarTable.getColumns().clear();
 		fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, conferencesFeed, listOfSelectedDaysEvents);
@@ -31,7 +30,7 @@ public class CalendarController implements Controller{
 	
 
 	public void fillCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView listOfSelectedDaysEvents) {    	
+			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView<Label> listOfSelectedDaysEvents) {    	
 		// ColumnTitle are used only while displaying the content, 
 		// PropertyValue however must be the same as variable names in Week class.
         String[] daysOfTheWeekColumnTitles = {"Pn", "Wt", "Śr", "Czw", "Pt", "Sb", "Nd"};
@@ -76,7 +75,7 @@ public class CalendarController implements Controller{
 	                    		
 	                    		if(isAnyConferenceAtDate(clickedDate, conferencesFeed)) {
 	                    			// Perform an action after a day with assigned conference was clicked:
-	                    			fillVBoxWithSelectedDaysConferences(clickedDate, conferencesFeed, listOfSelectedDaysEvents);
+	                    			fillListViewWithSelectedDaysConferences(clickedDate, conferencesFeed, listOfSelectedDaysEvents, false);
 	                    		} else {
 	                    			listOfSelectedDaysEvents.getItems().clear();
 	                    		}
@@ -109,8 +108,8 @@ public class CalendarController implements Controller{
 	}
 	
 	
-	private void fillVBoxWithSelectedDaysConferences(LocalDate selectedDate, 
-			ArrayList<Conference> feed, ListView listOfSelectedDaysEvents) {
+	private void fillListViewWithSelectedDaysConferences(LocalDate selectedDate, 
+			ArrayList<Conference> feed, ListView<Label> listOfSelectedDaysEvents, boolean showDate) {
 		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
 		
 		for(Conference c : feed) {
@@ -118,7 +117,7 @@ public class CalendarController implements Controller{
 		}
 		if(selectedDayConferences != null) {
 			fillListWithLabels(listOfSelectedDaysEvents, selectedDayConferences, ConferenceFilter.ALL,
-					ApplicationController.CHAR_LIMIT_IN_TITLEPANE);
+					ApplicationController.CHAR_LIMIT_IN_TITLEPANE, showDate);
 		}
 	}
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
@@ -13,11 +14,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TitledPane;
-import javafx.scene.layout.AnchorPane;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import sciCon.Client;
 import sciCon.controller.DialogController;
@@ -45,8 +43,8 @@ public interface Controller {
 			}
 			result += separateWords[i] + " ";
 		}
-
-		return result;
+		
+		return result.substring(0, result.length() - 1);
 	}
 
 	default public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf) {
@@ -78,8 +76,10 @@ public interface Controller {
 		return filtered;
 	}
 
-	default public void fillListWithLabels(ListView<Label> lv, ArrayList<Conference> cs, ConferenceFilter cf, int charLimit) {
+	@SuppressWarnings("unchecked")
+	default public void fillListWithLabels(ListView<Label> lv, ArrayList<Conference> cs, ConferenceFilter cf, int charLimit, boolean showDate) {
 		ArrayList<Conference> filtered = filterFeed(cs, cf);
+		Collections.sort(filtered, Conference.confDateComparator);
 		ObservableList<Label> ol = FXCollections.observableArrayList();
 		lv.getItems().clear();
 		Label label = null;
@@ -89,14 +89,14 @@ public interface Controller {
 			feed.setEditable(false);
 			feed.setMouseTransparent(true);
 			feed.setFocusTraversable(false);
-			label = new Label(addNLsIfTooLong(c.getName(), charLimit));
+			String title = c.getName();
+			if(showDate) {
+				title += " (" + c.getDate() + ")";
+			}
+			label = new Label(addNLsIfTooLong(title, charLimit));
 			ol.add(label);
 		}
 		lv.setItems(ol);
-		AnchorPane.setTopAnchor((Node) lv, 0.0);
-		AnchorPane.setBottomAnchor((Node) lv, 0.0);
-		AnchorPane.setLeftAnchor((Node) lv, 0.0);
-		AnchorPane.setRightAnchor((Node) lv, 0.0);
 	}
 
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {

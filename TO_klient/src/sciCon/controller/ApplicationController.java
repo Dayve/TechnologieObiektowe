@@ -17,7 +17,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
 import sciCon.Client;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
@@ -48,7 +47,7 @@ public class ApplicationController implements Controller {
 	@FXML
 	private Label loginLabel;
 	@FXML
-	private ListView listOfSelectedDaysEvents;
+	private ListView<Label> listOfSelectedDaysEvents;
 	private TabPane eventDetailsTP;
 	private ConferenceFilter filter;
 	Event sharedEvent = null;
@@ -78,7 +77,7 @@ public class ApplicationController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				fillListWithLabels(conferenceFeedList, filtered, filter, CHAR_LIMIT_IN_TITLEPANE);
+				fillListWithLabels(conferenceFeedList, filtered, filter, CHAR_LIMIT_IN_TITLEPANE, true);
 			}
 		});
 	}

@@ -1,8 +1,10 @@
 package sciCon.model;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 
 public class Conference implements Serializable {
@@ -40,6 +42,10 @@ public class Conference implements Serializable {
 		return endTime;
 	}
 
+	public LocalDate getDate() {
+		return startTime.toLocalDate();
+	}
+	
 	public String getPlace() {
 		return place;
 	}
@@ -122,4 +128,23 @@ public class Conference implements Serializable {
 		}
 		return ret;
 	}
+	
+	public static Comparator<Conference> confDateComparator = new Comparator<Conference>() {
+
+		public int compare(Conference c1, Conference c2) {
+		   LocalDateTime ldt1 = c1.getStartTime();
+		   LocalDateTime ldt2 = c2.getStartTime();
+		   int ret = 0;
+
+		   if(ldt1.isBefore(ldt2)) {
+			   ret = 1;
+		   } else {
+			   if(ldt1.isAfter(ldt2)) {
+				   ret = -1;
+			   }
+		   }
+		   return ret;
+
+	    }};
+	    
 }

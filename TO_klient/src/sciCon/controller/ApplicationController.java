@@ -57,6 +57,7 @@ public class ApplicationController implements Controller {
 	public static User currentUser;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 
+	private static Integer selectedConferenceId = null;
 	private CalendarController calendar = new CalendarController();
 	private static LocalDate calendarsDate; // It represents the currently
 											// selected (clicked) date
@@ -64,8 +65,13 @@ public class ApplicationController implements Controller {
 	public enum feedReqPeriod {
 		PAST, FUTURE, ALL
 	};
+	
+	public static void setSelectedConferenceId(int id) {
+		selectedConferenceId = id;
+	}
 
 	@FXML private void reqFilterFeed() {
+		System.out.println(selectedConferenceId);
 		String feedPeriodCB = conferenceFeedCB.getValue();
 		filter = ConferenceFilter.ALL;
 		if (feedPeriodCB.equals("Zakończone konferencje")) {

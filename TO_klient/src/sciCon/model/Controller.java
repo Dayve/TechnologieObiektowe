@@ -1,12 +1,14 @@
 package sciCon.model;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -14,10 +16,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Font;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.stage.Stage;
 import sciCon.Client;
+import sciCon.controller.ApplicationController;
+import sciCon.controller.ConferenceCreatorController;
 import sciCon.controller.DialogController;
 
 public interface Controller {
@@ -94,6 +100,12 @@ public interface Controller {
 				title += " (" + c.getDate() + ")";
 			}
 			label = new Label(addNLsIfTooLong(title, charLimit));
+			label.setFont(Font.font("Inconsolata", 13));
+			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                public void handle(MouseEvent t) {
+                    		ApplicationController.setSelectedConferenceId(c.getId());
+                }
+            });
 			ol.add(label);
 		}
 		lv.setItems(ol);

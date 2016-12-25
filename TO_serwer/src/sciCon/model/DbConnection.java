@@ -107,7 +107,7 @@ public class DbConnection {
 		return count;
 	}
 
-	public boolean addParticipant(int conferenceId, int userId) {
+	public boolean addParticipant(int userId, int conferenceId) {
 		boolean succeeded = true;
 		int participantId = this.maxEntry("id_uczestnika", "uczestnik") + 1;
 
@@ -247,7 +247,7 @@ public class DbConnection {
 	private ArrayList<User> fetchConferenceOrganizers(int conferenceId) {
 		ArrayList<User> organizers = new ArrayList<User>();
 		String login = null, name = null, surname = null, fetchOrganizerQuery =
-				"SELECT login, imie, nazwisko FROM uzytkownik WHERE id_uzytkownika = "
+				"SELECT login, imie, nazwisko FROM uzytkownik WHERE id_uzytkownika IN "
 				+ "(SELECT id_uzytkownika FROM uczestnik WHERE id_wydarzenia = (?) "
 				+ "AND id_uczestnika IN (SELECT id_uczestnika FROM rola_uczestnika WHERE id_statusu = 0))";
 		

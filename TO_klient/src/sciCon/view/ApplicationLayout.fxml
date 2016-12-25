@@ -72,7 +72,7 @@
                <font>
                   <Font size="13.0" />
                </font></Button>
-            <Button layoutX="160.0" layoutY="5.0" mnemonicParsing="false" prefHeight="30.0" text="Weź udział">
+            <Button layoutX="160.0" layoutY="5.0" mnemonicParsing="false" onAction="#joinConferenceBtn" prefHeight="30.0" text="Weź udział">
                <font>
                   <Font size="13.0" />
                </font></Button>
@@ -99,7 +99,7 @@
                <children>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
                      <children>
-                        <ComboBox fx:id="conferenceFeedCB" layoutX="14.0" layoutY="3.0" maxWidth="150.0" onAction="#reqFilterFeed" prefHeight="30.0" prefWidth="150.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <ComboBox fx:id="conferenceFeedCB" layoutX="14.0" layoutY="3.0" maxWidth="150.0" onAction="#filterFeed" prefHeight="30.0" prefWidth="150.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                      </children>
                   </AnchorPane>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
@@ -129,7 +129,7 @@
                <children>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
                      <children>
-                        <Button layoutX="10.0" layoutY="-2.0" mnemonicParsing="false" onAction="#reqLogoutButton" prefHeight="30.0" prefWidth="67.0" text="Wyloguj" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <Button layoutX="10.0" layoutY="-2.0" mnemonicParsing="false" onAction="#logoutButton" prefHeight="30.0" prefWidth="67.0" text="Wyloguj" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <font>
                               <Font size="13.0" />
                            </font></Button>

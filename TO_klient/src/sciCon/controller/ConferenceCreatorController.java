@@ -13,6 +13,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import sciCon.controller.ApplicationController.requestType;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
@@ -92,11 +93,13 @@ public class ConferenceCreatorController implements Controller {
 			SocketEvent e = new SocketEvent("reqAddConference", conf);
 			NetworkConnection.sendSocketEvent(e);
 
+			
 			SocketEvent res = NetworkConnection.rcvSocketEvent();
 			String eventName = res.getName();
 
 			if (eventName.equals("addConferenceSucceeded")) {
 				message = "Dodano konferencję.";
+				ApplicationController.makeRequest(requestType.UPDATE_CONFERENCE_FEED);
 			} else if (eventName.equals("addConferenceFailed")) {
 				message = res.getObject(String.class);
 			} else {

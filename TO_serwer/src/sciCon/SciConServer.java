@@ -235,11 +235,14 @@ public class SciConServer implements Runnable {
 						break;
 					}
 					case "reqJoinConference": {
-						int userId = (int) se.getObject(int.class);
-						int conferenceId = (int) se.getObject(int.class);
+						@SuppressWarnings("unchecked")
+						ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
+						int userId = userIdConferenceId.get(0);
+						int conferenceId = userIdConferenceId.get(1);
+						System.out.println("userId: " + userId + ", confId: " + conferenceId);
 						handleJoinConference(userId, conferenceId);
-
 					}
+					
 					case "reqCurrentUser": {
 						handleSendCurrentUser();
 					}

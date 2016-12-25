@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -48,24 +50,38 @@ public class ApplicationController implements Controller {
 	private Label loginLabel;
 	@FXML
 	private ListView<Label> listOfSelectedDaysEvents;
-	@FXML private TabPane eventDetailsTP;
-	private ConferenceFilter filter;
-	private FeedController feedController = new FeedController();
-	Event sharedEvent = null;
+	@FXML
+	private TabPane eventDetailsTP;
 
-	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
+	private ArrayList<Conference> feed = new ArrayList<Conference>();
+	private FeedController feedController = new FeedController();
+	private CalendarController calendar = new CalendarController(feedController);
 
 	public static User currentUser;
-	private ArrayList<Conference> feed = new ArrayList<Conference>();
+	private Event sharedEvent = null;
+	private String message = null;
+	private int checkedRequestsWithoutUpdate = 0;
 
-	private CalendarController calendar = new CalendarController(feedController);
-//	private TPaneController tpane = new TPaneController();
+	private ConferenceFilter filter;
 
 	public enum feedReqPeriod {
 		PAST, FUTURE, ALL
 	};
 
-	@FXML private void reqFilterFeed() {
+	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
+
+	private static LinkedBlockingQueue<requestType> requestQueue = new LinkedBlockingQueue<requestType>();
+
+	public static void makeRequest(requestType newRequest) {
+		requestQueue.add(newRequest);
+	}
+
+	public enum requestType {
+		UPDATE_CONFERENCE_FEED
+	};
+
+	@FXML
+	private void filterFeed() {
 		String feedPeriodCB = conferenceFeedCB.getValue();
 		filter = ConferenceFilter.ALL;
 		if (feedPeriodCB.equals("Zakończone konferencje")) {
@@ -77,11 +93,12 @@ public class ApplicationController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				feedController.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter, CHAR_LIMIT_IN_TITLEPANE, true);
+				feedController.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter,
+						CHAR_LIMIT_IN_TITLEPANE, true);
 			}
 		});
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@FXML
 	public void reqConferenceFeed() {
@@ -91,7 +108,7 @@ public class ApplicationController implements Controller {
 
 		String eventName = res.getName();
 		ArrayList<Conference> tempFeed;
-		
+
 		if (eventName.equals("updateConferenceFeed")) {
 			// get temp feed to compare it with current one
 			tempFeed = res.getObject(ArrayList.class);
@@ -104,9 +121,9 @@ public class ApplicationController implements Controller {
 					@Override
 					public void run() {
 						// fill FeedBox and Calendar in JavaFX UI Thread
-						reqFilterFeed();
-						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
-								eventDetailsTP, listOfSelectedDaysEvents);
+						filterFeed();
+						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel,
+								calendar.getCalendarsDate(), feed, eventDetailsTP, listOfSelectedDaysEvents);
 					}
 				});
 			}
@@ -116,8 +133,8 @@ public class ApplicationController implements Controller {
 
 	// sends request for the current user object
 	public void reqCurrentUser() {
-		SocketEvent e = new SocketEvent("reqCurrentUser");
-		NetworkConnection.sendSocketEvent(e);
+		SocketEvent se = new SocketEvent("reqCurrentUser");
+		NetworkConnection.sendSocketEvent(se);
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
 		String eventName = res.getName();
@@ -133,7 +150,35 @@ public class ApplicationController implements Controller {
 		});
 	}
 
-	public void reqLogout() {
+	@FXML
+	public void joinConferenceBtn(ActionEvent evt) {
+		sharedEvent = evt;
+		new Thread(() -> reqJoinConference()).start();
+	}
+
+	private void reqJoinConference() {
+		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
+		userIdConferenceId.add(currentUser.getId());
+		userIdConferenceId.add(feedController.getSelectedConferenceId());
+
+		SocketEvent se = new SocketEvent("reqJoinConference", userIdConferenceId);
+		NetworkConnection.sendSocketEvent(se);
+		System.out.println(se.getObject(ArrayList.class));
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		String eventName = res.getName();
+		message = eventName.equals("joinConferenceSucceeded")
+				? "Wysłano prośbę o udział w konferencji do jej organizatora."
+				: "Nie udało się dołączyć do konferencji.";
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				openDialogBox(sharedEvent, message);
+			}
+		});
+	}
+
+	public void logout() {
 		NetworkConnection.disconnect();
 		Platform.runLater(new Runnable() {
 			@Override
@@ -144,10 +189,10 @@ public class ApplicationController implements Controller {
 	}
 
 	@FXML
-	private void reqLogoutButton(ActionEvent event) {
+	private void logoutButton(ActionEvent event) {
 		sharedEvent = event;
 		// here check if login is valid
-		new Thread(() -> reqLogout()).start();
+		new Thread(() -> logout()).start();
 	}
 
 	@FXML
@@ -162,7 +207,9 @@ public class ApplicationController implements Controller {
 
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
-		
+
+		makeRequest(requestType.UPDATE_CONFERENCE_FEED);
+
 		Client.timer = new Timer();
 		Client.timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
@@ -170,19 +217,25 @@ public class ApplicationController implements Controller {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						reqConferenceFeed();
+						// TODO: requestQueue.contains() and remove() should be
+						// changed to something
+						// more appropriate once we extend requestType
+						if (requestQueue.contains(requestType.UPDATE_CONFERENCE_FEED)
+								|| checkedRequestsWithoutUpdate > 10) {
+							reqConferenceFeed();
+							checkedRequestsWithoutUpdate = 0;
+							requestQueue.remove(requestType.UPDATE_CONFERENCE_FEED);
+						} else
+							checkedRequestsWithoutUpdate++;
 					}
 				});
 			}
-		}, 0, 10000);
-		
-		
+		}, 0, 1000);
+
 		calendar.setCalendarsDate(LocalDate.now());
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 
 		new Thread(() -> reqCurrentUser()).start();
-		
-		
 	}
 
 	public void changeMonthToNext() {

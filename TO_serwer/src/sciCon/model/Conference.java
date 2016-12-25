@@ -10,6 +10,10 @@ public class Conference implements Serializable {
 	
 	private int id;
 	private ArrayList<User> organizers = new ArrayList<User>();
+	private ArrayList<User> prelectors = new ArrayList<User>();
+	private ArrayList<User> participants = new ArrayList<User>();
+	private ArrayList<User> sponsors = new ArrayList<User>();
+	private ArrayList<User> pending = new ArrayList<User>();
 	
 	private String name;
 	private String subject;
@@ -64,22 +68,10 @@ public class Conference implements Serializable {
 	}
 	
 	public Conference(int id, String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
-			String description, String agenda, User organizer) {
+			String description, String agenda, ArrayList<User> organizers) {
 		this( name, subject,  startTime,  endTime,  place,
-				description,  agenda, organizer);
+				description,  agenda, organizers);
 		this.id = id;
-	}
-	
-	public Conference(String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
-			String description, String agenda, User organizer) {
-		this.name = name;
-		this.subject = subject;
-		this.startTime = startTime;
-		this.endTime = endTime;
-		this.place = place;
-		this.description = description;
-		this.agenda = agenda;
-		organizers.add(organizer);
 	}
 	
 	public Conference(String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
@@ -94,10 +86,29 @@ public class Conference implements Serializable {
 		this.organizers = organizers;
 	}
 	
+	public Conference(String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
+			String description, String agenda, ArrayList<User> organizers, ArrayList<User> sponsors, ArrayList<User> prelectors, ArrayList<User> participants, 
+			ArrayList<User> pending) {
+		this.name = name;
+		this.subject = subject;
+		this.startTime = startTime;
+		this.endTime = endTime;
+		this.place = place;
+		this.description = description;
+		this.agenda = agenda;
+		this.organizers = organizers;
+		this.sponsors = sponsors;
+		this.participants = participants;
+		this.pending = pending;
+		this.prelectors = prelectors;
+	}
+	
 	public Conference(int id, String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
-			String description, String agenda, ArrayList<User> organizers) {
+			String description, String agenda, ArrayList<User> organizers, ArrayList<User> sponsors, ArrayList<User> prelectors, 
+			ArrayList<User> participants, 
+			ArrayList<User> pending) {
 		this( name, subject,  startTime,  endTime,  place,
-				description,  agenda, organizers);
+				description,  agenda, organizers, sponsors, prelectors, participants, pending);
 		this.id = id;
 	}
 	

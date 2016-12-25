@@ -163,7 +163,7 @@ public class ApplicationController implements Controller {
 
 		SocketEvent se = new SocketEvent("reqJoinConference", userIdConferenceId);
 		NetworkConnection.sendSocketEvent(se);
-		System.out.println(se.getObject(ArrayList.class));
+
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 		String eventName = res.getName();
 		message = eventName.equals("joinConferenceSucceeded")
@@ -197,6 +197,7 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	public void initialize() {
+		calendar.setCalendarsDate(LocalDate.now());
 		ObservableList<String> feedOptions = FXCollections.observableArrayList("Nadchodzące konferencje",
 				"Wszystkie konferencje", "Zakończone konferencje");
 
@@ -232,7 +233,7 @@ public class ApplicationController implements Controller {
 			}
 		}, 0, 1000);
 
-		calendar.setCalendarsDate(LocalDate.now());
+	
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 
 		new Thread(() -> reqCurrentUser()).start();

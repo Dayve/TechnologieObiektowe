@@ -13,6 +13,10 @@ public class Conference implements Serializable {
 	
 	private int id;
 	private ArrayList<User> organizers = new ArrayList<User>();
+	private ArrayList<User> prelectors = new ArrayList<User>();
+	private ArrayList<User> participants = new ArrayList<User>();
+	private ArrayList<User> sponsors = new ArrayList<User>();
+	private ArrayList<User> pending = new ArrayList<User>();
 	
 	private String name;
 	private String subject;
@@ -106,6 +110,18 @@ public class Conference implements Serializable {
 		this( name, subject,  startTime,  endTime,  place,
 				description,  agenda, organizers);
 		this.id = id;
+	}
+	
+	public ArrayList<User> getParticipantsList() {
+		ArrayList<User> ret = new ArrayList<User>(organizers);
+		ret.addAll(prelectors);
+		ret.addAll(sponsors);
+		ret.addAll(participants);
+		return ret;
+	}
+	
+	public ArrayList<User> getPendingList() {
+		return pending;
 	}
 	
 	@Override

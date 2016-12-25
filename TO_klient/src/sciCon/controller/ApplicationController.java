@@ -48,8 +48,9 @@ public class ApplicationController implements Controller {
 	private Label loginLabel;
 	@FXML
 	private ListView<Label> listOfSelectedDaysEvents;
-	private TabPane eventDetailsTP;
+	@FXML private TabPane eventDetailsTP;
 	private ConferenceFilter filter;
+	private FeedController feedController = new FeedController();
 	Event sharedEvent = null;
 
 	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
@@ -57,21 +58,14 @@ public class ApplicationController implements Controller {
 	public static User currentUser;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 
-	private static Integer selectedConferenceId = null;
-	private CalendarController calendar = new CalendarController();
-	private static LocalDate calendarsDate; // It represents the currently
-											// selected (clicked) date
+	private CalendarController calendar = new CalendarController(feedController);
+//	private TPaneController tpane = new TPaneController();
 
 	public enum feedReqPeriod {
 		PAST, FUTURE, ALL
 	};
-	
-	public static void setSelectedConferenceId(int id) {
-		selectedConferenceId = id;
-	}
 
 	@FXML private void reqFilterFeed() {
-		System.out.println(selectedConferenceId);
 		String feedPeriodCB = conferenceFeedCB.getValue();
 		filter = ConferenceFilter.ALL;
 		if (feedPeriodCB.equals("Zakończone konferencje")) {
@@ -79,11 +73,11 @@ public class ApplicationController implements Controller {
 		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
 			filter = ConferenceFilter.FUTURE;
 		}
-		ArrayList<Conference> filtered = filterFeed(feed, filter);
+		ArrayList<Conference> filtered = feedController.filterFeed(feed, filter);
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				fillListWithLabels(conferenceFeedList, filtered, filter, CHAR_LIMIT_IN_TITLEPANE, true);
+				feedController.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter, CHAR_LIMIT_IN_TITLEPANE, true);
 			}
 		});
 	}
@@ -106,14 +100,13 @@ public class ApplicationController implements Controller {
 			// compare if feeds match, if so, don't fill vbox with new content
 			if (tempFeed != null && !tempFeed.toString().equals(feed.toString())) {
 				feed = tempFeed;
-				System.out.println();
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
 						// fill FeedBox and Calendar in JavaFX UI Thread
 						reqFilterFeed();
-						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed,
-								listOfSelectedDaysEvents);
+						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
+								eventDetailsTP, listOfSelectedDaysEvents);
 					}
 				});
 			}
@@ -184,7 +177,7 @@ public class ApplicationController implements Controller {
 		}, 0, 10000);
 		
 		
-		calendarsDate = LocalDate.now();
+		calendar.setCalendarsDate(LocalDate.now());
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 
 		new Thread(() -> reqCurrentUser()).start();
@@ -193,15 +186,15 @@ public class ApplicationController implements Controller {
 	}
 
 	public void changeMonthToNext() {
-		calendarsDate = calendarsDate.plusMonths(1);
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed,
-				listOfSelectedDaysEvents);
+		calendar.setCalendarsDate(calendar.getCalendarsDate().plusMonths(1));
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
+				eventDetailsTP, listOfSelectedDaysEvents);
 	}
 
 	public void changeMonthToPrevious() {
-		calendarsDate = calendarsDate.minusMonths(1);
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, feed,
-				listOfSelectedDaysEvents);
+		calendar.setCalendarsDate(calendar.getCalendarsDate().minusMonths(1));
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
+				eventDetailsTP, listOfSelectedDaysEvents);
 	}
 
 	@FXML

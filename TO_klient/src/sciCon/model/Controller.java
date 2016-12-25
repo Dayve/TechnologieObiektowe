@@ -15,6 +15,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
@@ -25,92 +27,13 @@ import sciCon.Client;
 import sciCon.controller.ApplicationController;
 import sciCon.controller.ConferenceCreatorController;
 import sciCon.controller.DialogController;
+import sciCon.model.Controller.ConferenceFilter;
 
 public interface Controller {
 	public enum ConferenceFilter {
 		PAST, FUTURE, ONGOING, ALL
 	};
-
-	default public String addNLsIfTooLong(String givenString, int limit) {
-		String[] separateWords = givenString.split("\\s+");
-		String result = new String();
-		int howMuchCharsSoFar = 0;
-
-		for (int i = 0; i < separateWords.length; ++i) {
-			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we
-																// assume that
-																// every word
-																// has a space
-																// at the end
-
-			if (howMuchCharsSoFar > limit) {
-				result += "\n";
-				howMuchCharsSoFar = 0;
-			}
-			result += separateWords[i] + " ";
-		}
-		
-		return result.substring(0, result.length() - 1);
-	}
-
-	default public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-		LocalDateTime now = LocalDateTime.now();
-		now.format(formatter);
-		ArrayList<Conference> filtered = new ArrayList<Conference>();
-		filtered.addAll(feed);
-		switch (cf) {
-		case PAST: {
-			filtered.removeIf(s -> s.getStartTime().isAfter(now));
-			break;
-		}
-		case FUTURE: {
-			filtered.removeIf(s -> s.getEndTime().isBefore(now));
-			break;
-		}
-		case ONGOING: {
-			filtered.removeIf(s -> s.getStartTime().isBefore(now) && s.getEndTime().isAfter(now));
-			break;
-		}
-		case ALL: {
-			break;
-		}
-
-		default:
-			break;
-		}
-		return filtered;
-	}
-
-	@SuppressWarnings("unchecked")
-	default public void fillListWithLabels(ListView<Label> lv, ArrayList<Conference> cs, ConferenceFilter cf, int charLimit, boolean showDate) {
-		ArrayList<Conference> filtered = filterFeed(cs, cf);
-		Collections.sort(filtered, Conference.confDateComparator);
-		ObservableList<Label> ol = FXCollections.observableArrayList();
-		lv.getItems().clear();
-		Label label = null;
-		for (Conference c : filtered) {
-			TextArea feed = new TextArea(c.toString());
-			feed.setWrapText(true);
-			feed.setEditable(false);
-			feed.setMouseTransparent(true);
-			feed.setFocusTraversable(false);
-			String title = c.getName();
-			if(showDate) {
-				title += " (" + c.getDate() + ")";
-			}
-			label = new Label(addNLsIfTooLong(title, charLimit));
-			label.setFont(Font.font("Inconsolata", 13));
-			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                public void handle(MouseEvent t) {
-                    		ApplicationController.setSelectedConferenceId(c.getId());
-                }
-            });
-			ol.add(label);
-		}
-		lv.setItems(ol);
-	}
-
+	
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {
 		try {
 			FXMLLoader loader = new FXMLLoader();

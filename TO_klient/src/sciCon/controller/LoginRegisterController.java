@@ -62,18 +62,20 @@ public class LoginRegisterController implements Controller {
 		flag = false;
 
 		User u = new User(login, password);
-		SocketEvent e = new SocketEvent("reqLogin", u);
+		SocketEvent se = new SocketEvent("reqLogin", u);
 
-		NetworkConnection.sendSocketEvent(e);
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
-
-		String eventName = res.getName();
-
-		if (eventName.equals("loginFailed")) {
-			message = "Niepoprawny login lub hasło.";
-		} else if (eventName.equals("loginSucceeded")) {
-			flag = true;
-			// run in JavaFX after background thread finishes work
+		try{
+			NetworkConnection.sendSocketEvent(se);
+			SocketEvent res = NetworkConnection.rcvSocketEvent();
+			String eventName = res.getName();
+			if (eventName.equals("loginFailed")) {
+				message = "Niepoprawny login lub hasło.";
+			} else if (eventName.equals("loginSucceeded")) {
+				flag = true;
+				// run in JavaFX after background thread finishes work
+			}
+		} catch (NullPointerException e) {
+			message = "Nie można ustanowić połączenia z serwerem.";
 		}
 		Platform.runLater(new Runnable() {
 			@Override
@@ -124,7 +126,6 @@ public class LoginRegisterController implements Controller {
 	@FXML
 	private void loginBtn(Event event) { // handler
 		sharedEvent = event;
-		// here check if login is valid
 		new Thread(() ->reqLogin()).start();
 	}
 

@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -19,18 +20,30 @@ import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.Week;
 
-public class CalendarController implements Controller{
+public class CalendarController implements Controller {
+	private FeedController feedController;
+	private LocalDate selectedDate; // currently selected (clicked) date
 	
-	public void refreshCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView<Label> listOfSelectedDaysEvents) {
-		calendarTable.getItems().clear();
-		calendarTable.getColumns().clear();
-		fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, conferencesFeed, listOfSelectedDaysEvents);
+	public CalendarController(FeedController fc) {
+		this.feedController = fc;
+	}
+	public void setCalendarsDate(LocalDate calendarsDate) {
+		this.selectedDate = calendarsDate;
+	}
+
+	public LocalDate getCalendarsDate() {
+		return selectedDate;
 	}
 	
-
+	public void refreshCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
+			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {
+		calendarTable.getItems().clear();
+		calendarTable.getColumns().clear();
+		fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, conferencesFeed, tp, listOfSelectedDaysEvents);
+	}
+	
 	public void fillCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, ListView<Label> listOfSelectedDaysEvents) {    	
+			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {    	
 		// ColumnTitle are used only while displaying the content, 
 		// PropertyValue however must be the same as variable names in Week class.
         String[] daysOfTheWeekColumnTitles = {"Pn", "Wt", "Śr", "Czw", "Pt", "Sb", "Nd"};
@@ -75,11 +88,11 @@ public class CalendarController implements Controller{
 	                    		
 	                    		if(isAnyConferenceAtDate(clickedDate, conferencesFeed)) {
 	                    			// Perform an action after a day with assigned conference was clicked:
-	                    			fillListViewWithSelectedDaysConferences(clickedDate, conferencesFeed, listOfSelectedDaysEvents, false);
+	                    			feedController.fillListViewWithSelectedDaysConferences(clickedDate, 
+	                    					conferencesFeed, tp, listOfSelectedDaysEvents, false);
 	                    		} else {
 	                    			listOfSelectedDaysEvents.getItems().clear();
 	                    		}
-	                
 	                    		ConferenceCreatorController.setChosenDay(clickedDate);
 	                    	}
 	                    } 
@@ -105,20 +118,6 @@ public class CalendarController implements Controller{
         
         // Change label: (this function is called whenever the month is changed, so should be the label)
         currentlyChosenDateLabel.setText(localDateToPolishDateString(calendarsDate));
-	}
-	
-	
-	private void fillListViewWithSelectedDaysConferences(LocalDate selectedDate, 
-			ArrayList<Conference> feed, ListView<Label> listOfSelectedDaysEvents, boolean showDate) {
-		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
-		
-		for(Conference c : feed) {
-			if(c.getStartTime().toLocalDate().equals(selectedDate)) selectedDayConferences.add(c);
-		}
-		if(selectedDayConferences != null) {
-			fillListWithLabels(listOfSelectedDaysEvents, selectedDayConferences, ConferenceFilter.ALL,
-					ApplicationController.CHAR_LIMIT_IN_TITLEPANE, showDate);
-		}
 	}
 
 	

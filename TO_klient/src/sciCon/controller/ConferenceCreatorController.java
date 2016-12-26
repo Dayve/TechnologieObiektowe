@@ -7,12 +7,14 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import sciCon.controller.ApplicationController.requestType;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
@@ -21,6 +23,7 @@ import sciCon.model.SocketEvent;
 
 public class ConferenceCreatorController implements Controller {
 	
+	@FXML Parent confCreatorWindow;
 	@FXML private TextField nameField;
 	@FXML private TextField subjectField;
 	@FXML private DatePicker dateField;
@@ -34,8 +37,6 @@ public class ConferenceCreatorController implements Controller {
 	
 	// Date which will be used to initialize the DatePicker:
 	private static LocalDate conferenceDestinedDay = LocalDate.now();
-	
-	private Event sharedEvent;
 	private String message;
 	
 	@FXML
@@ -111,20 +112,34 @@ public class ConferenceCreatorController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				openDialogBox(sharedEvent, message);
+				openDialogBox(confCreatorWindow, message);
 			}
 		});
 
 	}
 
 	@FXML
-	public void addConferenceBtn(Event evt) {
-		sharedEvent = evt;
+	public void addConferenceBtn() {
 		new Thread(() ->reqAddConference()).start();
+	}
+	
+	@FXML
+	private void addConferenceBtnEnterKey(KeyEvent event) {
+		if (event.getCode() == KeyCode.ENTER) {
+			new Thread(() ->reqAddConference()).start();
+		}
 	}
 
 	@FXML
 	public void closeWindowBtn(ActionEvent event) {
-		closeWindow(event);
+		closeWindow(confCreatorWindow);
 	}
+	
+	@FXML
+	private void closeBtnEnterKey(KeyEvent event) {
+		if (event.getCode() == KeyCode.ENTER) {
+			closeWindow(confCreatorWindow);
+		}
+	}
+	
 }

@@ -2,13 +2,12 @@
 package sciCon.controller;
 
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.AnchorPane;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.User;
@@ -17,9 +16,9 @@ import sciCon.model.SocketEvent;
 public class LoginRegisterController implements Controller {
 
 	@FXML
-	private AnchorPane loginWindow;
+	private Parent loginWindow;
 	@FXML
-	private AnchorPane registrationWindow;
+	private Parent registrationWindow;
 	@FXML
 	private TextField loginField;
 	@FXML
@@ -33,10 +32,6 @@ public class LoginRegisterController implements Controller {
 	private boolean flag;
 	
 	private String message;
-	private Event sharedEvent = null; // loginBtn action event gets here after
-										// it's pressed
-	// so runLater can see it and scene can be changed.
-
 	public static void ConnectToServer() {
     	NetworkConnection.connect("localhost", 8080);
     }
@@ -81,9 +76,9 @@ public class LoginRegisterController implements Controller {
 			@Override
 			public void run() {
 				if(flag) {
-					goToApplication(sharedEvent);
+					goToApplication(loginWindow);
 				} else {
-				openDialogBox(sharedEvent, message);
+				openDialogBox(loginWindow, message);
 				}
 			}
 		});
@@ -112,34 +107,32 @@ public class LoginRegisterController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				openDialogBox(sharedEvent, message);
+				openDialogBox(registrationWindow, message);
 			}
 		});
 	}
 
 	@FXML
-	private void registerBtn(Event event) {
-		sharedEvent = event;
+	private void registerBtn() {
 		new Thread(() ->reqRegister()).start();
 	}
 
 	@FXML
-	private void loginBtn(Event event) { // handler
-		sharedEvent = event;
+	private void loginBtn() { // handler
 		new Thread(() ->reqLogin()).start();
 	}
 
 	@FXML
 	private void loginBtnEnterKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			loginBtn(new ActionEvent());
+			new Thread(() ->reqLogin()).start();
 		}
 	}
 
 	@FXML
 	private void registerBtnEnterKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			registerBtn(event);
+			new Thread(() ->reqRegister()).start();
 		}
 	}
 
@@ -158,8 +151,8 @@ public class LoginRegisterController implements Controller {
 	}
 
 	@FXML
-	private void goToApplication(Event event) {
-		loadScene(loginWindow, "view/ApplicationLayout.fxml", 1024, 576, true, 1024, 576);
+	private void goToApplication(Parent fromWindow) {
+		loadScene(fromWindow, "view/ApplicationLayout.fxml", 1024, 576, true, 1024, 576);
 	}
 
 	@FXML

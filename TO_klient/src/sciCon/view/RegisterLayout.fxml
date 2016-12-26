@@ -12,23 +12,23 @@
          <font>
             <Font size="13.0" />
          </font></Button>
-      <TextField fx:id="loginField" layoutX="50.0" layoutY="25.0" prefHeight="30.0" prefWidth="220.0" promptText="Login">
+      <TextField fx:id="loginField" layoutX="50.0" layoutY="25.0" onKeyReleased="#registerBtnEnterKey" prefHeight="30.0" prefWidth="220.0" promptText="Login">
          <font>
             <Font size="13.0" />
          </font></TextField>
-      <PasswordField fx:id="passwordField" layoutX="50.0" layoutY="70.0" prefHeight="30.0" prefWidth="220.0" promptText="Hasło">
+      <PasswordField fx:id="passwordField" layoutX="50.0" layoutY="70.0" onKeyReleased="#registerBtnEnterKey" prefHeight="30.0" prefWidth="220.0" promptText="Hasło">
          <font>
             <Font size="13.0" />
          </font></PasswordField>
-      <PasswordField fx:id="passwordRepeatField" layoutX="50.0" layoutY="115.0" prefHeight="30.0" prefWidth="220.0" promptText="Powtórz hasło">
+      <PasswordField fx:id="passwordRepeatField" layoutX="50.0" layoutY="115.0" onKeyReleased="#registerBtnEnterKey" prefHeight="30.0" prefWidth="220.0" promptText="Powtórz hasło">
          <font>
             <Font size="13.0" />
          </font></PasswordField>
-      <TextField fx:id="nameField" layoutX="50.0" layoutY="160.0" prefHeight="30.0" prefWidth="220.0" promptText="Imię">
+      <TextField fx:id="nameField" layoutX="50.0" layoutY="160.0" onKeyReleased="#registerBtnEnterKey" prefHeight="30.0" prefWidth="220.0" promptText="Imię">
          <font>
             <Font size="13.0" />
          </font></TextField>
-      <TextField fx:id="surnameField" layoutX="50.0" layoutY="205.0" prefHeight="30.0" prefWidth="220.0" promptText="Nazwisko">
+      <TextField fx:id="surnameField" layoutX="50.0" layoutY="205.0" onKeyReleased="#registerBtnEnterKey" prefHeight="30.0" prefWidth="220.0" promptText="Nazwisko">
          <font>
             <Font size="13.0" />
          </font></TextField>

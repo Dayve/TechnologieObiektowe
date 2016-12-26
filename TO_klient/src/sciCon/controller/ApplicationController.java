@@ -12,6 +12,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -29,6 +30,7 @@ import sciCon.model.Week;
 
 public class ApplicationController implements Controller {
 
+	@FXML Parent applicationWindow;
 	@FXML
 	private Button prevMonth;
 	@FXML
@@ -173,7 +175,7 @@ public class ApplicationController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				openDialogBox(sharedEvent, message);
+				openDialogBox(applicationWindow, message);
 			}
 		});
 	}
@@ -253,6 +255,6 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	public void addConferenceBtn(ActionEvent event) {
-		openNewWindow(event, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencję");
+		openNewWindow(applicationWindow, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencję");
 	}
 }

@@ -46,7 +46,7 @@ public interface Controller {
 		loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
-	default public void openNewWindow(Stage SourceStage, String path, int minW, int minH, boolean resizable,
+	default public void openNewWindow(Stage sourceStage, String path, int minW, int minH, boolean resizable,
 			String title) {
 
 		FXMLLoader loader = new FXMLLoader();
@@ -58,7 +58,7 @@ public interface Controller {
 			newScene = new Scene(loader.load());
 			newStage.setMaxHeight(minH + 25);
 			newStage.setMaxWidth(minW);
-			newStage.initOwner(SourceStage);
+			newStage.initOwner(sourceStage);
 
 			newStage.setScene(newScene);
 
@@ -72,14 +72,14 @@ public interface Controller {
 		}
 	}
 
-	default public void openNewWindow(Event event, String path, int minW, int minH, boolean resizable, String title) {
-		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+	default public void openNewWindow(Parent window, String path, int minW, int minH, boolean resizable, String title) {
+		Stage sourceStage = (Stage) window.getScene().getWindow();
 
-		openNewWindow(SourceStage, path, minW, minH, resizable, title);
+		openNewWindow(sourceStage, path, minW, minH, resizable, title);
 	}
 
-	default public void openDialogBox(Event event, String message) {
-		Stage SourceStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+	default public void openDialogBox(Parent window, String message) {
+		Stage sourceStage = (Stage) window.getScene().getWindow();
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Client.class.getResource("view/DialogBoxLayout.fxml"));
 		Stage newStage = new Stage();
@@ -88,7 +88,7 @@ public interface Controller {
 			newScene = new Scene(loader.load());
 			newStage.setMaxHeight(305);
 			newStage.setMaxWidth(400);
-			newStage.initOwner(SourceStage);
+			newStage.initOwner(sourceStage);
 			newStage.setScene(newScene);
 			newStage.setResizable(false);
 			newStage.setTitle("Powiadomienie");
@@ -100,8 +100,8 @@ public interface Controller {
 		}
 	}
 
-	default public void closeWindow(Event event) {
-		Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+	default public void closeWindow(Parent window) {
+		Stage stage = (Stage) window.getScene().getWindow();
 		stage.close();
 	}
 }

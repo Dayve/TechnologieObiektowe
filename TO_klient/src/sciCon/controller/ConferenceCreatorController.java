@@ -15,7 +15,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import sciCon.controller.ApplicationController.requestType;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
@@ -100,7 +99,7 @@ public class ConferenceCreatorController implements Controller {
 
 			if (eventName.equals("addConferenceSucceeded")) {
 				message = "Dodano konferencję.";
-				ApplicationController.makeRequest(requestType.UPDATE_CONFERENCE_FEED);
+				ApplicationController.makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
 			} else if (eventName.equals("addConferenceFailed")) {
 				message = res.getObject(String.class);
 			} else {

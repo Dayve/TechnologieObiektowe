@@ -72,15 +72,11 @@ public class ApplicationController implements Controller {
 
 	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
 
-	private static LinkedBlockingQueue<requestType> requestQueue = new LinkedBlockingQueue<requestType>();
+	private static LinkedBlockingQueue<RequestType> requestQueue = new LinkedBlockingQueue<RequestType>();
 
-	public static void makeRequest(requestType newRequest) {
+	public static void makeRequest(RequestType newRequest) {
 		requestQueue.add(newRequest);
 	}
-
-	public enum requestType {
-		UPDATE_CONFERENCE_FEED
-	};
 
 	@FXML
 	private void filterFeed() {
@@ -153,9 +149,13 @@ public class ApplicationController implements Controller {
 	}
 
 	@FXML
-	public void joinConferenceBtn(ActionEvent evt) {
-		sharedEvent = evt;
-		new Thread(() -> reqJoinConference()).start();
+	public void joinConferenceBtn() {
+		String conferenceName = feed.stream()
+	            .filter(c -> c.getId() == feedController.getSelectedConferenceId())
+	            .findFirst()
+	            .get().getName();
+		String message = "Czy na pewno chcesz wziąć udział w konferencji \"" + conferenceName + "\"?";
+		openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_JOINING_CONFERENCE);
 	}
 
 	private void reqJoinConference() {
@@ -210,7 +210,7 @@ public class ApplicationController implements Controller {
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
 
-		makeRequest(requestType.UPDATE_CONFERENCE_FEED);
+		makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
 
 		Client.timer = new Timer();
 		Client.timer.scheduleAtFixedRate(new TimerTask() {
@@ -222,13 +222,18 @@ public class ApplicationController implements Controller {
 						// TODO: requestQueue.contains() and remove() should be
 						// changed to something
 						// more appropriate once we extend requestType
-						if (requestQueue.contains(requestType.UPDATE_CONFERENCE_FEED)
+						if (requestQueue.contains(RequestType.UPDATE_CONFERENCE_FEED)
 								|| checkedRequestsWithoutUpdate > 10) {
 							reqConferenceFeed();
 							checkedRequestsWithoutUpdate = 0;
-							requestQueue.remove(requestType.UPDATE_CONFERENCE_FEED);
+							requestQueue.remove(RequestType.UPDATE_CONFERENCE_FEED);
 						} else
 							checkedRequestsWithoutUpdate++;
+						
+						if (requestQueue.contains(RequestType.REQUEST_JOINING_CONFERENCE)) {
+							new Thread(() -> reqJoinConference()).start();
+							requestQueue.remove(RequestType.REQUEST_JOINING_CONFERENCE);
+						}
 					}
 				});
 			}

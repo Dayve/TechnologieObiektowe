@@ -8,11 +8,17 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import sciCon.Client;
+import sciCon.controller.ConfirmationWindowController;
 import sciCon.controller.DialogController;
 
 public interface Controller {
 	public enum ConferenceFilter {
 		PAST, FUTURE, ONGOING, ALL
+	};
+	
+	public enum RequestType {
+		UPDATE_CONFERENCE_FEED,
+		REQUEST_JOINING_CONFERENCE
 	};
 	
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {
@@ -76,6 +82,29 @@ public interface Controller {
 		Stage sourceStage = (Stage) window.getScene().getWindow();
 
 		openNewWindow(sourceStage, path, minW, minH, resizable, title);
+	}
+	
+	default public void openConfirmationWindow(Parent window, String message, RequestType requestType) {
+		Stage sourceStage = (Stage) window.getScene().getWindow();
+		FXMLLoader loader = new FXMLLoader();
+		loader.setLocation(Client.class.getResource("view/ConfirmationLayout.fxml"));
+		Stage newStage = new Stage();
+		Scene newScene = null;
+		try {
+			newScene = new Scene(loader.load());
+			newStage.setMaxHeight(250);
+			newStage.setMaxWidth(300);
+			newStage.initOwner(sourceStage);
+			newStage.setScene(newScene);
+			newStage.setResizable(false);
+			newStage.setTitle("Powiadomienie");
+			ConfirmationWindowController controller = loader.<ConfirmationWindowController>getController();
+			controller.setConfirmationMessage(message);
+			controller.setRequestType(requestType);
+			newStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	default public void openDialogBox(Parent window, String message) {

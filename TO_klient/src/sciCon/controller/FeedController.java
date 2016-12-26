@@ -109,6 +109,7 @@ public class FeedController {
 		Label label = null;
 		for (Conference c : filtered) {
 			TextArea feed = new TextArea(c.toString());
+			
 			feed.setWrapText(true);
 			feed.setEditable(false);
 			feed.setMouseTransparent(true);

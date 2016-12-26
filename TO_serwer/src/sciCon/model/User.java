@@ -21,21 +21,13 @@ public class User implements Serializable {
 		this.name = name;
 		this.surname = surname;
 	}
-
-	public User(Integer id, String login, String password, String name, String surname, String organization) {
-		this.id = id;
-		this.login = login;
-		this.password = password;
-		this.name = name;
-		this.surname = surname;
-		this.organization = organization;
-	}
 	
-	public User(Integer id, String login, String name, String surname, String organization) {
+	public User(Integer id, String login, String name, String surname, String email, String organization) {
 		this.id = id;
 		this.login = login;
 		this.name = name;
 		this.surname = surname;
+		this.email = email;
 		this.organization = organization;
 	}
 	

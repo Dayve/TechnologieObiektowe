@@ -197,7 +197,6 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	public void initialize() {
-		calendar.setCalendarsDate(LocalDate.now());
 		ObservableList<String> feedOptions = FXCollections.observableArrayList("Nadchodzące konferencje",
 				"Wszystkie konferencje", "Zakończone konferencje");
 
@@ -233,7 +232,8 @@ public class ApplicationController implements Controller {
 			}
 		}, 0, 1000);
 
-	
+		calendar.setCalendarsDate(LocalDate.now());
+		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, feed, eventDetailsTP, listOfSelectedDaysEvents);
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 
 		new Thread(() -> reqCurrentUser()).start();

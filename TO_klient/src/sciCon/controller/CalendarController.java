@@ -39,11 +39,11 @@ public class CalendarController implements Controller {
 			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {
 		calendarTable.getItems().clear();
 		calendarTable.getColumns().clear();
-		fillCalendarTable(calendarTable, currentlyChosenDateLabel, calendarsDate, conferencesFeed, tp, listOfSelectedDaysEvents);
+		fillCalendarTable(calendarTable, currentlyChosenDateLabel, conferencesFeed, tp, listOfSelectedDaysEvents);
 	}
 	
 	public void fillCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel, 
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {    	
+		 ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {    	
 		// ColumnTitle are used only while displaying the content, 
 		// PropertyValue however must be the same as variable names in Week class.
         String[] daysOfTheWeekColumnTitles = {"Pn", "Wt", "Śr", "Czw", "Pt", "Sb", "Nd"};
@@ -69,7 +69,7 @@ public class CalendarController implements Controller {
     					} else {
     						// Mark not empty cell (skip those before 1 and after 28-31) if a conference is assigned to a given day:
 		                	if(!item.isEmpty()) {
-		                		if( isAnyConferenceAtDate(calendarsDate.withDayOfMonth(Integer.parseInt(item)), conferencesFeed) ) {
+		                		if( isAnyConferenceAtDate(selectedDate.withDayOfMonth(Integer.parseInt(item)), conferencesFeed) ) {
 		                			setStyle("-fx-background-color: #b8b8b8");
 		                		}
 		                	}
@@ -84,7 +84,7 @@ public class CalendarController implements Controller {
 	                    	String cellsContent = cell.getItem();
 	                    	
 	                    	if(! cellsContent.isEmpty()) {                    		
-	                    		LocalDate clickedDate = calendarsDate.withDayOfMonth(Integer.parseInt(cellsContent));
+	                    		LocalDate clickedDate = selectedDate.withDayOfMonth(Integer.parseInt(cellsContent));
 	                    		
 	                    		if(isAnyConferenceAtDate(clickedDate, conferencesFeed)) {
 	                    			// Perform an action after a day with assigned conference was clicked:
@@ -113,11 +113,11 @@ public class CalendarController implements Controller {
         }
         
         // Filling the actual table:
-        calendarTable.setItems(createThisMonthsWeeksRows(calendarsDate));
+        calendarTable.setItems(createThisMonthsWeeksRows(selectedDate));
         calendarTable.getColumns().addAll(dayOfTheWeekColumns);
         
         // Change label: (this function is called whenever the month is changed, so should be the label)
-        currentlyChosenDateLabel.setText(localDateToPolishDateString(calendarsDate));
+        currentlyChosenDateLabel.setText(localDateToPolishDateString(selectedDate));
 	}
 
 	

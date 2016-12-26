@@ -62,7 +62,10 @@ public class User implements Serializable {
 
 	@Override
 	public String toString() {
-		return "User [login=" + login + ", name=" + name + ", surname=" + surname + ", password=" + password
-				+ ", email=" + email + "]";
+		String ret = name + " " + surname + "(" + login + ")"; 
+		if(organization != null) {
+			ret += ", " + organization;
+		}
+		return ret;
 	}
 }

@@ -117,11 +117,8 @@ public class Conference implements Serializable {
 		ret.addAll(prelectors);
 		ret.addAll(sponsors);
 		ret.addAll(participants);
+		ret.addAll(pending);
 		return ret;
-	}
-	
-	public ArrayList<User> getPendingList() {
-		return pending;
 	}
 	
 	@Override

@@ -7,8 +7,11 @@ import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -19,6 +22,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import sciCon.Client;
 import sciCon.model.Conference;
@@ -54,6 +58,8 @@ public class ApplicationController implements Controller {
 	private ListView<Label> listOfSelectedDaysEvents;
 	@FXML
 	private TabPane eventDetailsTP;
+	@FXML
+	private TextField searchField;
 
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 	private FeedController feedController = new FeedController();
@@ -128,6 +134,34 @@ public class ApplicationController implements Controller {
 		}
 
 	}
+	
+	private void refreshConferencesListView(String searchBoxContent) {
+
+		String periodFilterFromComboBox = conferenceFeedCB.getValue();
+		filter = ConferenceFilter.ALL;
+		if (periodFilterFromComboBox.equals("Zakończone konferencje")) {
+			filter = ConferenceFilter.PAST;
+		} else if (periodFilterFromComboBox.equals("Nadchodzące konferencje")) {
+			filter = ConferenceFilter.FUTURE;
+		}
+		
+		FilteredList<Conference> searchBarFilteredData = 
+				new FilteredList<>(
+						FXCollections.observableArrayList(feedController.filterFeed(feed, filter)), 
+						s -> s.getName().toLowerCase().contains(searchBoxContent.toLowerCase())
+				);
+		
+		ArrayList<Conference> searchBarFilteredData_ArrayList = new ArrayList<Conference>();
+		for(Conference con : searchBarFilteredData) searchBarFilteredData_ArrayList.add(con);
+		
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				feedController.fillListWithLabels(conferenceFeedList, searchBarFilteredData_ArrayList, eventDetailsTP, filter,
+						CHAR_LIMIT_IN_TITLEPANE, true);
+			}
+		});
+}
 
 	// sends request for the current user object
 	public void reqCurrentUser() {
@@ -150,12 +184,15 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	public void joinConferenceBtn() {
-		String conferenceName = feed.stream()
-	            .filter(c -> c.getId() == feedController.getSelectedConferenceId())
-	            .findFirst()
-	            .get().getName();
-		String message = "Czy na pewno chcesz wziąć udział w konferencji \"" + conferenceName + "\"?";
-		openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_JOINING_CONFERENCE);
+		Integer selectedConfId = feedController.getSelectedConferenceId();
+		if(selectedConfId != null) {
+			String conferenceName = feed.stream()
+		            .filter(c -> c.getId() == selectedConfId)
+		            .findFirst()
+		            .get().getName();
+			String message = "Czy na pewno chcesz wziąć udział w konferencji \"" + conferenceName + "\"?";
+			openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_JOINING_CONFERENCE);
+		}
 	}
 
 	private void reqJoinConference() {
@@ -199,6 +236,7 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	public void initialize() {
+		
 		ObservableList<String> feedOptions = FXCollections.observableArrayList("Nadchodzące konferencje",
 				"Wszystkie konferencje", "Zakończone konferencje");
 
@@ -238,6 +276,10 @@ public class ApplicationController implements Controller {
 				});
 			}
 		}, 0, 1000);
+		
+		searchField.textProperty().addListener(obs->{
+	        refreshConferencesListView(searchField.getText());
+		});
 
 		calendar.setCalendarsDate(LocalDate.now());
 		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, feed, eventDetailsTP, listOfSelectedDaysEvents);

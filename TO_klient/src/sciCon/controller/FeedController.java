@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -108,12 +110,6 @@ public class FeedController {
 		lv.getItems().clear();
 		Label label = null;
 		for (Conference c : filtered) {
-			TextArea feed = new TextArea(c.toString());
-			
-			feed.setWrapText(true);
-			feed.setEditable(false);
-			feed.setMouseTransparent(true);
-			feed.setFocusTraversable(false);
 			String title = c.getName();
 			if (showDate) {
 				title += " (" + c.getDate() + ")";
@@ -134,8 +130,9 @@ public class FeedController {
 	}
 
 	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
-		
+			
 		Tab tab = new Tab();
+		tp.setTabMaxWidth(80);
 		Integer currId = getSelectedConferenceId();
 		tab.setOnClosed(new EventHandler<Event>() {
 			@Override
@@ -159,9 +156,13 @@ public class FeedController {
 				tab.setText(c.getName());
 				tab.setId(currId.toString());
 				VBox vbox = new VBox();
-				vbox.getChildren().add(new TextArea(c.toString() + "\n" + c.getParticipantsList()));
+				TextArea confInfo = new TextArea(c.toString() + "\n\n" + c.getParticipantsList());
+				confInfo.setPrefHeight(tp.getHeight()/2);
+				confInfo.setWrapText(true);
+				confInfo.setEditable(false);
+				
+				vbox.getChildren().add(confInfo);
 				tab.setContent(vbox);
-
 				if (!openedTabsConferencesIds.containsKey(currId)) {
 					tp.getTabs().add(tab);
 					tp.getSelectionModel().select(tab);

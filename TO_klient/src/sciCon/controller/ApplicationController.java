@@ -25,6 +25,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 import sciCon.Client;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
@@ -84,238 +85,43 @@ public class ApplicationController implements Controller {
 
 	private static LinkedBlockingQueue<RequestType> requestQueue = new LinkedBlockingQueue<RequestType>();
 
+	@FXML
+	public void initialize() {
+		
+		setupFeedFilterCBs();
+		setupTabPane();
+		reqConferenceFeed();
+		setupTimer();
+		setupCalendar();
+		new Thread(() -> reqCurrentUser()).start();
+		
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				setupTabResizeEvent();
+			}
+		});
+	}
+	
+	// static method allowing other controllers to make requests
+	// which will be fulfilled by ApplicationController with every timer's tick
 	public static void makeRequest(RequestType newRequest) {
 		requestQueue.add(newRequest);
 	}
 
-	@FXML
-	private void filterFeed() {
-		String feedPeriodCB = conferenceFeedCB.getValue();
-		filter = ConferenceFilter.ALL;
-		if (feedPeriodCB.equals("Zakończone konferencje")) {
-			filter = ConferenceFilter.PAST;
-		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
-			filter = ConferenceFilter.FUTURE;
-		}
-		ArrayList<Conference> filtered = feedController.filterFeed(feed, filter);
-		Platform.runLater(new Runnable() {
+	// 
+	private void setupTabResizeEvent() {
+		Stage mainStage = (Stage) applicationWindow.getScene().getWindow();
+		mainStage.heightProperty().addListener(new ChangeListener<Number>() {
 			@Override
-			public void run() {
-				feedController.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter,
-						CHAR_LIMIT_IN_TITLEPANE, true);
-			}
-		});
-	}
-
-	@SuppressWarnings("unchecked")
-	@FXML
-	public void reqConferenceFeed() {
-		SocketEvent e = new SocketEvent("reqConferenceFeed");
-		NetworkConnection.sendSocketEvent(e);
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
-
-		String eventName = res.getName();
-		ArrayList<Conference> tempFeed;
-
-		if (eventName.equals("updateConferenceFeed")) {
-			// get temp feed to compare it with current one
-			tempFeed = res.getObject(ArrayList.class);
-
-			// run in JavaFX after background thread finishes work
-			// compare if feeds match, if so, don't fill vbox with new content
-			if (tempFeed != null && !tempFeed.toString().equals(feed.toString())) {
-				feed = tempFeed;
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						// fill FeedBox and Calendar in JavaFX UI Thread
-						checkUsersParticipation();
-						filterFeed();
-						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel,
-								calendar.getCalendarsDate(), feed, eventDetailsTP, listOfSelectedDaysEvents);
-					}
-				});
-			}
-		}
-
-	}
-
-	private void refreshConferencesListView(String searchBoxContent) {
-
-		String periodFilterFromComboBox = conferenceFeedCB.getValue();
-		filter = ConferenceFilter.ALL;
-		if (periodFilterFromComboBox.equals("Zakończone konferencje")) {
-			filter = ConferenceFilter.PAST;
-		} else if (periodFilterFromComboBox.equals("Nadchodzące konferencje")) {
-			filter = ConferenceFilter.FUTURE;
-		}
-
-		FilteredList<Conference> searchBarFilteredData = new FilteredList<>(
-				FXCollections.observableArrayList(feedController.filterFeed(feed, filter)),
-				s -> s.getName().toLowerCase().contains(searchBoxContent.toLowerCase()));
-
-		ArrayList<Conference> searchBarFilteredData_ArrayList = new ArrayList<Conference>();
-		for (Conference con : searchBarFilteredData)
-			searchBarFilteredData_ArrayList.add(con);
-
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				feedController.fillListWithLabels(conferenceFeedList, searchBarFilteredData_ArrayList, eventDetailsTP,
-						filter, CHAR_LIMIT_IN_TITLEPANE, true);
-			}
-		});
-	}
-
-	// sends request for the current user object
-	public void reqCurrentUser() {
-		SocketEvent se = new SocketEvent("reqCurrentUser");
-		NetworkConnection.sendSocketEvent(se);
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
-
-		String eventName = res.getName();
-		if (eventName.equals("currentUserSucceeded")) {
-			currentUser = res.getObject(User.class);
-		}
-
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				loginLabel.setText("Zalogowano: " + currentUser.getLogin() + ".");
-			}
-		});
-	}
-
-	@FXML
-	public void joinConferenceBtn() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
-		
-		if (selectedConfId != null) {
-			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
-
-			String message = "Czy na pewno chcesz wziąć udział w konferencji \"" + conferenceName + "\"?";
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_JOINING_CONFERENCE);
-				}
-			});
-		}
-	}
-
-	private void reqJoinConference() {
-		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
-		userIdConferenceId.add(currentUser.getId());
-		userIdConferenceId.add(feedController.getSelectedConferenceId());
-
-		SocketEvent se = new SocketEvent("reqJoinConference", userIdConferenceId);
-		NetworkConnection.sendSocketEvent(se);
-
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
-		String eventName = res.getName();
-		if(eventName.equals("joinConferenceSucceeded")) {
-			reqConferenceFeed();
-			message = "Wysłano prośbę o udział w konferencji do jej organizatora.";
-		} else {
-			message = "Nie udało się dołączyć do konferencji.";
-		}
-
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				openDialogBox(applicationWindow, message);
+			public void changed(ObservableValue<? extends Number> arg0, Number arg1, Number arg2) {
+				feedController.resizeConferenceTabs(eventDetailsTP, arg2.intValue() / 2);
 			}
 		});
 	}
 	
-	@FXML
-	public void leaveConferenceBtn() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
-		if (selectedConfId != null) {
-			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
-			String message = "Czy na pewno chcesz zrezygnować z udziału w konferencji \"" + conferenceName + "\"?";
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_LEAVING_CONFERENCE);
-				}
-			});
-		}
-	}
-	
-	private void reqLeaveConference() {
-		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
-		userIdConferenceId.add(currentUser.getId());
-		userIdConferenceId.add(feedController.getSelectedConferenceId());
-
-		SocketEvent se = new SocketEvent("reqLeaveConference", userIdConferenceId);
-		NetworkConnection.sendSocketEvent(se);
-
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
-		String eventName = res.getName();
-		if(eventName.equals("leaveConferenceSucceeded")) {
-			reqConferenceFeed();
-			message = "Zrezygnowałeś z udziału w konferencji.";
-		} else {
-			message = "Nie udało się zrezygnować z udziału w konferencji.";
-		}
-		
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				openDialogBox(applicationWindow, message);
-			}
-		});
-	}
-
-	private void checkUsersParticipation() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
-		//look for conference thats id is clicked 
-		if(selectedConfId != null) {
-			ArrayList<User> selectedConfParticipants = feed.stream().filter(c -> c.getId() == selectedConfId).
-					findFirst().get().getParticipantsList();
-			boolean currentUserTakesPart = false;
-			//check if current user takes part in selected conference
-			for(User u: selectedConfParticipants) {
-				if(u.getId() == currentUser.getId()) {
-					currentUserTakesPart = true;
-					break;
-				}
-			}
-			
-			if(currentUserTakesPart) {
-				joinLeaveConfBtn.setOnAction((event) -> {
-					new Thread(() -> leaveConferenceBtn()).start();
-				});
-				joinLeaveConfBtn.setText("Wycofaj się");
-			} else {
-				joinLeaveConfBtn.setOnAction((event) -> {
-					new Thread(() -> joinConferenceBtn()).start();
-				});
-				joinLeaveConfBtn.setText("Weź udział");
-			}
-		}
-	}
-
-	public void logout() {
-		NetworkConnection.disconnect();
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				loadScene(sharedEvent, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
-			}
-		});
-	}
-
-	@FXML
-	private void logoutButton(ActionEvent event) {
-		sharedEvent = event;
-		// here check if login is valid
-		new Thread(() -> logout()).start();
-	}
-
-	@FXML
-	public void initialize() {
+	// sets up the TabPane - makes it modify selectedConferenceId on tab selection change
+	private void setupTabPane() {
 		eventDetailsTP.getSelectionModel().selectedItemProperty().addListener(
 			    new ChangeListener<Tab>() {
 			        @Override
@@ -327,7 +133,10 @@ public class ApplicationController implements Controller {
 			        }
 			    }
 			);
-		
+	}
+	
+	// sets up the ComboBoxes allowing user to filter conferences
+	private void setupFeedFilterCBs() {
 		ObservableList<String> feedOptions = FXCollections.observableArrayList("Nadchodzące konferencje",
 				"Wszystkie konferencje", "Zakończone konferencje");
 
@@ -338,9 +147,23 @@ public class ApplicationController implements Controller {
 
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
-
-		makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
-
+		
+		searchField.textProperty().addListener(obs -> {
+			refreshConferencesListView(searchField.getText());
+		});
+	}
+	
+	// sets the calendar up - fills it according to the current date and lets user select its cells
+	private void setupCalendar() {
+		calendar.setCalendarsDate(LocalDate.now());
+		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, feed, eventDetailsTP,
+				listOfSelectedDaysEvents);
+		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
+	}
+	
+	// sets the timer up - every second timer checks requestsQueue, which contains 
+	// tasks from other controllers for ApplicationController to perform
+	private void setupTimer() {
 		Client.timer = new Timer();
 		Client.timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
@@ -373,17 +196,242 @@ public class ApplicationController implements Controller {
 				});
 			}
 		}, 0, 1000);
-
-		searchField.textProperty().addListener(obs -> {
-			refreshConferencesListView(searchField.getText());
+	}
+	
+	// filters feed depending on conferenceCB's value - future/all/past conferences
+	@FXML private void filterFeed() {
+		String feedPeriodCB = conferenceFeedCB.getValue();
+		filter = ConferenceFilter.ALL;
+		if (feedPeriodCB.equals("Zakończone konferencje")) {
+			filter = ConferenceFilter.PAST;
+		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
+			filter = ConferenceFilter.FUTURE;
+		}
+		ArrayList<Conference> filtered = feedController.filterFeed(feed, filter);
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				feedController.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter,
+						CHAR_LIMIT_IN_TITLEPANE, true);
+			}
 		});
+	}
 
-		calendar.setCalendarsDate(LocalDate.now());
-		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, feed, eventDetailsTP,
-				listOfSelectedDaysEvents);
-		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
+	// checks if currentUser participates in given (selected) conference
+	// and modifies leave/join button text and behaviour accordingly
+	private void checkUsersParticipation() {
+		Integer selectedConfId = feedController.getSelectedConferenceId();
+		//look for conference thats id is clicked 
+		if(selectedConfId != null) {
+			ArrayList<User> selectedConfParticipants = feed.stream().filter(c -> c.getId() == selectedConfId).
+					findFirst().get().getParticipantsList();
+			boolean currentUserTakesPart = false;
+			//check if current user takes part in selected conference
+			for(User u: selectedConfParticipants) {
+				if(u.getId() == currentUser.getId()) {
+					currentUserTakesPart = true;
+					break;
+				}
+			}
+			
+			if(currentUserTakesPart) {
+				joinLeaveConfBtn.setOnAction((event) -> {
+					new Thread(() -> leaveConferenceBtn()).start();
+				});
+				joinLeaveConfBtn.setText("Wycofaj się");
+			} else {
+				joinLeaveConfBtn.setOnAction((event) -> {
+					new Thread(() -> joinConferenceBtn()).start();
+				});
+				joinLeaveConfBtn.setText("Weź udział");
+			}
+		}
+	}
+	
+	// requests data about conferences from the database through the server
+	// compares it with current data and if there is difference, updates information
+	@SuppressWarnings("unchecked")
+	@FXML public void reqConferenceFeed() {
+		SocketEvent e = new SocketEvent("reqConferenceFeed");
+		NetworkConnection.sendSocketEvent(e);
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
 
-		new Thread(() -> reqCurrentUser()).start();
+		String eventName = res.getName();
+		ArrayList<Conference> tempFeed;
+
+		if (eventName.equals("updateConferenceFeed")) {
+			// get temp feed to compare it with current one
+			tempFeed = res.getObject(ArrayList.class);
+
+			// run in JavaFX after background thread finishes work
+			// compare if feeds match, if so, don't fill vbox with new content
+			if (tempFeed != null && !tempFeed.toString().equals(feed.toString())) {
+				feed = tempFeed;
+				feedController.refreshConferenceTabs(eventDetailsTP, feed);
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						// fill FeedBox and Calendar in JavaFX UI Thread
+						checkUsersParticipation();
+						filterFeed();
+						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel,
+								calendar.getCalendarsDate(), feed, eventDetailsTP, listOfSelectedDaysEvents);
+					}
+				});
+			}
+		}
+
+	}
+
+	//bound to searchField, this is reaction to typed text
+	private void refreshConferencesListView(String searchBoxContent) {
+
+		String periodFilterFromComboBox = conferenceFeedCB.getValue();
+		filter = ConferenceFilter.ALL;
+		if (periodFilterFromComboBox.equals("Zakończone konferencje")) {
+			filter = ConferenceFilter.PAST;
+		} else if (periodFilterFromComboBox.equals("Nadchodzące konferencje")) {
+			filter = ConferenceFilter.FUTURE;
+		}
+
+		FilteredList<Conference> searchBarFilteredData = new FilteredList<>(
+				FXCollections.observableArrayList(feedController.filterFeed(feed, filter)),
+				s -> s.getName().toLowerCase().contains(searchBoxContent.toLowerCase()));
+
+		ArrayList<Conference> searchBarFilteredData_ArrayList = new ArrayList<Conference>();
+		for (Conference con : searchBarFilteredData)
+			searchBarFilteredData_ArrayList.add(con);
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				feedController.fillListWithLabels(conferenceFeedList, searchBarFilteredData_ArrayList, eventDetailsTP,
+						filter, CHAR_LIMIT_IN_TITLEPANE, true);
+			}
+		});
+	}
+
+	// sends request for the current user object and puts it in currentUser static variable
+	public void reqCurrentUser() {
+		SocketEvent se = new SocketEvent("reqCurrentUser");
+		NetworkConnection.sendSocketEvent(se);
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
+
+		String eventName = res.getName();
+		if (eventName.equals("currentUserSucceeded")) {
+			currentUser = res.getObject(User.class);
+		}
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				loginLabel.setText("Zalogowano: " + currentUser.getLogin() + ".");
+			}
+		});
+	}
+
+	// sends request to join conference after user confirms it
+	@FXML public void joinConferenceBtn() {
+		Integer selectedConfId = feedController.getSelectedConferenceId();
+		
+		if (selectedConfId != null) {
+			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
+
+			String message = "Czy na pewno chcesz wziąć udział w konferencji \"" + conferenceName + "\"?";
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_JOINING_CONFERENCE);
+				}
+			});
+		}
+	}
+
+	// actual request for joining a conference
+	private void reqJoinConference() {
+		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
+		userIdConferenceId.add(currentUser.getId());
+		userIdConferenceId.add(feedController.getSelectedConferenceId());
+
+		SocketEvent se = new SocketEvent("reqJoinConference", userIdConferenceId);
+		NetworkConnection.sendSocketEvent(se);
+
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		String eventName = res.getName();
+		if(eventName.equals("joinConferenceSucceeded")) {
+			reqConferenceFeed();
+			message = "Wysłano prośbę o udział w konferencji do jej organizatora.";
+		} else {
+			message = "Nie udało się dołączyć do konferencji.";
+		}
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				openDialogBox(applicationWindow, message);
+			}
+		});
+	}
+	
+	// sends request to leave conference after user confirms it
+	@FXML public void leaveConferenceBtn() {
+		Integer selectedConfId = feedController.getSelectedConferenceId();
+		if (selectedConfId != null) {
+			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
+			String message = "Czy na pewno chcesz zrezygnować z udziału w konferencji \"" + conferenceName + "\"?";
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_LEAVING_CONFERENCE);
+				}
+			});
+		}
+	}
+	
+	// actual request for leaving a conference
+	private void reqLeaveConference() {
+		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
+		userIdConferenceId.add(currentUser.getId());
+		userIdConferenceId.add(feedController.getSelectedConferenceId());
+
+		SocketEvent se = new SocketEvent("reqLeaveConference", userIdConferenceId);
+		NetworkConnection.sendSocketEvent(se);
+
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		String eventName = res.getName();
+		if(eventName.equals("leaveConferenceSucceeded")) {
+			reqConferenceFeed();
+			message = "Zrezygnowałeś z udziału w konferencji.";
+		} else {
+			message = "Nie udało się zrezygnować z udziału w konferencji.";
+		}
+		
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				openDialogBox(applicationWindow, message);
+			}
+		});
+	}
+
+	@FXML private void logoutButton(ActionEvent event) {
+		sharedEvent = event;
+		// here check if login is valid
+		new Thread(() -> logout()).start();
+	}
+	
+	public void logout() {
+		NetworkConnection.disconnect();
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				loadScene(sharedEvent, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
+			}
+		});
+	}
+	
+	@FXML public void addConferenceBtn(ActionEvent event) {
+		openNewWindow(applicationWindow, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencję");
 	}
 
 	public void changeMonthToNext() {
@@ -396,10 +444,5 @@ public class ApplicationController implements Controller {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().minusMonths(1));
 		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
 				eventDetailsTP, listOfSelectedDaysEvents);
-	}
-
-	@FXML
-	public void addConferenceBtn(ActionEvent event) {
-		openNewWindow(applicationWindow, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencję");
 	}
 }

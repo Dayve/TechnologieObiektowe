@@ -21,7 +21,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import sciCon.model.Conference;
 import sciCon.model.Controller.ConferenceFilter;
-import sciCon.model.Controller.RequestType;
 
 public class FeedController {
 	
@@ -126,10 +125,32 @@ public class FeedController {
 		}
 		lv.setItems(ol);
 	}
-
+	
+	public void resizeConferenceTabs(TabPane tp, Integer size) {
+		for(Tab t: tp.getTabs()) {
+			VBox vb = (VBox) t.getContent();
+			TextArea confInfo = (TextArea) vb.getChildren().get(0);
+			confInfo.setPrefHeight(size);
+		}
+	}
+	
+	public void refreshConferenceTabs(TabPane tp, ArrayList<Conference> confPool) {
+		for(Tab t: tp.getTabs()) {
+			Conference conf = confPool.stream().filter(c -> c.getId() == Integer.parseInt(t.getId())).findFirst().get();
+			
+			VBox vbox = new VBox();
+			TextArea confInfo = new TextArea(conf.toString());
+			confInfo.setPrefHeight(tp.getHeight()/2);
+			confInfo.setWrapText(true);
+			confInfo.setEditable(false);
+			
+			vbox.getChildren().add(confInfo);
+			t.setContent(vbox);
+		}
+		
+	}
 	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
 		Tab tab = new Tab();
-		tp.setTabMaxWidth(80);
 		Integer currId = getSelectedConferenceId();
 		tab.setOnClosed(new EventHandler<Event>() {
 			@Override

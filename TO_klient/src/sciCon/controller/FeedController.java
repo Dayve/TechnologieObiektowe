@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -23,16 +21,17 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import sciCon.model.Conference;
 import sciCon.model.Controller.ConferenceFilter;
+import sciCon.model.Controller.RequestType;
 
 public class FeedController {
 	
-	public void setSelectedConferenceId(Integer selectedConferenceId) {
-		this.selectedConferenceId = selectedConferenceId;
-	}
-
 	private Integer selectedConferenceId = null;
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
 
+	public void setSelectedConferenceId(Integer selectedConferenceId) {
+		this.selectedConferenceId = selectedConferenceId;
+	}
+	
 	public Integer getSelectedConferenceId() {
 		return selectedConferenceId;
 	}
@@ -118,8 +117,7 @@ public class FeedController {
 			label.setFont(Font.font("Inconsolata", 13));
 			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				public void handle(MouseEvent t) {
-					selectedConferenceId = c.getId();
-					System.out.println(c.getId());
+					setSelectedConferenceId(c.getId());
 					openConferenceTab(tp, cs);
 				}
 			});
@@ -130,7 +128,6 @@ public class FeedController {
 	}
 
 	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
-			
 		Tab tab = new Tab();
 		tp.setTabMaxWidth(80);
 		Integer currId = getSelectedConferenceId();
@@ -141,22 +138,12 @@ public class FeedController {
 				openedTabsConferencesIds.remove(id);
 			}
 		});
-		tab.setOnSelectionChanged(new EventHandler<Event>() {
-			@Override
-			public void handle(Event event) {
-				Integer id = Integer.parseInt(tab.getId());
-				if(id != getSelectedConferenceId()) {
-					setSelectedConferenceId(id);
-					System.out.println("wybrano id: " + id);
-				}
-			}
-		});
 		for (Conference c : confPool) {
 			if (c.getId() == currId) {
 				tab.setText(c.getName());
 				tab.setId(currId.toString());
 				VBox vbox = new VBox();
-				TextArea confInfo = new TextArea(c.toString() + "\n\n" + c.getParticipantsList());
+				TextArea confInfo = new TextArea(c.toString());
 				confInfo.setPrefHeight(tp.getHeight()/2);
 				confInfo.setWrapText(true);
 				confInfo.setEditable(false);

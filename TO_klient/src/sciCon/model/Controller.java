@@ -18,7 +18,8 @@ public interface Controller {
 	
 	public enum RequestType {
 		UPDATE_CONFERENCE_FEED,
-		REQUEST_JOINING_CONFERENCE
+		REQUEST_JOINING_CONFERENCE,
+		REQUEST_LEAVING_CONFERENCE,
 	};
 	
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {

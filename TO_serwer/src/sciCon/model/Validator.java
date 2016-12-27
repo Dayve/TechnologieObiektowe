@@ -19,15 +19,15 @@ public interface Validator {
 			retCode |= 2;
 		}
 
-		if (name.length() < 3 || name.length() > 60) {
+		if (name.length() < 3 || name.length() > 200) {
 			retCode |= 4;
 		}
 		
-		if (subject.length() < 3 || subject.length() > 40) {
+		if (subject.length() < 3 || subject.length() > 200) {
 			retCode |= 8;
 		}
 		
-		if (place.length() < 3 || place.length() > 60) {
+		if (place.length() < 3 || place.length() > 250) {
 			retCode |= 16;
 		}
 		

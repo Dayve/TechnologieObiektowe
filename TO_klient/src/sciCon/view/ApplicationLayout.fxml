@@ -73,7 +73,7 @@
                <font>
                   <Font size="13.0" />
                </font></Button>
-            <Button layoutX="160.0" layoutY="5.0" mnemonicParsing="false" onAction="#joinConferenceBtn" prefHeight="30.0" text="Weź udział">
+            <Button fx:id="joinLeaveConfBtn" layoutX="160.0" layoutY="5.0" mnemonicParsing="false" prefHeight="30.0" text="Weź udział">
                <font>
                   <Font size="13.0" />
                </font></Button>

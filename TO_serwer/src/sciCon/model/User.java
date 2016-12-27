@@ -7,7 +7,7 @@ public class User implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = -7433946303557607605L;
-	Integer id = null;
+	private Integer id = null;
 	String login = null, name = null, surname = null, password = null,
 			email = null, organization = null;
 	
@@ -69,7 +69,7 @@ public class User implements Serializable {
 
 	@Override
 	public String toString() {
-		return "User [login=" + login + ", name=" + name + ", surname=" + surname + ", email=" + email
+		return "User [id = " + id  + " login=" + login + ", name=" + name + ", surname=" + surname + ", email=" + email
 				+ ", organization=" + organization + "]";
 	}
 }

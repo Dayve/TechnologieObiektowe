@@ -114,9 +114,9 @@ public class SciConServer implements Runnable {
 			message = interpretValidationCode(validationCode, "Dodano konferencję.",
 					"Podaj czas rozpoczęcia późniejszy niż obecny o co najmniej godzinę.",
 					"Konferencja nie może kończyć się wcześniej niż się zaczyna.",
-					"Nazwa nie może być krótsza niż 3 i dłuższa niż 40 znaków.",
-					"Temat nie może być krótszy niż 3 i dłuższy niż 60 znaków.",
-					"Zawartość pola \"Miejsce\" nie może być krótsza niż 3 i dłuższy niż 60 znaków.",
+					"Nazwa nie może być krótsza niż 3 i dłuższa niż 200 znaków.",
+					"Temat nie może być krótszy niż 3 i dłuższy niż 200 znaków.",
+					"Zawartość pola \"Miejsce\" nie może być krótsza niż 3 i dłuższy niż 250 znaków.",
 					"Pole \"Plan\" nie może być puste.");
 
 			if (validationCode == 0) { // if conference data is valid
@@ -142,6 +142,21 @@ public class SciConServer implements Runnable {
 				se = new SocketEvent("joinConferenceFailed");;
 			} else {
 				se = new SocketEvent("joinConferenceSucceeded");;
+			}
+
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		private void handleLeaveConference(int userId, int conferenceId) {
+			SocketEvent se = null;
+			if (!dbConn.removeParticipant(userId, conferenceId)) {
+				se = new SocketEvent("leaveConferenceFailed");;
+			} else {
+				se = new SocketEvent("leaveConferenceSucceeded");;
 			}
 
 			try {
@@ -239,12 +254,23 @@ public class SciConServer implements Runnable {
 						ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
 						int userId = userIdConferenceId.get(0);
 						int conferenceId = userIdConferenceId.get(1);
-						System.out.println("userId: " + userId + ", confId: " + conferenceId);
+//						System.out.println("będę dodawał, userId = " + userId + ", conferenceId = " + conferenceId);
 						handleJoinConference(userId, conferenceId);
+						break;
+					}
+					
+					case "reqLeaveConference": {
+						@SuppressWarnings("unchecked")
+						ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
+						int userId = userIdConferenceId.get(0);
+						int conferenceId = userIdConferenceId.get(1);
+						handleLeaveConference(userId, conferenceId);
+						break;
 					}
 					
 					case "reqCurrentUser": {
 						handleSendCurrentUser();
+						break;
 					}
 					default:
 						break;

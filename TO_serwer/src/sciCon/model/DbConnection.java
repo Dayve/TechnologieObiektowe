@@ -109,10 +109,10 @@ public class DbConnection {
 
 	public boolean addParticipant(int userId, int conferenceId) {
 		boolean succeeded = true;
-		int participantId = this.maxEntry("id_uczestnika", "uczestnik") + 1;
+		int participantId = maxEntry("id_uczestnika", "uczestnik") + 1;
 
 		String addParticipantQuery = "insert into uczestnik values(?, ?, ?)";
-		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 1)";
+		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 4)";
 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addParticipantQuery);
@@ -132,10 +132,49 @@ public class DbConnection {
 			System.out.println("Adding a participant to database has failed.");
 			e.printStackTrace();
 		}
+//		System.out.println("dodano, participantId = " + participantId + ", userId = " + userId + ", conferenceId = " + conferenceId);
 		return succeeded;
-
 	}
 
+	public boolean removeParticipant(int userId, int conferenceId) {
+		boolean succeeded = true;
+
+		String selectParticipantIdQuery = "select id_uczestnika from uczestnik where "
+				+ "id_wydarzenia = (?) and id_uzytkownika = (?)";
+		String removeParticipantQuery = "delete from uczestnik where id_uczestnika = (?)";
+		String removeParticipantRoleQuery = "delete from rola_uczestnika where id_udzialu = (?)";
+		Integer participantId = null;
+
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(selectParticipantIdQuery);
+			pstmt.setInt(1, conferenceId);
+			pstmt.setInt(2, userId);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				participantId = rs.getInt(1);
+			}
+			pstmt.close();
+			
+			if(participantId != null) {
+				pstmt = conn.prepareStatement(removeParticipantRoleQuery);
+				pstmt.setInt(1, participantId);
+				pstmt.executeUpdate();
+				pstmt.close();
+				
+				pstmt = conn.prepareStatement(removeParticipantQuery);
+				pstmt.setInt(1, participantId);
+				pstmt.executeUpdate();
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			succeeded = false;
+			System.out.println("Removing a participant from database has failed.");
+			e.printStackTrace();
+		}
+//		System.out.println("Usunąłem z uczestnik oraz rola uczestnika o id_uczestnika = " + participantId);
+		return succeeded;
+	}
+	
 	public boolean addConference(Conference c) {
 		boolean succeeded = true;
 
@@ -251,6 +290,8 @@ public class DbConnection {
 				statusId = rs.getInt(7);
 
 				u = new User(userId, login, name, surname, email, organization);
+				
+//				System.out.println("pobrany user: " + u);
 				switch (statusId) {
 					case 0: {
 						organizers.add(u);

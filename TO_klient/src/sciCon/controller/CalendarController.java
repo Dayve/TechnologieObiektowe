@@ -84,16 +84,16 @@ public class CalendarController implements Controller {
 	                    	String cellsContent = cell.getItem();
 	                    	
 	                    	if(! cellsContent.isEmpty()) {                    		
-	                    		LocalDate clickedDate = selectedDate.withDayOfMonth(Integer.parseInt(cellsContent));
+	                    		selectedDate = selectedDate.withDayOfMonth(Integer.parseInt(cellsContent));
 	                    		
-	                    		if(isAnyConferenceAtDate(clickedDate, conferencesFeed)) {
+	                    		if(isAnyConferenceAtDate(selectedDate, conferencesFeed)) {
 	                    			// Perform an action after a day with assigned conference was clicked:
-	                    			feedController.fillListViewWithSelectedDaysConferences(clickedDate, 
+	                    			feedController.fillListViewWithSelectedDaysConferences(selectedDate, 
 	                    					conferencesFeed, tp, listOfSelectedDaysEvents, false);
 	                    		} else {
 	                    			listOfSelectedDaysEvents.getItems().clear();
 	                    		}
-	                    		ConferenceCreatorController.setChosenDay(clickedDate);
+	                    		ConferenceCreatorController.setChosenDay(selectedDate);
 	                    	}
 	                    } 
                     }

@@ -122,8 +122,8 @@ public class Conference implements Serializable {
 
 	public String getAllParticipantsListStr() {
 
-		String sponsorsStr = userListToStr(prelectors);
-		String prelectorsStr = userListToStr(sponsors);
+		String sponsorsStr = userListToStr(sponsors);
+		String prelectorsStr = userListToStr(prelectors);
 		String participantsStr = userListToStr(participants);
 		String pendingStr = userListToStr(pending);
 		String str = "";

@@ -142,7 +142,7 @@ public class DbConnection {
 		String selectParticipantIdQuery = "select id_uczestnika from uczestnik where "
 				+ "id_wydarzenia = (?) and id_uzytkownika = (?)";
 		String removeParticipantQuery = "delete from uczestnik where id_uczestnika = (?)";
-		String removeParticipantRoleQuery = "delete from rola_uczestnika where id_udzialu = (?)";
+//		String removeParticipantRoleQuery = "delete from rola_uczestnika where id_udzialu = (?)";
 		Integer participantId = null;
 
 		try {
@@ -156,16 +156,17 @@ public class DbConnection {
 			pstmt.close();
 			
 			if(participantId != null) {
-				pstmt = conn.prepareStatement(removeParticipantRoleQuery);
-				pstmt.setInt(1, participantId);
-				pstmt.executeUpdate();
-				pstmt.close();
+//				pstmt = conn.prepareStatement(removeParticipantRoleQuery);
+//				pstmt.setInt(1, participantId);
+//				pstmt.executeUpdate();
+//				pstmt.close();
 				
 				pstmt = conn.prepareStatement(removeParticipantQuery);
 				pstmt.setInt(1, participantId);
 				pstmt.executeUpdate();
+				pstmt.close();
 			}
-			pstmt.close();
+			
 		} catch (SQLException e) {
 			succeeded = false;
 			System.out.println("Removing a participant from database has failed.");
@@ -223,6 +224,24 @@ public class DbConnection {
 		} catch (SQLException e) {
 			succeeded = false;
 			System.out.println("Adding a conference to database has failed.");
+			e.printStackTrace();
+		}
+		return succeeded;
+	}
+	
+	public boolean removeConference(int conferenceId) {
+		boolean succeeded = true;
+
+		String removeConferenceQuery = "delete from wydarzenie where id_wydarzenia = (?)";
+
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(removeConferenceQuery);
+			pstmt.setInt(1, conferenceId);
+			pstmt.executeUpdate();
+			pstmt.close();
+		} catch (SQLException e) {
+			succeeded = false;
+			System.out.println("Removing a conference from database has failed.");
 			e.printStackTrace();
 		}
 		return succeeded;

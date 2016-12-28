@@ -165,6 +165,21 @@ public class SciConServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		
+		private void handleRemoveConference(int conferenceId) {
+			SocketEvent se = null;
+			if (!dbConn.removeConference(conferenceId)) {
+				se = new SocketEvent("removeConferenceFailed");;
+			} else {
+				se = new SocketEvent("removeConferenceSucceeded");;
+			}
+
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 		private void handleLogin(User u) {
 			SocketEvent se = null;
@@ -265,6 +280,12 @@ public class SciConServer implements Runnable {
 						int userId = userIdConferenceId.get(0);
 						int conferenceId = userIdConferenceId.get(1);
 						handleLeaveConference(userId, conferenceId);
+						break;
+					}
+					
+					case "reqRemoveConference": {
+						Integer conferenceId = se.getObject(Integer.class);
+						handleRemoveConference(conferenceId);
 						break;
 					}
 					

@@ -2,6 +2,7 @@ package sciCon.controller;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -44,11 +45,13 @@ public class ApplicationController implements Controller {
 	private Button nextMonth;
 	@FXML
 	private TableView<Week> calendarTable; // A TableView representing the
-											// calendar
+	// calendar
 	@FXML
 	private Label currentlyChosenDateLabel;
 	@FXML
 	Button joinLeaveConfBtn;
+	@FXML
+	Button removeConfBtn;
 	@FXML
 	private ListView<Label> conferenceFeedList;
 	@FXML
@@ -87,14 +90,16 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	public void initialize() {
-		
+
 		setupFeedFilterCBs();
 		setupTabPane();
 		reqConferenceFeed();
+		setupListView(conferenceFeedList);
 		setupTimer();
 		setupCalendar();
+		setupListView(listOfSelectedDaysEvents);
 		new Thread(() -> reqCurrentUser()).start();
-		
+
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
@@ -102,14 +107,14 @@ public class ApplicationController implements Controller {
 			}
 		});
 	}
-	
+
 	// static method allowing other controllers to make requests
 	// which will be fulfilled by ApplicationController with every timer's tick
 	public static void makeRequest(RequestType newRequest) {
 		requestQueue.add(newRequest);
 	}
 
-	// 
+	//
 	private void setupTabResizeEvent() {
 		Stage mainStage = (Stage) applicationWindow.getScene().getWindow();
 		mainStage.heightProperty().addListener(new ChangeListener<Number>() {
@@ -119,22 +124,36 @@ public class ApplicationController implements Controller {
 			}
 		});
 	}
-	
-	// sets up the TabPane - makes it modify selectedConferenceId on tab selection change
+
+	// sets up the TabPane - makes it modify selectedConferenceId on tab
+	// selection change
 	private void setupTabPane() {
-		eventDetailsTP.getSelectionModel().selectedItemProperty().addListener(
-			    new ChangeListener<Tab>() {
-			        @Override
-			        public void changed(ObservableValue<? extends Tab> ov, Tab t, Tab t1) {
-			        	if(t1 != null) {
-			        		 feedController.setSelectedConferenceId(Integer.parseInt(t1.getId()));
-					            checkUsersParticipation();
-			        	}
-			        }
-			    }
-			);
+		eventDetailsTP.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
+			@Override
+			public void changed(ObservableValue<? extends Tab> ov, Tab from, Tab to) {
+				if (to != null) {
+					feedController.setSelectedConferenceId(Integer.parseInt(to.getId()));
+					checkUsersParticipation();
+				} else {
+					feedController.setSelectedConferenceId(null);
+				}
+			}
+		});
 	}
 	
+	private void setupListView(ListView<Label> lv) {
+		lv.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Label>() {
+			@Override
+			public void changed(ObservableValue<? extends Label> arg0, Label from, Label to) {
+				if(to == null) {
+				} else {
+					feedController.setSelectedConferenceId(Integer.parseInt(to.getId()));
+					feedController.openConferenceTab(eventDetailsTP, feed);
+				}
+			}
+		});
+	}
+
 	// sets up the ComboBoxes allowing user to filter conferences
 	private void setupFeedFilterCBs() {
 		ObservableList<String> feedOptions = FXCollections.observableArrayList("Nadchodzące konferencje",
@@ -147,21 +166,23 @@ public class ApplicationController implements Controller {
 
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
-		
+
 		searchField.textProperty().addListener(obs -> {
 			refreshConferencesListView(searchField.getText());
 		});
 	}
-	
-	// sets the calendar up - fills it according to the current date and lets user select its cells
+
+	// sets the calendar up - fills it according to the current date and lets
+	// user select its cells
 	private void setupCalendar() {
 		calendar.setCalendarsDate(LocalDate.now());
 		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, feed, eventDetailsTP,
 				listOfSelectedDaysEvents);
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 	}
-	
-	// sets the timer up - every second timer checks requestsQueue, which contains 
+
+	// sets the timer up - every second timer checks requestsQueue, which
+	// contains
 	// tasks from other controllers for ApplicationController to perform
 	private void setupTimer() {
 		Client.timer = new Timer();
@@ -174,7 +195,7 @@ public class ApplicationController implements Controller {
 						// TODO: requestQueue.contains() and remove() should be
 						// changed to something
 						// more appropriate once we extend requestType
-						
+
 						if (requestQueue.contains(RequestType.UPDATE_CONFERENCE_FEED)
 								|| checkedRequestsWithoutUpdate > 10) {
 							reqConferenceFeed();
@@ -187,19 +208,26 @@ public class ApplicationController implements Controller {
 							reqJoinConference();
 							requestQueue.remove(RequestType.REQUEST_JOINING_CONFERENCE);
 						}
-						
+
 						if (requestQueue.contains(RequestType.REQUEST_LEAVING_CONFERENCE)) {
 							reqLeaveConference();
 							requestQueue.remove(RequestType.REQUEST_LEAVING_CONFERENCE);
+						}
+
+						if (requestQueue.contains(RequestType.REQUEST_REMOVING_CONFERENCE)) {
+							reqRemoveConference();
+							requestQueue.remove(RequestType.REQUEST_REMOVING_CONFERENCE);
 						}
 					}
 				});
 			}
 		}, 0, 1000);
 	}
-	
-	// filters feed depending on conferenceCB's value - future/all/past conferences
-	@FXML private void filterFeed() {
+
+	// filters feed depending on conferenceCB's value - future/all/past
+	// conferences
+	@FXML
+	private void filterFeed() {
 		String feedPeriodCB = conferenceFeedCB.getValue();
 		filter = ConferenceFilter.ALL;
 		if (feedPeriodCB.equals("Zakończone konferencje")) {
@@ -223,35 +251,57 @@ public class ApplicationController implements Controller {
 		Integer selectedConfId = feedController.getSelectedConferenceId();
 		//look for conference thats id is clicked 
 		if(selectedConfId != null) {
-			ArrayList<User> selectedConfParticipants = feed.stream().filter(c -> c.getId() == selectedConfId).
-					findFirst().get().getParticipantsList();
-			boolean currentUserTakesPart = false;
-			//check if current user takes part in selected conference
-			for(User u: selectedConfParticipants) {
-				if(u.getId() == currentUser.getId()) {
-					currentUserTakesPart = true;
-					break;
+			try{
+				Conference selectedConf = feed.stream().filter(c -> c.getId() == selectedConfId).
+						findFirst().get();
+				ArrayList<User> selectedConfParticipants = selectedConf.getParticipantsList();
+				ArrayList<User> selectedConfOrganizers = selectedConf.getOrganizers();
+				boolean currentUserTakesPart = false;
+				boolean currentUserIsOrganizer = false;
+				//check if current user takes part in selected conference
+				for(User u: selectedConfParticipants) {
+					if(u.getId() == currentUser.getId()) {
+						currentUserTakesPart = true;
+						break;
+					}
 				}
-			}
-			
-			if(currentUserTakesPart) {
-				joinLeaveConfBtn.setOnAction((event) -> {
-					new Thread(() -> leaveConferenceBtn()).start();
-				});
-				joinLeaveConfBtn.setText("Wycofaj się");
-			} else {
-				joinLeaveConfBtn.setOnAction((event) -> {
-					new Thread(() -> joinConferenceBtn()).start();
-				});
-				joinLeaveConfBtn.setText("Weź udział");
+				//check if current user is organizer of selected conference
+				for(User u: selectedConfOrganizers) {
+					if(u.getId() == currentUser.getId()) {
+						currentUserIsOrganizer = true;
+						break;
+					}
+				}
+				
+				if(currentUserTakesPart) {
+					joinLeaveConfBtn.setOnAction((event) -> {
+						new Thread(() -> leaveConferenceBtn()).start();
+					});
+					joinLeaveConfBtn.setText("Wycofaj się");
+				} else {
+					joinLeaveConfBtn.setOnAction((event) -> {
+						new Thread(() -> joinConferenceBtn()).start();
+					});
+					joinLeaveConfBtn.setText("Weź udział");
+				}
+				
+				if(currentUserIsOrganizer) {
+					removeConfBtn.setDisable(false);
+				} else {
+					removeConfBtn.setDisable(true);
+				}
+			} catch (NoSuchElementException e) {
+				feedController.setSelectedConferenceId(null);
 			}
 		}
 	}
-	
+
 	// requests data about conferences from the database through the server
-	// compares it with current data and if there is difference, updates information
+	// compares it with current data and if there is difference, updates
+	// information
 	@SuppressWarnings("unchecked")
-	@FXML public void reqConferenceFeed() {
+	@FXML
+	public void reqConferenceFeed() {
 		SocketEvent e = new SocketEvent("reqConferenceFeed");
 		NetworkConnection.sendSocketEvent(e);
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
@@ -267,15 +317,19 @@ public class ApplicationController implements Controller {
 			// compare if feeds match, if so, don't fill vbox with new content
 			if (tempFeed != null && !tempFeed.toString().equals(feed.toString())) {
 				feed = tempFeed;
-				feedController.refreshConferenceTabs(eventDetailsTP, feed);
+				
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
+						feedController.refreshConferenceTabs(eventDetailsTP, feed);
 						// fill FeedBox and Calendar in JavaFX UI Thread
 						checkUsersParticipation();
 						filterFeed();
 						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel,
 								calendar.getCalendarsDate(), feed, eventDetailsTP, listOfSelectedDaysEvents);
+						refreshConferencesListView(searchField.getText());
+						feedController.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed, 
+								eventDetailsTP, listOfSelectedDaysEvents, false);
 					}
 				});
 			}
@@ -283,7 +337,7 @@ public class ApplicationController implements Controller {
 
 	}
 
-	//bound to searchField, this is reaction to typed text
+	// bound to searchField, this is reaction to typed text
 	private void refreshConferencesListView(String searchBoxContent) {
 
 		String periodFilterFromComboBox = conferenceFeedCB.getValue();
@@ -311,7 +365,8 @@ public class ApplicationController implements Controller {
 		});
 	}
 
-	// sends request for the current user object and puts it in currentUser static variable
+	// sends request for the current user object and puts it in currentUser
+	// static variable
 	public void reqCurrentUser() {
 		SocketEvent se = new SocketEvent("reqCurrentUser");
 		NetworkConnection.sendSocketEvent(se);
@@ -331,9 +386,10 @@ public class ApplicationController implements Controller {
 	}
 
 	// sends request to join conference after user confirms it
-	@FXML public void joinConferenceBtn() {
+	@FXML
+	public void joinConferenceBtn() {
 		Integer selectedConfId = feedController.getSelectedConferenceId();
-		
+
 		if (selectedConfId != null) {
 			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
 
@@ -358,7 +414,7 @@ public class ApplicationController implements Controller {
 
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 		String eventName = res.getName();
-		if(eventName.equals("joinConferenceSucceeded")) {
+		if (eventName.equals("joinConferenceSucceeded")) {
 			reqConferenceFeed();
 			message = "Wysłano prośbę o udział w konferencji do jej organizatora.";
 		} else {
@@ -372,9 +428,10 @@ public class ApplicationController implements Controller {
 			}
 		});
 	}
-	
+
 	// sends request to leave conference after user confirms it
-	@FXML public void leaveConferenceBtn() {
+	@FXML
+	public void leaveConferenceBtn() {
 		Integer selectedConfId = feedController.getSelectedConferenceId();
 		if (selectedConfId != null) {
 			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
@@ -387,7 +444,7 @@ public class ApplicationController implements Controller {
 			});
 		}
 	}
-	
+
 	// actual request for leaving a conference
 	private void reqLeaveConference() {
 		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
@@ -399,13 +456,13 @@ public class ApplicationController implements Controller {
 
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
 		String eventName = res.getName();
-		if(eventName.equals("leaveConferenceSucceeded")) {
+		if (eventName.equals("leaveConferenceSucceeded")) {
 			reqConferenceFeed();
 			message = "Zrezygnowałeś z udziału w konferencji.";
 		} else {
 			message = "Nie udało się zrezygnować z udziału w konferencji.";
 		}
-		
+
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
@@ -414,12 +471,50 @@ public class ApplicationController implements Controller {
 		});
 	}
 
-	@FXML private void logoutButton(ActionEvent event) {
+	@FXML
+	public void removeConferenceBtn() {
+		Integer selectedConfId = feedController.getSelectedConferenceId();
+		if (selectedConfId != null) {
+			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
+			String message = "Czy na pewno chcesz usunąć konferencję \"" + conferenceName + "\"?";
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_REMOVING_CONFERENCE);
+				}
+			});
+		}
+	}
+
+	// actual request for leaving a conference
+	private void reqRemoveConference() {
+		SocketEvent se = new SocketEvent("reqRemoveConference", feedController.getSelectedConferenceId());
+		NetworkConnection.sendSocketEvent(se);
+
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		String eventName = res.getName();
+		if (eventName.equals("removeConferenceSucceeded")) {
+			reqConferenceFeed();
+			message = "Udało się usunąć konferencję.";
+		} else {
+			message = "Nie udało się usunąć konferencji.";
+		}
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				openDialogBox(applicationWindow, message);
+			}
+		});
+	}
+
+	@FXML
+	private void logoutButton(ActionEvent event) {
 		sharedEvent = event;
 		// here check if login is valid
 		new Thread(() -> logout()).start();
 	}
-	
+
 	public void logout() {
 		NetworkConnection.disconnect();
 		Platform.runLater(new Runnable() {
@@ -429,8 +524,9 @@ public class ApplicationController implements Controller {
 			}
 		});
 	}
-	
-	@FXML public void addConferenceBtn(ActionEvent event) {
+
+	@FXML
+	public void addConferenceBtn(ActionEvent event) {
 		openNewWindow(applicationWindow, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencję");
 	}
 

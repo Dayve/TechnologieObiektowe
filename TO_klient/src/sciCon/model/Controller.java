@@ -20,6 +20,7 @@ public interface Controller {
 		UPDATE_CONFERENCE_FEED,
 		REQUEST_JOINING_CONFERENCE,
 		REQUEST_LEAVING_CONFERENCE,
+		REQUEST_REMOVING_CONFERENCE
 	};
 	
 	default public void loadScene(Stage stage, String path, int w, int h, boolean resizable, int minW, int minH) {
@@ -35,7 +36,7 @@ public interface Controller {
 			stage.setMinHeight(minH + 25);
 			stage.setResizable(resizable);
 			Scene scene = new Scene(layout);
-			// scene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
+			//scene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
 			stage.setScene(scene);
 			stage.show();
 		} catch (IOException e) {

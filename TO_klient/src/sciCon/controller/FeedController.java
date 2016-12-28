@@ -5,8 +5,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -16,21 +20,20 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import sciCon.model.Conference;
 import sciCon.model.Controller.ConferenceFilter;
 
 public class FeedController {
-	
+
 	private Integer selectedConferenceId = null;
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
 
 	public void setSelectedConferenceId(Integer selectedConferenceId) {
 		this.selectedConferenceId = selectedConferenceId;
 	}
-	
+
 	public Integer getSelectedConferenceId() {
 		return selectedConferenceId;
 	}
@@ -89,10 +92,11 @@ public class FeedController {
 	public void fillListViewWithSelectedDaysConferences(LocalDate selectedDate, ArrayList<Conference> feed, TabPane tp,
 			ListView<Label> listOfSelectedDaysEvents, boolean showDate) {
 		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
-
+		listOfSelectedDaysEvents.getItems().clear();
 		for (Conference c : feed) {
-			if (c.getStartTime().toLocalDate().equals(selectedDate))
+			if (c.getStartTime().toLocalDate().equals(selectedDate)) {
 				selectedDayConferences.add(c);
+			}
 		}
 		if (selectedDayConferences != null) {
 			fillListWithLabels(listOfSelectedDaysEvents, selectedDayConferences, tp, ConferenceFilter.ALL,
@@ -112,73 +116,90 @@ public class FeedController {
 			if (showDate) {
 				title += " (" + c.getDate() + ")";
 			}
+			Integer currId = c.getId();
 			label = new Label(addNLsIfTooLong(title, charLimit));
 			label.setFont(Font.font("Inconsolata", 13));
-			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
-				public void handle(MouseEvent t) {
-					setSelectedConferenceId(c.getId());
-					openConferenceTab(tp, cs);
-				}
-			});
-			label.setPrefWidth(lv.getWidth());
+			label.setId(currId.toString());
+			label.setPrefWidth(lv.getWidth() - 6);
 			ol.add(label);
 		}
 		lv.setItems(ol);
 	}
-	
+
 	public void resizeConferenceTabs(TabPane tp, Integer size) {
-		for(Tab t: tp.getTabs()) {
+		for (Tab t : tp.getTabs()) {
 			VBox vb = (VBox) t.getContent();
 			TextArea confInfo = (TextArea) vb.getChildren().get(0);
 			confInfo.setPrefHeight(size);
 		}
 	}
-	
+
 	public void refreshConferenceTabs(TabPane tp, ArrayList<Conference> confPool) {
-		for(Tab t: tp.getTabs()) {
-			Conference conf = confPool.stream().filter(c -> c.getId() == Integer.parseInt(t.getId())).findFirst().get();
-			
-			VBox vbox = new VBox();
-			TextArea confInfo = new TextArea(conf.toString());
-			confInfo.setPrefHeight(tp.getHeight()/2);
-			confInfo.setWrapText(true);
-			confInfo.setEditable(false);
-			
-			vbox.getChildren().add(confInfo);
-			t.setContent(vbox);
-		}
-		
-	}
-	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
-		Tab tab = new Tab();
-		Integer currId = getSelectedConferenceId();
-		tab.setOnClosed(new EventHandler<Event>() {
-			@Override
-			public void handle(Event event) {
-				Integer id = Integer.parseInt(tab.getId());
-				openedTabsConferencesIds.remove(id);
-			}
-		});
-		for (Conference c : confPool) {
-			if (c.getId() == currId) {
-				tab.setText(c.getName());
-				tab.setId(currId.toString());
-				VBox vbox = new VBox();
-				TextArea confInfo = new TextArea(c.toString());
-				confInfo.setPrefHeight(tp.getHeight()/2);
-				confInfo.setWrapText(true);
-				confInfo.setEditable(false);
-				
-				vbox.getChildren().add(confInfo);
-				tab.setContent(vbox);
-				if (!openedTabsConferencesIds.containsKey(currId)) {
-					tp.getTabs().add(tab);
-					tp.getSelectionModel().select(tab);
-					openedTabsConferencesIds.put(currId, tab);
-				} else {
-					tp.getSelectionModel().select(openedTabsConferencesIds.get(currId));
+		try {
+			for (Iterator<Tab> iterator = tp.getTabs().iterator(); iterator.hasNext();) {
+				Tab t = iterator.next();
+				try {
+					Conference conf = confPool.stream().filter(c -> c.getId() == Integer.parseInt(t.getId()))
+							.findFirst().get();
+					VBox vbox = new VBox();
+					TextArea confInfo = new TextArea(conf.toString());
+					confInfo.setPrefHeight(tp.getHeight() / 2);
+					confInfo.setWrapText(true);
+					confInfo.setEditable(false);
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							vbox.getChildren().add(confInfo);
+							t.setContent(vbox);
+						}
+					});
+				} catch (NoSuchElementException e) {
+					// if there's no such conference found remove its tab
+					openedTabsConferencesIds.remove(Integer.parseInt(t.getId()));
+					iterator.remove();
 				}
 			}
+		} catch (ConcurrentModificationException e) {
+			// happens when there is only one tab opened
+			// and organizer removes their conference
+			// so the tab closes and leaves nothing opened
+			setSelectedConferenceId(null);
+		}
+	}
+
+	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
+		
+		Integer currId = getSelectedConferenceId();
+
+		if (!openedTabsConferencesIds.containsKey(currId)) {
+			for (Conference c : confPool) {
+				if (c.getId() == currId) {
+					Tab tab = new Tab();
+					tab.setOnClosed(new EventHandler<Event>() {
+						@Override
+						public void handle(Event event) {
+							Integer id = Integer.parseInt(tab.getId());
+							openedTabsConferencesIds.remove(id);
+						}
+					});
+					tab.setText(c.getName());
+					tab.setId(currId.toString());
+					VBox vbox = new VBox();
+					TextArea confInfo = new TextArea(c.toString());
+					confInfo.setPrefHeight(tp.getHeight() / 2);
+					confInfo.setWrapText(true);
+					confInfo.setEditable(false);
+
+					vbox.getChildren().add(confInfo);
+					tab.setContent(vbox);
+					tp.getTabs().add(tab);
+					openedTabsConferencesIds.put(currId, tab);
+					tp.getSelectionModel().select(tab);
+					break;
+				}
+			}
+		} else {
+			tp.getSelectionModel().select(openedTabsConferencesIds.get(currId));
 		}
 	}
 }

@@ -273,7 +273,7 @@ public class ApplicationController implements Controller {
 					}
 				}
 				
-				if(currentUserTakesPart) {
+				if(currentUserTakesPart || currentUserIsOrganizer) {
 					joinLeaveConfBtn.setOnAction((event) -> {
 						new Thread(() -> leaveConferenceBtn()).start();
 					});
@@ -286,9 +286,15 @@ public class ApplicationController implements Controller {
 				}
 				
 				if(currentUserIsOrganizer) {
+					if(selectedConfOrganizers.size() == 1) {
+						joinLeaveConfBtn.setDisable(true);
+					} else {
+						joinLeaveConfBtn.setDisable(false);
+					}
 					removeConfBtn.setDisable(false);
 				} else {
 					removeConfBtn.setDisable(true);
+					joinLeaveConfBtn.setDisable(false);
 				}
 			} catch (NoSuchElementException e) {
 				feedController.setSelectedConferenceId(null);

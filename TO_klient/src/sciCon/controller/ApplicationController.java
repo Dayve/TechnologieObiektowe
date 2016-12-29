@@ -13,8 +13,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -74,7 +72,6 @@ public class ApplicationController implements Controller {
 	private CalendarController calendar = new CalendarController(feedController);
 
 	public static User currentUser;
-	private Event sharedEvent = null;
 	private String message = null;
 	private int checkedRequestsWithoutUpdate = 0;
 
@@ -226,6 +223,7 @@ public class ApplicationController implements Controller {
 			public void run() {
 				feedController.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter,
 						CHAR_LIMIT_IN_TITLEPANE, true);
+				refreshConferencesListView(searchField.getText());
 			}
 		});
 	}
@@ -504,8 +502,7 @@ public class ApplicationController implements Controller {
 	}
 
 	@FXML
-	private void logoutButton(ActionEvent event) {
-		sharedEvent = event;
+	private void logoutButton() {
 		// here check if login is valid
 		new Thread(() -> logout()).start();
 	}
@@ -515,13 +512,13 @@ public class ApplicationController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				loadScene(sharedEvent, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
+				loadScene(applicationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
 			}
 		});
 	}
 
 	@FXML
-	public void addConferenceBtn(ActionEvent event) {
+	public void addConferenceBtn() {
 		openNewWindow(applicationWindow, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencję");
 	}
 

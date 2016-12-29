@@ -9,6 +9,7 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -66,21 +67,31 @@ public class FeedController {
 		LocalDateTime now = LocalDateTime.now();
 		now.format(formatter);
 		ArrayList<Conference> filtered = new ArrayList<Conference>();
-		filtered.addAll(feed);
+//		filtered.addAll(feed);
 		switch (cf) {
 		case PAST: {
-			filtered.removeIf(s -> s.getStartTime().isAfter(now));
+			filtered = (ArrayList<Conference>) feed.stream() 
+					.filter(c -> c.getEndTime().isBefore(now))
+					.collect(Collectors.toList());
+//			filtered.removeIf(s -> s.getStartTime().isAfter(now));
 			break;
 		}
 		case FUTURE: {
-			filtered.removeIf(s -> s.getEndTime().isBefore(now));
+			filtered = (ArrayList<Conference>) feed.stream() 
+					.filter(c -> c.getStartTime().isAfter(now))
+					.collect(Collectors.toList());
+//			filtered.removeIf(s -> s.getEndTime().isBefore(now));
 			break;
 		}
 		case ONGOING: {
-			filtered.removeIf(s -> s.getStartTime().isBefore(now) && s.getEndTime().isAfter(now));
+			filtered = (ArrayList<Conference>) feed.stream() 
+					.filter(c -> c.getStartTime().isAfter(now) && c.getEndTime().isBefore(now))
+					.collect(Collectors.toList());
+//			filtered.removeIf(s -> s.getStartTime().isBefore(now) && s.getEndTime().isAfter(now));
 			break;
 		}
 		case ALL: {
+			filtered.addAll(feed);
 			break;
 		}
 

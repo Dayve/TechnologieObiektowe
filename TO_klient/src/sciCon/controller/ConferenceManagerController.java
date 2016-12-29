@@ -1,25 +1,14 @@
 package sciCon.controller;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import sciCon.model.Conference;
 import sciCon.model.Controller;
-import sciCon.model.NetworkConnection;
-import sciCon.model.SocketEvent;
 
 public class ConferenceManagerController implements Controller {
 	
@@ -31,11 +20,6 @@ public class ConferenceManagerController implements Controller {
 	
 	private String message;
 	
-//	@FXML
-//	public void initialize() {
-//		
-//	}
-	
 	@FXML
 	public void reqModifyUsersRole() {
 		
@@ -44,16 +28,6 @@ public class ConferenceManagerController implements Controller {
 	@FXML
 	public void addFileBtn() {
 		
-//		} else {
-//			message = "Wypełnij wszystkie pola z godziną i minutą.";
-//		}
-//		Platform.runLater(new Runnable() {
-//			@Override
-//			public void run() {
-//				openDialogBox(confManagerWindow, message);
-//			}
-//		});
-
 	}
 
 	@FXML

@@ -20,6 +20,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import sciCon.model.Conference;
@@ -111,6 +112,7 @@ public class FeedController {
 		ObservableList<Label> ol = FXCollections.observableArrayList();
 		lv.getItems().clear();
 		Label label = null;
+		
 		for (Conference c : filtered) {
 			String title = c.getName();
 			if (showDate) {
@@ -119,8 +121,15 @@ public class FeedController {
 			Integer currId = c.getId();
 			label = new Label(addNLsIfTooLong(title, charLimit));
 			label.setFont(Font.font("Inconsolata", 13));
+			
 			label.setId(currId.toString());
 			label.setPrefWidth(lv.getWidth() - 6);
+			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
+				public void handle(MouseEvent t) {
+					setSelectedConferenceId(currId);
+					openConferenceTab(tp, cs);
+				}
+			});
 			ol.add(label);
 		}
 		lv.setItems(ol);

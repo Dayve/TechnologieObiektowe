@@ -49,7 +49,7 @@ public class ApplicationController implements Controller {
 	@FXML
 	private Label currentlyChosenDateLabel;
 	@FXML
-	Button joinLeaveConfBtn;
+	Button joinLeaveManageConfBtn;
 	@FXML
 	Button removeConfBtn;
 	@FXML
@@ -94,10 +94,8 @@ public class ApplicationController implements Controller {
 		setupFeedFilterCBs();
 		setupTabPane();
 		reqConferenceFeed();
-		setupListView(conferenceFeedList);
 		setupTimer();
 		setupCalendar();
-		setupListView(listOfSelectedDaysEvents);
 		new Thread(() -> reqCurrentUser()).start();
 
 		Platform.runLater(new Runnable() {
@@ -139,20 +137,7 @@ public class ApplicationController implements Controller {
 				}
 			}
 		});
-	}
-	
-	private void setupListView(ListView<Label> lv) {
-		lv.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Label>() {
-			@Override
-			public void changed(ObservableValue<? extends Label> arg0, Label from, Label to) {
-				if(to == null) {
-				} else {
-					feedController.setSelectedConferenceId(Integer.parseInt(to.getId()));
-					feedController.openConferenceTab(eventDetailsTP, feed);
-				}
-			}
-		});
-	}
+	}	
 
 	// sets up the ComboBoxes allowing user to filter conferences
 	private void setupFeedFilterCBs() {
@@ -273,28 +258,24 @@ public class ApplicationController implements Controller {
 					}
 				}
 				
-				if(currentUserTakesPart || currentUserIsOrganizer) {
-					joinLeaveConfBtn.setOnAction((event) -> {
-						new Thread(() -> leaveConferenceBtn()).start();
-					});
-					joinLeaveConfBtn.setText("Wycofaj się");
-				} else {
-					joinLeaveConfBtn.setOnAction((event) -> {
-						new Thread(() -> joinConferenceBtn()).start();
-					});
-					joinLeaveConfBtn.setText("Weź udział");
-				}
-				
 				if(currentUserIsOrganizer) {
-					if(selectedConfOrganizers.size() == 1) {
-						joinLeaveConfBtn.setDisable(true);
-					} else {
-						joinLeaveConfBtn.setDisable(false);
-					}
-					removeConfBtn.setDisable(false);
+					joinLeaveManageConfBtn.setOnAction((event) -> {
+						manageConferenceBtn();
+					});
+					joinLeaveManageConfBtn.setText("Zarządzaj");
 				} else {
 					removeConfBtn.setDisable(true);
-					joinLeaveConfBtn.setDisable(false);
+					if(currentUserTakesPart || currentUserIsOrganizer) {
+						joinLeaveManageConfBtn.setOnAction((event) -> {
+							new Thread(() -> leaveConferenceBtn()).start();
+						});
+						joinLeaveManageConfBtn.setText("Wycofaj się");
+					} else {
+						joinLeaveManageConfBtn.setOnAction((event) -> {
+							new Thread(() -> joinConferenceBtn()).start();
+						});
+						joinLeaveManageConfBtn.setText("Weź udział");
+					}
 				}
 			} catch (NoSuchElementException e) {
 				feedController.setSelectedConferenceId(null);
@@ -391,6 +372,14 @@ public class ApplicationController implements Controller {
 		});
 	}
 
+	@FXML
+	public void manageConferenceBtn() {
+		Integer selectedConfId = feedController.getSelectedConferenceId();
+		if (selectedConfId != null) {
+		openNewWindow(applicationWindow, "view/ConferenceManagerLayout.fxml", 600, 650, false, "Zarządzaj konferencją");
+		}
+	}
+	
 	// sends request to join conference after user confirms it
 	@FXML
 	public void joinConferenceBtn() {

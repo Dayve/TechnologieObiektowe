@@ -9,6 +9,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -32,6 +33,10 @@ public class ConferenceManagerController implements Controller {
 	private ListView<Label> usersLV;
 	@FXML
 	private ListView filesLV;
+	
+	@FXML private ComboBox<String> userOperationCB;
+	@FXML private ComboBox<String> fileOperationCB;
+	
 	private ArrayList<Conference> feed;
 	private Integer selectedConferenceId;
 	private Conference selectedConference;
@@ -53,6 +58,16 @@ public class ConferenceManagerController implements Controller {
 		fillUsersList();
 	}
 
+	private void setupFilterCBs() {
+		ObservableList<String> userActions = FXCollections.observableArrayList("Ustaw status: organizator",
+				"Ustaw status: sponsor", "Ustaw status: prelegent", "Ustaw status: uczestnik", "Wyproś");
+
+		userOperationCB.getItems().addAll(userActions);
+
+		ObservableList<String> fileActions = FXCollections.observableArrayList("Usuń pliki");
+
+		fileOperationCB.getItems().addAll(fileActions);
+	}
 	private void filterListView(ListView<Label> lv, String text) {
 
 	}
@@ -64,7 +79,6 @@ public class ConferenceManagerController implements Controller {
 		for (User u : group) {
 			String title = u.getLogin() + " (" + u.getName() + " " + u.getSurname() + "), " + role;
 			label = new Label(addNLsIfTooLong(title, 35));
-			label.setFont(Font.font("Inconsolata", 13));
 
 			label.setId(u.getId().toString());
 			label.setPrefWidth(usersLV.getPrefWidth());
@@ -116,6 +130,8 @@ public class ConferenceManagerController implements Controller {
 		searchFileField.textProperty().addListener(obs -> {
 			filterListView(filesLV, searchFileField.getText());
 		});
+		
+		setupFilterCBs();
 	}
 
 	@FXML
@@ -123,12 +139,14 @@ public class ConferenceManagerController implements Controller {
 		if (selectedUsers.isEmpty()) {
 			for (Label l : usersLV.getItems()) {
 				l.setStyle("-fx-font-weight: bold;");
+				l.setFont(Font.font("Inconsolata", 13));
 			}
 			selectedUsers.putAll(deselectedUsers);
 			deselectedUsers.clear();
 		} else {
 			for (Label l : usersLV.getItems()) {
 				l.setStyle("-fx-font-weight: normal;");
+				l.setFont(Font.font("Inconsolata", 13));
 			}
 			deselectedUsers.putAll(selectedUsers);
 			selectedUsers.clear();

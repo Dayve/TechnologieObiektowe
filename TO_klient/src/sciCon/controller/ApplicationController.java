@@ -1,7 +1,12 @@
 package sciCon.controller;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -37,6 +42,10 @@ public class ApplicationController implements Controller {
 
 	@FXML
 	Parent applicationWindow;
+	@FXML
+	ComboBox<String> monthsCB;
+	@FXML
+	private ComboBox<String> yearsCB;
 	@FXML
 	private Button prevMonth;
 	@FXML
@@ -93,6 +102,7 @@ public class ApplicationController implements Controller {
 		setupTabPane();
 		reqConferenceFeed();
 		setupTimer();
+		setupMonthsYearsCBs();
 		setupCalendar();
 		new Thread(() -> reqCurrentUser()).start();
 
@@ -135,7 +145,7 @@ public class ApplicationController implements Controller {
 				}
 			}
 		});
-	}	
+	}
 
 	// sets up the ComboBoxes allowing user to filter conferences
 	private void setupFeedFilterCBs() {
@@ -153,6 +163,20 @@ public class ApplicationController implements Controller {
 		searchField.textProperty().addListener(obs -> {
 			refreshConferencesListView(searchField.getText());
 		});
+	}
+
+	private void setupMonthsYearsCBs() {
+		ObservableList<String> monthsFeedOptions = FXCollections.observableArrayList("Styczeń", "Luty", "Marzec",
+				"Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień");
+
+		monthsCB.getItems().addAll(monthsFeedOptions);
+		monthsCB.setValue("miesiąc");
+
+		ObservableList<String> yearsFeedOptions = FXCollections.observableArrayList("2016", "2017", "2018", "2019",
+				"2020");
+
+		yearsCB.getItems().addAll(yearsFeedOptions);
+		yearsCB.setValue("rok");
 	}
 
 	// sets the calendar up - fills it according to the current date and lets
@@ -233,38 +257,38 @@ public class ApplicationController implements Controller {
 	// and modifies leave/join button text and behaviour accordingly
 	private void checkUsersParticipation() {
 		Integer selectedConfId = feedController.getSelectedConferenceId();
-		//look for conference thats id is clicked 
-		if(selectedConfId != null) {
-			try{
-				Conference selectedConf = feed.stream().filter(c -> c.getId() == selectedConfId).
-						findFirst().get();
+		// look for conference thats id is clicked
+		if (selectedConfId != null) {
+			try {
+				Conference selectedConf = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get();
 				ArrayList<User> selectedConfParticipants = selectedConf.getParticipantsList();
 				ArrayList<User> selectedConfOrganizers = selectedConf.getOrganizers();
 				boolean currentUserTakesPart = false;
 				boolean currentUserIsOrganizer = false;
-				//check if current user takes part in selected conference
-				for(User u: selectedConfParticipants) {
-					if(u.getId() == currentUser.getId()) {
+				// check if current user takes part in selected conference
+				for (User u : selectedConfParticipants) {
+					if (u.getId() == currentUser.getId()) {
 						currentUserTakesPart = true;
 						break;
 					}
 				}
-				//check if current user is organizer of selected conference
-				for(User u: selectedConfOrganizers) {
-					if(u.getId() == currentUser.getId()) {
+				// check if current user is organizer of selected conference
+				for (User u : selectedConfOrganizers) {
+					if (u.getId() == currentUser.getId()) {
 						currentUserIsOrganizer = true;
 						break;
 					}
 				}
-				
-				if(currentUserIsOrganizer) {
+
+				if (currentUserIsOrganizer) {
+					removeConfBtn.setDisable(false);
 					joinLeaveManageConfBtn.setOnAction((event) -> {
 						manageConferenceBtn();
 					});
 					joinLeaveManageConfBtn.setText("Zarządzaj");
 				} else {
 					removeConfBtn.setDisable(true);
-					if(currentUserTakesPart || currentUserIsOrganizer) {
+					if (currentUserTakesPart || currentUserIsOrganizer) {
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> leaveConferenceBtn()).start();
 						});
@@ -303,7 +327,7 @@ public class ApplicationController implements Controller {
 			// compare if feeds match, if so, don't fill vbox with new content
 			if (tempFeed != null && !tempFeed.toString().equals(feed.toString())) {
 				feed = tempFeed;
-				
+
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
@@ -314,7 +338,7 @@ public class ApplicationController implements Controller {
 						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel,
 								calendar.getCalendarsDate(), feed, eventDetailsTP, listOfSelectedDaysEvents);
 						refreshConferencesListView(searchField.getText());
-						feedController.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed, 
+						feedController.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed,
 								eventDetailsTP, listOfSelectedDaysEvents, false);
 						manager.refresh(feed);
 					}
@@ -378,7 +402,7 @@ public class ApplicationController implements Controller {
 		String selectedConfName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
 		openNewConfManager(applicationWindow, feed, selectedConfId, selectedConfName);
 	}
-	
+
 	// sends request to join conference after user confirms it
 	@FXML
 	public void joinConferenceBtn() {
@@ -531,6 +555,29 @@ public class ApplicationController implements Controller {
 
 	public void changeMonthToPrevious() {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().minusMonths(1));
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
+				eventDetailsTP, listOfSelectedDaysEvents);
+	}
+
+	public void changeMonthToChosen() {
+		String polishMonth = monthsCB.getValue();
+		String engShortMonth = calendar.PolishDateStringToEngDateString(polishMonth);
+		try {
+			Date date = new SimpleDateFormat("MMM", Locale.ENGLISH).parse(engShortMonth);
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(date);
+			int month = cal.get(Calendar.MONTH) + 1; // months begin with 0
+			calendar.setCalendarsDate(calendar.getCalendarsDate().withMonth(month));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
+				eventDetailsTP, listOfSelectedDaysEvents);
+	}
+
+	public void changeYearToChosen() {
+		int year = Integer.parseInt(yearsCB.getValue());
+		calendar.setCalendarsDate(calendar.getCalendarsDate().withYear(year));
 		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
 				eventDetailsTP, listOfSelectedDaysEvents);
 	}

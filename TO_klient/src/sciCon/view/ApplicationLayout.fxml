@@ -54,8 +54,8 @@
                <font>
                   <Font size="13.0" />
                </font></Button>
-            <ComboBox prefHeight="30.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
-            <ComboBox prefHeight="30.0" prefWidth="150.0" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
+            <ComboBox fx:id="monthsCB" onAction="#changeMonthToChosen" prefHeight="30.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+            <ComboBox fx:id="yearsCB" onAction="#changeYearToChosen" prefHeight="30.0" prefWidth="150.0" GridPane.columnIndex="2" GridPane.halignment="CENTER" />
          </children>
       </GridPane>
       <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="5" GridPane.rowSpan="2">

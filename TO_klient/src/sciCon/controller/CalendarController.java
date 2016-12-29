@@ -146,6 +146,25 @@ public class CalendarController implements Controller {
 		return result;
 	}
 	
+	public String PolishDateStringToEngDateString(String givenDate) {
+		String result = new String();
+		
+		switch(givenDate) {
+			case "Styczeń": result += "Jan"; break;
+			case "Luty": result += "Feb"; break;
+			case "Marzec": result += "Mar"; break;
+			case "Kwiecień": result += "Apr"; break;
+			case "Maj": result += "May"; break;
+			case "Czerwiec": result += "Jun"; break;
+			case "Lipiec": result += "Jul"; break;
+			case "Sierpień": result += "Aug"; break;
+			case "Wrzesień": result += "Sep"; break;
+			case "Październik": result += "Oct"; break;
+			case "Listopad": result += "Nov"; break;
+			case "Grudzień": result += "Dec"; break;
+		}	
+		return result;
+}
 	
 	// Returns true if there is a conference (one or more) assigned to a givenDate:
 	private static boolean isAnyConferenceAtDate(LocalDate givenDate, ArrayList<Conference> conferencesFeed) {

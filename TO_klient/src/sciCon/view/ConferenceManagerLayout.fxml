@@ -41,13 +41,13 @@
             <Font size="13.0" />
          </font>
       </Button>
-      <ComboBox fx:id="userOperationCB" layoutX="30.0" layoutY="488.0" prefHeight="29.0" prefWidth="190.0" promptText="Operacja na użytkownikach" />
-      <Button layoutX="80.0" layoutY="444.0" mnemonicParsing="false" onAction="#selectDeselectAllUsers" text="Odznacz/zaznacz wszystkich">
+      <ComboBox fx:id="userOperationCB" layoutX="30.0" layoutY="488.0" prefHeight="29.0" prefWidth="190.0" promptText="Edytuj użytkowników" />
+      <Button layoutX="80.0" layoutY="444.0" mnemonicParsing="false" onAction="#deselectSelectAllUsers" text="Odznacz/zaznacz wszystkich">
          <font>
             <Font size="13.0" />
          </font>
       </Button>
-      <Button layoutX="394.0" layoutY="444.0" mnemonicParsing="false" onAction="#selectDeselectAllFiles" text="Odznacz/zaznacz wszystkie">
+      <Button layoutX="394.0" layoutY="444.0" mnemonicParsing="false" onAction="#deselectSelectAllFiles" text="Odznacz/zaznacz wszystkie">
          <font>
             <Font size="13.0" />
          </font>
@@ -57,6 +57,6 @@
             <Font size="13.0" />
          </font>
       </Button>
-      <ComboBox fx:id="fileOperationCB" layoutX="341.0" layoutY="488.0" prefHeight="29.0" prefWidth="190.0" promptText="Operacja na plikach" />
+      <ComboBox fx:id="fileOperationCB" layoutX="341.0" layoutY="488.0" prefHeight="29.0" prefWidth="190.0" promptText="Edytuj pliki" />
    </children>
 </AnchorPane>

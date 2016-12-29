@@ -8,6 +8,16 @@
 .combo-box .cell{
     -fx-font: 13px "Inconsolata";
 }
+
+.list-view .list-cell {
+    -fx-font: 13px "Inconsolata";
+}
+
+.tab-pane:bottom > .tab-header-area > .control-buttons-tab > .container > .tab-down-button {
+   -fx-font: 13px "Inconsolata";
+}
+
+
 /*@font-face {
     src: url("UbuntuMono.ttf");
 }

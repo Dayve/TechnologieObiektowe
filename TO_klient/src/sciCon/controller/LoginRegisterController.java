@@ -15,27 +15,21 @@ import sciCon.model.SocketEvent;
 
 public class LoginRegisterController implements Controller {
 
-	@FXML
-	private Parent loginWindow;
-	@FXML
-	private Parent registrationWindow;
-	@FXML
-	private TextField loginField;
-	@FXML
-	private TextField nameField;
-	@FXML
-	private TextField surnameField;
-	@FXML
-	private TextField passwordField;
-	@FXML
-	private TextField passwordRepeatField;
+	@FXML private Parent loginWindow;
+	@FXML private Parent registrationWindow;
+	@FXML private TextField loginField;
+	@FXML private TextField nameField;
+	@FXML private TextField surnameField;
+	@FXML private TextField passwordField;
+	@FXML private TextField passwordRepeatField;
 	private boolean flag;
-	
+
 	private String message;
+
 	public static void ConnectToServer() {
-    	NetworkConnection.connect("localhost", 8080);
-    }
-	
+		NetworkConnection.connect("localhost", 8080);
+	}
+
 	private boolean doPasswordsMatch(String password, String rePassword) {
 		if (password.equals(rePassword)) {
 			return true;
@@ -44,10 +38,9 @@ public class LoginRegisterController implements Controller {
 		}
 	}
 
-	
 	public void initialize() {
 		// get a method to call it using reflection
-		new Thread(() ->ConnectToServer()).start();
+		new Thread(() -> ConnectToServer()).start();
 	}
 
 	public void reqLogin() {
@@ -59,7 +52,7 @@ public class LoginRegisterController implements Controller {
 		User u = new User(login, password);
 		SocketEvent se = new SocketEvent("reqLogin", u);
 
-		try{
+		try {
 			NetworkConnection.sendSocketEvent(se);
 			SocketEvent res = NetworkConnection.rcvSocketEvent();
 			String eventName = res.getName();
@@ -73,12 +66,11 @@ public class LoginRegisterController implements Controller {
 			message = "Nie można ustanowić połączenia z serwerem.";
 		}
 		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				if(flag) {
+			@Override public void run() {
+				if (flag) {
 					goToApplication(loginWindow);
 				} else {
-				openDialogBox(loginWindow, message);
+					openDialogBox(loginWindow, message);
 				}
 			}
 		});
@@ -105,63 +97,53 @@ public class LoginRegisterController implements Controller {
 
 		// run in JavaFX after background thread finishes work
 		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
+			@Override public void run() {
 				openDialogBox(registrationWindow, message);
 			}
 		});
 	}
 
-	@FXML
-	private void registerBtn() {
-		new Thread(() ->reqRegister()).start();
+	@FXML private void registerBtn() {
+		new Thread(() -> reqRegister()).start();
 	}
 
-	@FXML
-	private void loginBtn() { // handler
-		new Thread(() ->reqLogin()).start();
+	@FXML private void loginBtn() { // handler
+		new Thread(() -> reqLogin()).start();
 	}
 
-	@FXML
-	private void loginBtnEnterKey(KeyEvent event) {
+	@FXML private void loginBtnEnterKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			new Thread(() ->reqLogin()).start();
+			new Thread(() -> reqLogin()).start();
 		}
 	}
 
-	@FXML
-	private void registerBtnEnterKey(KeyEvent event) {
+	@FXML private void registerBtnEnterKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
-			new Thread(() ->reqRegister()).start();
+			new Thread(() -> reqRegister()).start();
 		}
 	}
 
-	@FXML
-	private void goToRegistrationKey(KeyEvent event) {
+	@FXML private void goToRegistrationKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 300, false, 0, 0);
 		}
 	}
 
-	@FXML
-	private void cancelBtnEnterKey(KeyEvent event) {
+	@FXML private void cancelBtnEnterKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
 		}
 	}
 
-	@FXML
-	private void goToApplication(Parent fromWindow) {
+	@FXML private void goToApplication(Parent fromWindow) {
 		loadScene(fromWindow, "view/ApplicationLayout.fxml", 1024, 576, true, 1024, 576);
 	}
 
-	@FXML
-	private void goToLogin(Event event) {
+	@FXML private void goToLogin(Event event) {
 		loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
 	}
 
-	@FXML
-	private void goToRegistration(Event event) {
+	@FXML private void goToRegistration(Event event) {
 		loadScene(loginWindow, "view/RegisterLayout.fxml", 320, 300, false, 0, 0);
 	}
 }

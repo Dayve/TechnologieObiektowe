@@ -12,9 +12,8 @@ public class SocketEvent implements Serializable {
 		this.name = name;
 		this.data = data;
 	}
-	
-	@SuppressWarnings("unchecked")
-	public <T> T getObject(Class<T> _class) {
+
+	@SuppressWarnings("unchecked") public <T> T getObject(Class<T> _class) {
 		T obj = null;
 		for (int i = 0; i < data.length; i++) {
 			if (_class.isInstance(data[i])) {

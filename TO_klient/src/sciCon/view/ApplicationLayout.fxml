@@ -31,7 +31,7 @@
    <children>
       <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.rowSpan="2">
          <children>
-            <TableView fx:id="calendarTable" layoutX="50.0" layoutY="45.0" prefHeight="392.0" prefWidth="392.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="28.0" />
+            <TableView fx:id="calendarTable" layoutX="50.0" layoutY="45.0" prefHeight="392.0" prefWidth="392.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="3.0" AnchorPane.topAnchor="28.0" />
             <Label fx:id="currentlyChosenDateLabel" layoutX="14.0" layoutY="6.0" prefHeight="16.0" prefWidth="368.0" />
          </children>
       </AnchorPane>
@@ -60,7 +60,7 @@
       </GridPane>
       <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="5" GridPane.rowSpan="2">
          <children>
-            <AnchorPane layoutX="53.0" layoutY="-72.0" prefHeight="128.0" prefWidth="392.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="0.0">
+            <AnchorPane layoutX="53.0" layoutY="-72.0" prefHeight="128.0" prefWidth="392.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="3.0" AnchorPane.topAnchor="0.0">
                <children>
                   <ListView fx:id="listOfSelectedDaysEvents" layoutX="101.0" layoutY="-49.0" prefHeight="151.0" prefWidth="388.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
@@ -150,7 +150,7 @@
       </AnchorPane>
       <AnchorPane fx:id="feedAnchorPane" minWidth="155.0" GridPane.halignment="LEFT" GridPane.rowIndex="2" GridPane.rowSpan="5" GridPane.vgrow="NEVER">
          <children>
-            <ListView fx:id="conferenceFeedList" layoutX="-11.0" layoutY="30.0" prefHeight="506.0" prefWidth="275.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="30.0" />
+            <ListView fx:id="conferenceFeedList" layoutX="-11.0" layoutY="30.0" prefHeight="506.0" prefWidth="275.0" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="3.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="30.0" />
             <TextField fx:id="searchField" layoutX="5.0" layoutY="1.0" prefHeight="26.0" prefWidth="267.0" promptText="Wyszukaj wydarzenia" />
          </children>
       </AnchorPane>

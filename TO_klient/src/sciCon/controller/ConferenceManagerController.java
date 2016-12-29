@@ -3,6 +3,7 @@ package sciCon.controller;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -16,27 +17,25 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.text.Font;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
+import sciCon.model.NetworkConnection;
+import sciCon.model.SocketEvent;
 import sciCon.model.User;
+import sciCon.model.User.UsersRole;
+
 
 public class ConferenceManagerController implements Controller {
 
-	@FXML
-	Parent confManagerWindow;
-	@FXML
-	private TextField searchUserField;
-	@FXML
-	private TextField searchFileField;
-	@FXML
-	private ListView<Label> usersLV;
-	@FXML
-	private ListView filesLV;
-	
+	@FXML Parent confManagerWindow;
+	@FXML private TextField searchUserField;
+	@FXML private TextField searchFileField;
+	@FXML private ListView<Label> usersLV;
+	@FXML private ListView filesLV;
+
 	@FXML private ComboBox<String> userOperationCB;
 	@FXML private ComboBox<String> fileOperationCB;
-	
+
 	private ArrayList<Conference> feed;
 	private Integer selectedConferenceId;
 	private Conference selectedConference;
@@ -68,6 +67,7 @@ public class ConferenceManagerController implements Controller {
 
 		fileOperationCB.getItems().addAll(fileActions);
 	}
+
 	private void filterListView(ListView<Label> lv, String text) {
 
 	}
@@ -103,8 +103,11 @@ public class ConferenceManagerController implements Controller {
 	}
 
 	public void fillUsersList() {
+		System.out.println("fillList poszedł");
+		System.out.println(selectedConferenceId);
 		if (selectedConferenceId != null) {
 			selectedConference = feed.stream().filter(c -> c.getId() == selectedConferenceId).findFirst().get();
+			System.out.println(selectedConference);
 			ObservableList<Label> ol = FXCollections.observableArrayList();
 			usersLV.getItems().clear();
 			ArrayList<ArrayList<User>> selectedConferencesUsersGroups = new ArrayList<ArrayList<User>>();
@@ -121,8 +124,7 @@ public class ConferenceManagerController implements Controller {
 		}
 	}
 
-	@FXML
-	public void initialize() {
+	@FXML public void initialize() {
 		searchUserField.textProperty().addListener(obs -> {
 			filterListView(usersLV, searchUserField.getText());
 		});
@@ -130,61 +132,105 @@ public class ConferenceManagerController implements Controller {
 		searchFileField.textProperty().addListener(obs -> {
 			filterListView(filesLV, searchFileField.getText());
 		});
-		
+
 		setupFilterCBs();
 	}
 
-	@FXML
-	public void deselectSelectAllUsers() {
+	@FXML public void deselectSelectAllUsers() {
 		if (selectedUsers.isEmpty()) {
 			for (Label l : usersLV.getItems()) {
 				l.setStyle("-fx-font-weight: bold;");
-				l.setFont(Font.font("Inconsolata", 13));
 			}
 			selectedUsers.putAll(deselectedUsers);
 			deselectedUsers.clear();
 		} else {
 			for (Label l : usersLV.getItems()) {
 				l.setStyle("-fx-font-weight: normal;");
-				l.setFont(Font.font("Inconsolata", 13));
 			}
 			deselectedUsers.putAll(selectedUsers);
 			selectedUsers.clear();
 		}
 	}
 
-	@FXML
-	public void deselectSelectAllFiles() {
+	@FXML public void deselectSelectAllFiles() {
 
 	}
 
-	@FXML
-	public void confirmUserOperation() {
+	@FXML public void confirmUserOperation() {
+		String operation = userOperationCB.getValue();
+		String action = "reqSetRole";
+		ArrayList<Integer> usersIds = new ArrayList<Integer>(selectedUsers.keySet());
+		
+		User.UsersRole role = null;
+		
+		switch (operation) {
+			case "Ustaw status: organizator": {
+				role = UsersRole.ORGANIZER;
+				break;
+			}
+			case "Ustaw status: sponsor": {
+				role = UsersRole.SPONSOR;
+				break;
+			}
+			case "Ustaw status: prelegent": {
+				role = UsersRole.PRELECTOR;
+				break;
+			}
+			case "Ustaw status: uczestnik": {
+				role = UsersRole.PARTICIPANT;
+				break;
+			}
+			case "Wyproś": {
+				action = "reqExpellUsers";
+				break;
+			}
+			default:
+				break;
+		}
+		
+		if(role != null && usersIds.size() > 0) {
+			SocketEvent se = new SocketEvent(action, role, selectedConferenceId, usersIds);
+			NetworkConnection.sendSocketEvent(se);
+
+			SocketEvent res = NetworkConnection.rcvSocketEvent();
+			String eventName = res.getName();
+
+			if (eventName.equals("setRoleSucceeded")) {
+				message = "Pomyślnie wprowadzono zmiany.";
+				ApplicationController.makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
+			} else if (eventName.equals("setRoleFailed")) {
+				message = "Nie udało się wprowadzić zmian.";
+			} else {
+				message = "Nie udało się wprowadzić zmian. Serwer nie odpowiada.";
+			}
+		} else {
+			message = "Zaznacz conajmniej jednego użytkownika i akcję do wykonania.";
+		}
+		
+		Platform.runLater(new Runnable() {
+			@Override public void run() {
+				openDialogBox(confManagerWindow, message);
+			}
+		});
+	}
+
+	@FXML public void confirmFileOperation() {
 
 	}
 
-	@FXML
-	public void confirmFileOperation() {
+	@FXML public void reqModifyUsersRole() {
 
 	}
 
-	@FXML
-	public void reqModifyUsersRole() {
+	@FXML public void addFileBtn() {
 
 	}
 
-	@FXML
-	public void addFileBtn() {
-
-	}
-
-	@FXML
-	public void closeWindowBtn(ActionEvent event) {
+	@FXML public void closeWindowBtn(ActionEvent event) {
 		closeWindow(confManagerWindow);
 	}
 
-	@FXML
-	private void closeBtnEnterKey(KeyEvent event) {
+	@FXML private void closeBtnEnterKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			closeWindow(confManagerWindow);
 		}

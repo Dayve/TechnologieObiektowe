@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Week {
-	@Override
-	public String toString() {
+	@Override public String toString() {
 		return "Week [pn=" + pn + ", wt=" + wt + ", sr=" + sr + ", cz=" + cz + ", pt=" + pt + ", sb=" + sb + ", nd="
 				+ nd + "]";
 	}
@@ -14,8 +13,8 @@ public class Week {
 
 	public Week(List<String> initializerList) throws IllegalArgumentException {
 		super();
-		
-		if(initializerList.size() != 7) {
+
+		if (initializerList.size() != 7) {
 			this.pn = "~";
 			this.wt = "~";
 			this.sr = "~";
@@ -23,10 +22,9 @@ public class Week {
 			this.pt = "~";
 			this.sb = "~";
 			this.nd = "~";
-			
+
 			throw new IllegalArgumentException();
-		}
-		else {
+		} else {
 			this.pn = initializerList.get(0);
 			this.wt = initializerList.get(1);
 			this.sr = initializerList.get(2);
@@ -36,7 +34,7 @@ public class Week {
 			this.nd = initializerList.get(6);
 		}
 	}
-	
+
 	public List<String> getValuesAsStringList() {
 		List<String> returned = new ArrayList<String>();
 		returned.add(pn);
@@ -46,7 +44,7 @@ public class Week {
 		returned.add(pt);
 		returned.add(sb);
 		returned.add(nd);
-		
+
 		return returned;
 	}
 

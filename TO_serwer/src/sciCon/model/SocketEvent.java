@@ -13,8 +13,7 @@ public class SocketEvent implements Serializable {
 		this.data = data;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> T getObject(Class<T> ofClass) {
+	@SuppressWarnings("unchecked") public <T> T getObject(Class<T> ofClass) {
 		T obj = null;
 		for (int i = 0; i < data.length; i++) {
 			if (ofClass.isInstance(data[i])) {

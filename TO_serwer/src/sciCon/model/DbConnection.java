@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import oracle.jdbc.pool.OracleDataSource;
+import sciCon.model.User.UsersRole;
 
 public class DbConnection {
 
@@ -72,24 +73,6 @@ public class DbConnection {
 		return u;
 	}
 
-	// private int countEntries(String column, String table) {
-	// int count = 0;
-	// try {
-	// String countQuery = "select count(?) from " + table;
-	// PreparedStatement pstmt = conn.prepareStatement(countQuery);
-	// pstmt.setString(1, column);
-	//
-	// ResultSet rs = pstmt.executeQuery();
-	// while (rs.next()) {
-	// count = rs.getInt(1);
-	// }
-	// pstmt.close();
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// }
-	// return count;
-	// }
-
 	private int maxEntry(String column, String table) {
 		int count = 0;
 		try {
@@ -132,17 +115,82 @@ public class DbConnection {
 			System.out.println("Adding a participant to database has failed.");
 			e.printStackTrace();
 		}
-//		System.out.println("dodano, participantId = " + participantId + ", userId = " + userId + ", conferenceId = " + conferenceId);
 		return succeeded;
 	}
 
+	public boolean updateUsersRoles(ArrayList<Integer> usersIds, UsersRole role, Integer conferenceId) {
+		boolean succeeded = true;
+
+		String selectParticipantIdQuery = "select id_uczestnika from uczestnik where "
+				+ "id_wydarzenia = (?) and id_uzytkownika = (?)";
+		String updateRoleQuery = "update rola_uczestnika set id_roli = (?) WHERE id_udzialu = (?)";
+		Integer participantId = null;
+		Integer roleNumber = null;
+
+		switch (role) {
+			case ORGANIZER: {
+				roleNumber = 0;
+				break;
+			}
+			case PRELECTOR: {
+				roleNumber = 1;
+				break;
+			}
+			case PARTICIPANT: {
+				roleNumber = 2;
+				break;
+			}
+			case SPONSOR: {
+				roleNumber = 3;
+				break;
+			}
+		}
+
+		for (Integer id : usersIds) {
+			try {
+				PreparedStatement pstmt = conn.prepareStatement(selectParticipantIdQuery);
+				pstmt.setInt(1, conferenceId);
+				pstmt.setInt(2, id);
+				ResultSet rs = pstmt.executeQuery();
+				if (rs.next()) {
+					participantId = rs.getInt(1);
+				}
+				pstmt.close();
+
+				if (participantId != null) {
+					pstmt = conn.prepareStatement(updateRoleQuery);
+					pstmt.setInt(1, roleNumber);
+					pstmt.setInt(2, participantId);
+					pstmt.executeUpdate();
+					pstmt.close();
+				}
+
+			} catch (SQLException e) {
+				succeeded = false;
+				System.out.println("Removing a participant from database has failed.");
+				e.printStackTrace();
+			}
+		}
+		return succeeded;
+	}
+
+	public boolean expellUsers(ArrayList<Integer> usersIds, Integer conferenceId) {
+		boolean succeeded = true;
+		for(Integer id: usersIds) {
+			if(!removeParticipant(id, conferenceId)) {
+				succeeded = false;
+				break;
+			}
+		}
+		return succeeded;
+	}
+	
 	public boolean removeParticipant(int userId, int conferenceId) {
 		boolean succeeded = true;
 
 		String selectParticipantIdQuery = "select id_uczestnika from uczestnik where "
 				+ "id_wydarzenia = (?) and id_uzytkownika = (?)";
 		String removeParticipantQuery = "delete from uczestnik where id_uczestnika = (?)";
-//		String removeParticipantRoleQuery = "delete from rola_uczestnika where id_udzialu = (?)";
 		Integer participantId = null;
 
 		try {
@@ -154,28 +202,22 @@ public class DbConnection {
 				participantId = rs.getInt(1);
 			}
 			pstmt.close();
-			
-			if(participantId != null) {
-//				pstmt = conn.prepareStatement(removeParticipantRoleQuery);
-//				pstmt.setInt(1, participantId);
-//				pstmt.executeUpdate();
-//				pstmt.close();
-				
+
+			if (participantId != null) {
 				pstmt = conn.prepareStatement(removeParticipantQuery);
 				pstmt.setInt(1, participantId);
 				pstmt.executeUpdate();
 				pstmt.close();
 			}
-			
+
 		} catch (SQLException e) {
 			succeeded = false;
 			System.out.println("Removing a participant from database has failed.");
 			e.printStackTrace();
 		}
-//		System.out.println("Usunąłem z uczestnik oraz rola uczestnika o id_uczestnika = " + participantId);
 		return succeeded;
 	}
-	
+
 	public boolean addConference(Conference c) {
 		boolean succeeded = true;
 
@@ -228,7 +270,7 @@ public class DbConnection {
 		}
 		return succeeded;
 	}
-	
+
 	public boolean removeConference(int conferenceId) {
 		boolean succeeded = true;
 
@@ -309,8 +351,7 @@ public class DbConnection {
 				statusId = rs.getInt(7);
 
 				u = new User(userId, login, name, surname, email, organization);
-				
-//				System.out.println("pobrany user: " + u);
+
 				switch (statusId) {
 					case 0: {
 						organizers.add(u);
@@ -331,7 +372,8 @@ public class DbConnection {
 					case 4: {
 						pending.add(u);
 					}
-					default: break;
+					default:
+						break;
 				}
 			}
 			pstmt.close();
@@ -346,7 +388,7 @@ public class DbConnection {
 
 		return allParticipants;
 	}
-	
+
 	public ArrayList<Conference> fetchConferenceFeed() {
 
 		// !past - show present and future conferences
@@ -375,18 +417,17 @@ public class DbConnection {
 				startTimeStr = rs.getString(7);
 				endTimeStr = rs.getString(8);
 
-				//  allParticipants[0] - organizers, [1] - sponsors, 
-				// [2] - prelectors, [3]- participants, [4] - pending
+				// allParticipants[0] - organizers, [1] - prelectors,
+				// [2] - participants, [3]- sponsors, [4] - pending
 				ArrayList<ArrayList<User>> allParticipants = fetchAllConferenceParticipants(id);
-				
+
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 				startTime = LocalDateTime.parse(startTimeStr, formatter);
 				endTime = LocalDateTime.parse(endTimeStr, formatter);
 
-				conferenceFeed.add(
-						new Conference(id, name, subject, startTime, endTime, place, description, agenda, 
-								allParticipants.get(0), allParticipants.get(1), allParticipants.get(2), allParticipants.get(3),
-								allParticipants.get(4)));
+				conferenceFeed.add(new Conference(id, name, subject, startTime, endTime, place, description, agenda,
+						allParticipants.get(0), allParticipants.get(1), allParticipants.get(2), allParticipants.get(3),
+						allParticipants.get(4)));
 			}
 			pstmt.close();
 		} catch (SQLException e) {

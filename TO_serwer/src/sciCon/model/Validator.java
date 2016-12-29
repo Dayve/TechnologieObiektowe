@@ -8,7 +8,7 @@ public interface Validator {
 
 		String name = c.getName(), subject = c.getSubject(), place = c.getPlace(), agenda = c.getAgenda();
 		LocalDateTime startTime = c.getStartTime(), endTime = c.getEndTime();
-		
+
 		// the start time is less than one hour from now
 		if (startTime.isBefore(LocalDateTime.now().plusHours(1))) {
 			retCode |= 1;
@@ -22,15 +22,15 @@ public interface Validator {
 		if (name.length() < 3 || name.length() > 200) {
 			retCode |= 4;
 		}
-		
+
 		if (subject.length() < 3 || subject.length() > 200) {
 			retCode |= 8;
 		}
-		
+
 		if (place.length() < 3 || place.length() > 250) {
 			retCode |= 16;
 		}
-		
+
 		if (agenda.length() == 0) {
 			retCode |= 32;
 		}

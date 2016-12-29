@@ -14,6 +14,7 @@ import sciCon.model.Conference;
 import sciCon.model.DbConnection;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
+import sciCon.model.User.UsersRole;
 import sciCon.model.Validator;
 
 public class SciConServer implements Runnable {
@@ -25,8 +26,7 @@ public class SciConServer implements Runnable {
 		port = p;
 	}
 
-	@Override
-	public void run() {
+	@Override public void run() {
 		try {
 			startServer();
 		} catch (IOException e) {
@@ -139,9 +139,9 @@ public class SciConServer implements Runnable {
 		private void handleJoinConference(int userId, int conferenceId) {
 			SocketEvent se = null;
 			if (!dbConn.addParticipant(userId, conferenceId)) {
-				se = new SocketEvent("joinConferenceFailed");;
+				se = new SocketEvent("joinConferenceFailed");
 			} else {
-				se = new SocketEvent("joinConferenceSucceeded");;
+				se = new SocketEvent("joinConferenceSucceeded");
 			}
 
 			try {
@@ -150,13 +150,13 @@ public class SciConServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		private void handleLeaveConference(int userId, int conferenceId) {
 			SocketEvent se = null;
 			if (!dbConn.removeParticipant(userId, conferenceId)) {
-				se = new SocketEvent("leaveConferenceFailed");;
+				se = new SocketEvent("leaveConferenceFailed");
 			} else {
-				se = new SocketEvent("leaveConferenceSucceeded");;
+				se = new SocketEvent("leaveConferenceSucceeded");
 			}
 
 			try {
@@ -166,12 +166,40 @@ public class SciConServer implements Runnable {
 			}
 		}
 		
+		private void handleExpellUsers(ArrayList<Integer> usersIds, Integer conferenceId) {
+			SocketEvent se = null;
+			if (!dbConn.expellUsers(usersIds, conferenceId)) {
+				se = new SocketEvent("expellUsersFailed");
+			} else {
+				se = new SocketEvent("expellUsersSucceeded");
+			}
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void handleSetUsersRole(ArrayList<Integer> usersIds, UsersRole uR, Integer conferenceId) {
+			SocketEvent se = null;
+			if (!dbConn.updateUsersRoles(usersIds, uR, conferenceId)) {
+				se = new SocketEvent("setRoleFailed");
+			} else {
+				se = new SocketEvent("setRoleSucceeded");
+			}
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 		private void handleRemoveConference(int conferenceId) {
 			SocketEvent se = null;
 			if (!dbConn.removeConference(conferenceId)) {
-				se = new SocketEvent("removeConferenceFailed");;
+				se = new SocketEvent("removeConferenceFailed");
 			} else {
-				se = new SocketEvent("removeConferenceSucceeded");;
+				se = new SocketEvent("removeConferenceSucceeded");
 			}
 
 			try {
@@ -228,8 +256,7 @@ public class SciConServer implements Runnable {
 			}
 		}
 
-		@Override
-		public void run() {
+		@Override public void run() {
 			try {
 				SocketEvent se = null;
 
@@ -244,57 +271,72 @@ public class SciConServer implements Runnable {
 					// name tells server what to do
 					String eventName = se.getName();
 					switch (eventName) {
-					// login request
-					case "reqLogin": {
-						User u = (User) se.getObject(User.class);
-						handleLogin(u);
-						break;
-					}
-					case "reqRegister": {
-						User u = se.getObject(User.class);
-						handleRegistration(u);
-						break;
-					}
-					case "reqConferenceFeed": {
-						handleConferenceFeed();
-						break;
-					}
-					case "reqAddConference": {
-						Conference c = (Conference) se.getObject(Conference.class);
-						handleAddConference(c);
-						break;
-					}
-					case "reqJoinConference": {
-						@SuppressWarnings("unchecked")
-						ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
-						int userId = userIdConferenceId.get(0);
-						int conferenceId = userIdConferenceId.get(1);
-//						System.out.println("będę dodawał, userId = " + userId + ", conferenceId = " + conferenceId);
-						handleJoinConference(userId, conferenceId);
-						break;
-					}
-					
-					case "reqLeaveConference": {
-						@SuppressWarnings("unchecked")
-						ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
-						int userId = userIdConferenceId.get(0);
-						int conferenceId = userIdConferenceId.get(1);
-						handleLeaveConference(userId, conferenceId);
-						break;
-					}
-					
-					case "reqRemoveConference": {
-						Integer conferenceId = se.getObject(Integer.class);
-						handleRemoveConference(conferenceId);
-						break;
-					}
-					
-					case "reqCurrentUser": {
-						handleSendCurrentUser();
-						break;
-					}
-					default:
-						break;
+						// login request
+						case "reqLogin": {
+							User u = (User) se.getObject(User.class);
+							handleLogin(u);
+							break;
+						}
+						case "reqRegister": {
+							User u = se.getObject(User.class);
+							handleRegistration(u);
+							break;
+						}
+						case "reqConferenceFeed": {
+							handleConferenceFeed();
+							break;
+						}
+						case "reqAddConference": {
+							Conference c = (Conference) se.getObject(Conference.class);
+							handleAddConference(c);
+							break;
+						}
+						case "reqJoinConference": {
+							@SuppressWarnings("unchecked")
+							ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
+							int userId = userIdConferenceId.get(0);
+							int conferenceId = userIdConferenceId.get(1);
+							handleJoinConference(userId, conferenceId);
+							break;
+						}
+
+						case "reqLeaveConference": {
+							@SuppressWarnings("unchecked")
+							ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
+							int userId = userIdConferenceId.get(0);
+							int conferenceId = userIdConferenceId.get(1);
+							handleLeaveConference(userId, conferenceId);
+							break;
+						}
+
+						case "reqRemoveConference": {
+							Integer conferenceId = se.getObject(Integer.class);
+							handleRemoveConference(conferenceId);
+							break;
+						}
+
+						case "reqSetRole": {
+							@SuppressWarnings("unchecked")
+							ArrayList<Integer> usersIds = se.getObject(ArrayList.class);
+							User.UsersRole role = se.getObject(UsersRole.class);
+							Integer conferenceId = se.getObject(Integer.class);
+							handleSetUsersRole(usersIds, role, conferenceId);
+							break;
+						}
+
+						case "reqExpellUsers": {
+							@SuppressWarnings("unchecked")
+							ArrayList<Integer> usersIds = se.getObject(ArrayList.class);
+							Integer conferenceId = se.getObject(Integer.class);
+							handleExpellUsers(usersIds, conferenceId);
+							break;
+						}
+						case "reqCurrentUser": {
+							handleSendCurrentUser();
+							break;
+						}
+						default:
+							break;
 					}
 				}
 			} catch (SocketException e) {

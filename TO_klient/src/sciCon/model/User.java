@@ -3,14 +3,14 @@ package sciCon.model;
 import java.io.Serializable;
 
 public class User implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7433946303557607605L;
-	Integer id = null;
-	String login = null, name = null, surname = null, password = null,
-			email = null, organization = null;
 	
+	private static final long serialVersionUID = -7433946303557607605L;
+	public enum UsersRole {
+		ORGANIZER, SPONSOR, PRELECTOR, PARTICIPANT
+	}
+	Integer id = null;
+	String login = null, name = null, surname = null, password = null, email = null, organization = null;
+
 	public User(Integer id, String login, String password, String name, String surname, String organization) {
 		this.id = id;
 		this.login = login;
@@ -19,7 +19,7 @@ public class User implements Serializable {
 		this.surname = surname;
 		this.organization = organization;
 	}
-	
+
 	public User(String login, String password) {
 		this.login = login;
 		this.password = password;
@@ -31,7 +31,7 @@ public class User implements Serializable {
 		this.name = name;
 		this.surname = surname;
 	}
-	
+
 	public Integer getId() {
 		return id;
 	}
@@ -55,15 +55,14 @@ public class User implements Serializable {
 	public String getPassword() {
 		return password;
 	}
-	
+
 	public String getOrganization() {
 		return organization;
 	}
 
-	@Override
-	public String toString() {
-		String ret = name + " " + surname + "(" + login + ")"; 
-		if(organization != null) {
+	@Override public String toString() {
+		String ret = name + " " + surname + "(" + login + ")";
+		if (organization != null) {
 			ret += ", " + organization;
 		}
 		return ret;

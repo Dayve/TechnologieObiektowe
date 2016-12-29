@@ -27,7 +27,7 @@ import javafx.scene.text.Font;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 
-public class FeedController implements Controller{
+public class FeedController implements Controller {
 
 	private Integer selectedConferenceId = null;
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
@@ -45,36 +45,35 @@ public class FeedController implements Controller{
 		LocalDateTime now = LocalDateTime.now();
 		now.format(formatter);
 		ArrayList<Conference> filtered = new ArrayList<Conference>();
-//		filtered.addAll(feed);
+		// filtered.addAll(feed);
 		switch (cf) {
-		case PAST: {
-			filtered = (ArrayList<Conference>) feed.stream() 
-					.filter(c -> c.getEndTime().isBefore(now))
-					.collect(Collectors.toList());
-//			filtered.removeIf(s -> s.getStartTime().isAfter(now));
-			break;
-		}
-		case FUTURE: {
-			filtered = (ArrayList<Conference>) feed.stream() 
-					.filter(c -> c.getStartTime().isAfter(now))
-					.collect(Collectors.toList());
-//			filtered.removeIf(s -> s.getEndTime().isBefore(now));
-			break;
-		}
-		case ONGOING: {
-			filtered = (ArrayList<Conference>) feed.stream() 
-					.filter(c -> c.getStartTime().isAfter(now) && c.getEndTime().isBefore(now))
-					.collect(Collectors.toList());
-//			filtered.removeIf(s -> s.getStartTime().isBefore(now) && s.getEndTime().isAfter(now));
-			break;
-		}
-		case ALL: {
-			filtered.addAll(feed);
-			break;
-		}
+			case PAST: {
+				filtered = (ArrayList<Conference>) feed.stream().filter(c -> c.getEndTime().isBefore(now))
+						.collect(Collectors.toList());
+				// filtered.removeIf(s -> s.getStartTime().isAfter(now));
+				break;
+			}
+			case FUTURE: {
+				filtered = (ArrayList<Conference>) feed.stream().filter(c -> c.getStartTime().isAfter(now))
+						.collect(Collectors.toList());
+				// filtered.removeIf(s -> s.getEndTime().isBefore(now));
+				break;
+			}
+			case ONGOING: {
+				filtered = (ArrayList<Conference>) feed.stream()
+						.filter(c -> c.getStartTime().isAfter(now) && c.getEndTime().isBefore(now))
+						.collect(Collectors.toList());
+				// filtered.removeIf(s -> s.getStartTime().isBefore(now) &&
+				// s.getEndTime().isAfter(now));
+				break;
+			}
+			case ALL: {
+				filtered.addAll(feed);
+				break;
+			}
 
-		default:
-			break;
+			default:
+				break;
 		}
 		return filtered;
 	}
@@ -101,7 +100,7 @@ public class FeedController implements Controller{
 		ObservableList<Label> ol = FXCollections.observableArrayList();
 		lv.getItems().clear();
 		Label label = null;
-		
+
 		for (Conference c : filtered) {
 			String title = c.getName();
 			if (showDate) {
@@ -110,7 +109,7 @@ public class FeedController implements Controller{
 			Integer currId = c.getId();
 			label = new Label(addNLsIfTooLong(title, charLimit));
 			label.setFont(Font.font("Inconsolata", 13));
-			
+
 			label.setId(currId.toString());
 			label.setPrefWidth(lv.getWidth());
 			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -145,8 +144,7 @@ public class FeedController implements Controller{
 					confInfo.setWrapText(true);
 					confInfo.setEditable(false);
 					Platform.runLater(new Runnable() {
-						@Override
-						public void run() {
+						@Override public void run() {
 							vbox.getChildren().add(confInfo);
 							t.setContent(vbox);
 						}
@@ -166,7 +164,7 @@ public class FeedController implements Controller{
 	}
 
 	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
-		
+
 		Integer currId = getSelectedConferenceId();
 
 		if (!openedTabsConferencesIds.containsKey(currId)) {
@@ -174,8 +172,7 @@ public class FeedController implements Controller{
 				if (c.getId() == currId) {
 					Tab tab = new Tab();
 					tab.setOnClosed(new EventHandler<Event>() {
-						@Override
-						public void handle(Event event) {
+						@Override public void handle(Event event) {
 							Integer id = Integer.parseInt(tab.getId());
 							openedTabsConferencesIds.remove(id);
 						}

@@ -53,7 +53,7 @@ public class Conference implements Serializable {
 	public ArrayList<User> getParticipants() {
 		return participants;
 	}
-	
+
 	public ArrayList<User> getPending() {
 		return pending;
 	}
@@ -143,7 +143,7 @@ public class Conference implements Serializable {
 		String participantsStr = userListToStr(participants);
 		String pendingStr = userListToStr(pending);
 		String str = "";
-		
+
 		if (prelectorsStr.length() > 0) {
 			str += "Prelegenci:\n";
 			str += prelectorsStr;
@@ -164,13 +164,11 @@ public class Conference implements Serializable {
 		return str;
 	}
 
-	@Override
-	public String toString() {
+	@Override public String toString() {
 
-		String ret = "Temat:\n" + subject + "\n\nOrganizatorzy:\n" + userListToStr(organizers)
-				+ "\nCzas rozpoczęcia:" + startTime.toString().replace("T", ", godz. ")
-				+ "\n\nCzas zakończenia: " + endTime.toString().replace("T", ", godz. ") + "\n\nMiejsce:\n" + place
-				+ "\n\nPlan:\n" + agenda;
+		String ret = "Temat:\n" + subject + "\n\nOrganizatorzy:\n" + userListToStr(organizers) + "\nCzas rozpoczęcia:"
+				+ startTime.toString().replace("T", ", godz. ") + "\n\nCzas zakończenia: "
+				+ endTime.toString().replace("T", ", godz. ") + "\n\nMiejsce:\n" + place + "\n\nPlan:\n" + agenda;
 		if (this.description != null) {
 			ret += "\n\nOpis: " + description;
 		}

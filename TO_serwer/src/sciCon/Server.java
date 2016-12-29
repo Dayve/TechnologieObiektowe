@@ -9,16 +9,15 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class Server extends Application {
-	
+
 	private Stage primaryStage;
-	
-	@Override
-	public void start(Stage primaryStage) {
+
+	@Override public void start(Stage primaryStage) {
 		this.primaryStage = primaryStage;
-        this.primaryStage.setTitle("sciCon server");
-        initServerLayout();
+		this.primaryStage.setTitle("sciCon server");
+		initServerLayout();
 	}
-	
+
 	private void initServerLayout() {
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Server.class.getResource("view/ServerLayout.fxml"));
@@ -35,7 +34,7 @@ public class Server extends Application {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		launch(args);
 	}

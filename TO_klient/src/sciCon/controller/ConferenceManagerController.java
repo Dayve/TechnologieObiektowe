@@ -36,6 +36,7 @@ public class ConferenceManagerController implements Controller {
 	private Integer selectedConferenceId;
 	private Conference selectedConference;
 	private HashMap<Integer, User> selectedUsers = new HashMap<Integer, User>();
+	private HashMap<Integer, User> deselectedUsers = new HashMap<Integer, User>();
 
 	private String message;
 
@@ -51,9 +52,13 @@ public class ConferenceManagerController implements Controller {
 		updateFeed(feed);
 		fillUsersList();
 	}
-	
-	private void fillUserListWithRoles(ObservableList<Label> ol, ArrayList<User> group, String role) {
-		
+
+	private void filterListView(ListView<Label> lv, String text) {
+
+	}
+
+	private void addUserLabelsWithRoles(ObservableList<Label> ol, ArrayList<User> group, String role) {
+
 		Label label = null;
 
 		for (User u : group) {
@@ -63,14 +68,17 @@ public class ConferenceManagerController implements Controller {
 
 			label.setId(u.getId().toString());
 			label.setPrefWidth(usersLV.getPrefWidth());
+			deselectedUsers.put(u.getId(), u);
 			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				public void handle(MouseEvent t) {
 					Label selectedLabel = ((Label) usersLV.getSelectionModel().getSelectedItem());
 					Integer selectedUsersId = Integer.parseInt(selectedLabel.getId());
 					if (selectedUsers.containsKey(selectedUsersId)) {
 						selectedUsers.remove(selectedUsersId);
+						deselectedUsers.put(selectedUsersId, u);
 						selectedLabel.setStyle("-fx-font-weight: normal;");
 					} else {
+						deselectedUsers.remove(selectedUsersId);
 						selectedUsers.put(selectedUsersId, u);
 						selectedLabel.setStyle("-fx-font-weight: bold;");
 					}
@@ -79,25 +87,67 @@ public class ConferenceManagerController implements Controller {
 			ol.add(label);
 		}
 	}
-	
+
 	public void fillUsersList() {
-		if(selectedConferenceId != null) {
+		if (selectedConferenceId != null) {
 			selectedConference = feed.stream().filter(c -> c.getId() == selectedConferenceId).findFirst().get();
 			ObservableList<Label> ol = FXCollections.observableArrayList();
 			usersLV.getItems().clear();
-			ArrayList<User> selectedConferencesUsersGroup = selectedConference.getOrganizers();
-			fillUserListWithRoles(ol, selectedConferencesUsersGroup, "organizator");
-			selectedConferencesUsersGroup = selectedConference.getSponsors();
-			fillUserListWithRoles(ol, selectedConferencesUsersGroup, "sponsor");
-			selectedConferencesUsersGroup = selectedConference.getPrelectors();
-			fillUserListWithRoles(ol, selectedConferencesUsersGroup, "prelegent");
-			selectedConferencesUsersGroup = selectedConference.getParticipants();
-			fillUserListWithRoles(ol, selectedConferencesUsersGroup, "uczestnik");
-			selectedConferencesUsersGroup = selectedConference.getPending();
-			fillUserListWithRoles(ol, selectedConferencesUsersGroup, "niepotwierdzony");
+			ArrayList<ArrayList<User>> selectedConferencesUsersGroups = new ArrayList<ArrayList<User>>();
+			selectedConferencesUsersGroups.add(selectedConference.getOrganizers());
+			selectedConferencesUsersGroups.add(selectedConference.getSponsors());
+			selectedConferencesUsersGroups.add(selectedConference.getPrelectors());
+			selectedConferencesUsersGroups.add(selectedConference.getParticipants());
+			selectedConferencesUsersGroups.add(selectedConference.getPending());
+			String[] roles = { "organizator", "sponsor", "prelegent", "uczestnik", "oczekujący" };
+			for (int i = 0; i < selectedConferencesUsersGroups.size(); i++) {
+				addUserLabelsWithRoles(ol, selectedConferencesUsersGroups.get(i), roles[i]);
+			}
 			usersLV.setItems(ol);
 		}
-		
+	}
+
+	@FXML
+	public void initialize() {
+		searchUserField.textProperty().addListener(obs -> {
+			filterListView(usersLV, searchUserField.getText());
+		});
+
+		searchFileField.textProperty().addListener(obs -> {
+			filterListView(filesLV, searchFileField.getText());
+		});
+	}
+
+	@FXML
+	public void deselectSelectAllUsers() {
+		if (selectedUsers.isEmpty()) {
+			for (Label l : usersLV.getItems()) {
+				l.setStyle("-fx-font-weight: bold;");
+			}
+			selectedUsers.putAll(deselectedUsers);
+			deselectedUsers.clear();
+		} else {
+			for (Label l : usersLV.getItems()) {
+				l.setStyle("-fx-font-weight: normal;");
+			}
+			deselectedUsers.putAll(selectedUsers);
+			selectedUsers.clear();
+		}
+	}
+
+	@FXML
+	public void deselectSelectAllFiles() {
+
+	}
+
+	@FXML
+	public void confirmUserOperation() {
+
+	}
+
+	@FXML
+	public void confirmFileOperation() {
+
 	}
 
 	@FXML

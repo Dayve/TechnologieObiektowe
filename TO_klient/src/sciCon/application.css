@@ -5,6 +5,9 @@
     -fx-padding:0;
 }
 
+.combo-box .cell{
+    -fx-font: 13px "Inconsolata";
+}
 /*@font-face {
     src: url("UbuntuMono.ttf");
 }

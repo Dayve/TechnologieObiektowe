@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="confManagerWindow" prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.ConferenceManagerController">
+<AnchorPane fx:id="confManagerWindow" prefHeight="600.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.ConferenceManagerController">
    <children>
-      <Button layoutX="252.0" layoutY="456.0" mnemonicParsing="false" onAction="#closeWindowBtn" onKeyReleased="#closeBtnEnterKey" prefHeight="30.0" text="Zamknij okno">
+      <Button layoutX="518.0" layoutY="539.0" mnemonicParsing="false" onAction="#closeWindowBtn" onKeyReleased="#closeBtnEnterKey" prefHeight="30.0" text="Zamknij okno">
          <font>
             <Font size="13.0" />
          </font>
       </Button>
-      <AnchorPane layoutX="30.0" layoutY="30.0" prefHeight="400.0" prefWidth="250.0">
+      <AnchorPane layoutX="30.0" layoutY="30.0" prefHeight="400.0" prefWidth="280.0">
          <children>
             <TextField fx:id="searchUserField" layoutX="2.0" layoutY="2.0" promptText="Wyszukaj użytkownika" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="2.0">
                <font>
@@ -22,7 +23,7 @@
             <ListView fx:id="usersLV" layoutY="31.0" prefHeight="400.0" prefWidth="250.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="34.0" />
          </children>
       </AnchorPane>
-      <AnchorPane layoutY="30.0" prefHeight="400.0" prefWidth="250.0" AnchorPane.rightAnchor="30.0">
+      <AnchorPane layoutY="30.0" prefHeight="400.0" prefWidth="280.0" AnchorPane.rightAnchor="30.0">
          <children>
             <ListView fx:id="filesLV" layoutX="-6.0" prefHeight="400.0" prefWidth="250.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="34.0" />
             <TextField fx:id="searchFileField" layoutX="14.0" layoutY="14.0" promptText="Wyszukaj plik" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="2.0">
@@ -35,5 +36,27 @@
                </font></Button>
          </children>
       </AnchorPane>
+      <Button layoutX="236.0" layoutY="488.0" mnemonicParsing="false" onAction="#confirmUserOperation" text="Zatwierdź">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <ComboBox fx:id="userOperationCB" layoutX="30.0" layoutY="488.0" prefHeight="29.0" prefWidth="190.0" promptText="Operacja na użytkownikach" />
+      <Button layoutX="80.0" layoutY="444.0" mnemonicParsing="false" onAction="#selectDeselectAllUsers" text="Odznacz/zaznacz wszystkich">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <Button layoutX="394.0" layoutY="444.0" mnemonicParsing="false" onAction="#selectDeselectAllFiles" text="Odznacz/zaznacz wszystkie">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <Button layoutX="547.0" layoutY="488.0" mnemonicParsing="false" onAction="#confirmFileOperation" text="Zatwierdź">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
+      <ComboBox fx:id="fileOperationCB" layoutX="341.0" layoutY="488.0" prefHeight="29.0" prefWidth="190.0" promptText="Operacja na plikach" />
    </children>
 </AnchorPane>

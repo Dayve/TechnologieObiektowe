@@ -25,9 +25,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import sciCon.model.Conference;
-import sciCon.model.Controller.ConferenceFilter;
+import sciCon.model.Controller;
 
-public class FeedController {
+public class FeedController implements Controller{
 
 	private Integer selectedConferenceId = null;
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
@@ -38,28 +38,6 @@ public class FeedController {
 
 	public Integer getSelectedConferenceId() {
 		return selectedConferenceId;
-	}
-
-	public String addNLsIfTooLong(String givenString, int limit) {
-		String[] separateWords = givenString.split("\\s+");
-		String result = new String();
-		int howMuchCharsSoFar = 0;
-
-		for (int i = 0; i < separateWords.length; ++i) {
-			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we
-																// assume that
-																// every word
-																// has a space
-																// at the end
-
-			if (howMuchCharsSoFar > limit) {
-				result += "\n";
-				howMuchCharsSoFar = 0;
-			}
-			result += separateWords[i] + " ";
-		}
-
-		return result.substring(0, result.length() - 1);
 	}
 
 	public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf) {
@@ -134,7 +112,7 @@ public class FeedController {
 			label.setFont(Font.font("Inconsolata", 13));
 			
 			label.setId(currId.toString());
-			label.setPrefWidth(lv.getWidth() - 6);
+			label.setPrefWidth(lv.getWidth());
 			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				public void handle(MouseEvent t) {
 					setSelectedConferenceId(currId);

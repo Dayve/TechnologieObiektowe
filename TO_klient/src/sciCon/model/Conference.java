@@ -46,6 +46,22 @@ public class Conference implements Serializable {
 		return endTime;
 	}
 
+	public ArrayList<User> getPrelectors() {
+		return prelectors;
+	}
+
+	public ArrayList<User> getParticipants() {
+		return participants;
+	}
+	
+	public ArrayList<User> getPending() {
+		return pending;
+	}
+
+	public ArrayList<User> getSponsors() {
+		return sponsors;
+	}
+
 	public LocalDate getDate() {
 		return startTime.toLocalDate();
 	}

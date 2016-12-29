@@ -70,6 +70,7 @@ public class ApplicationController implements Controller {
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 	private FeedController feedController = new FeedController();
 	private CalendarController calendar = new CalendarController(feedController);
+	private ConferenceManagerController manager = new ConferenceManagerController();
 
 	public static User currentUser;
 	private String message = null;
@@ -315,6 +316,7 @@ public class ApplicationController implements Controller {
 						refreshConferencesListView(searchField.getText());
 						feedController.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed, 
 								eventDetailsTP, listOfSelectedDaysEvents, false);
+						manager.refresh(feed);
 					}
 				});
 			}
@@ -373,9 +375,8 @@ public class ApplicationController implements Controller {
 	@FXML
 	public void manageConferenceBtn() {
 		Integer selectedConfId = feedController.getSelectedConferenceId();
-		if (selectedConfId != null) {
-		openNewWindow(applicationWindow, "view/ConferenceManagerLayout.fxml", 600, 650, false, "Zarządzaj konferencją");
-		}
+		String selectedConfName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
+		openNewConfManager(applicationWindow, feed, selectedConfId, selectedConfName);
 	}
 	
 	// sends request to join conference after user confirms it

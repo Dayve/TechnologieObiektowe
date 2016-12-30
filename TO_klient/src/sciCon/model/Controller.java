@@ -10,9 +10,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import sciCon.Client;
+import sciCon.controller.ApplicationController;
 import sciCon.controller.ConferenceManagerController;
 import sciCon.controller.ConfirmationWindowController;
 import sciCon.controller.DialogController;
+import sciCon.controller.FeedController;
 
 public interface Controller {
 	public enum ConferenceFilter {
@@ -23,17 +25,16 @@ public interface Controller {
 		UPDATE_CONFERENCE_FEED, REQUEST_JOINING_CONFERENCE, REQUEST_LEAVING_CONFERENCE, REQUEST_REMOVING_CONFERENCE
 	};
 
+	public final FeedController fc = new FeedController();
+
 	public default String addNLsIfTooLong(String givenString, int limit) {
 		String[] separateWords = givenString.split("\\s+");
 		String result = new String();
 		int howMuchCharsSoFar = 0;
 
 		for (int i = 0; i < separateWords.length; ++i) {
-			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because we
-																// assume that
-																// every word
-																// has a space
-																// at the end
+			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because
+			// we assume that every word has a space at the end
 
 			if (howMuchCharsSoFar > limit) {
 				result += "\n";
@@ -76,6 +77,35 @@ public interface Controller {
 		loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
+	default public void goToApplication(Parent sourceWindow) {
+		try {
+			System.out.println("ROBIĘ GOTOAPPLICATION");
+			Stage sourceStage = (Stage) sourceWindow.getScene().getWindow();
+			FXMLLoader loader = new FXMLLoader();
+			// ApplicationController aC =
+			// loader.<ApplicationController>getController();
+			// System.out.println("feed controller: " + fc);
+			// aC.setFeedController(fc);
+			loader.setLocation(Client.class.getResource("view/ApplicationLayout.fxml"));
+			System.out.println("1");
+			Parent layout = (Parent) loader.load();
+			System.out.println("2");
+
+			sourceStage.hide();
+			sourceStage.setWidth(1024);
+			sourceStage.setHeight(596);
+			sourceStage.setMinWidth(1024);
+			sourceStage.setMinHeight(596);
+			sourceStage.setResizable(true);
+			sourceStage.setTitle("SciCon");
+			Scene scene = new Scene(layout);
+			scene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
+			sourceStage.setScene(scene);
+			sourceStage.show();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	// default public void openNewWindow(Stage sourceStage, String path, int
 	// minW, int minH, boolean resizable,
 	// String title) {
@@ -132,7 +162,7 @@ public interface Controller {
 		}
 	}
 
-	default public void openNewConfManager(Parent sourceWindow, ArrayList<Conference> feed, Integer cId, String cName) {
+	default public void openNewConfManager(Parent sourceWindow, ArrayList<Conference> feed, int cId, String cName) {
 		Stage sourceStage = (Stage) sourceWindow.getScene().getWindow();
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Client.class.getResource("view/ConferenceManagerLayout.fxml"));
@@ -147,10 +177,9 @@ public interface Controller {
 			newStage.setScene(newScene);
 			newStage.setResizable(false);
 			newStage.setTitle("Zarządzaj konferencją \"" + cName + "\"");
+			System.out.println("działa kontroler teraz");
 			ConferenceManagerController controller = loader.<ConferenceManagerController>getController();
-			controller.setSelectedConference(cId);
-			controller.updateFeed(feed);
-			controller.fillUsersList();
+			controller.setFeedController(fc);
 
 			newStage.showAndWait();
 		} catch (IOException e) {

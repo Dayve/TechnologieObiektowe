@@ -59,10 +59,8 @@ public class ApplicationController implements Controller {
 	@FXML private TabPane eventDetailsTP;
 	@FXML private TextField searchField;
 
-	private ArrayList<Conference> feed = new ArrayList<Conference>();
-	private FeedController feedController = new FeedController();
-	private CalendarController calendar = new CalendarController(feedController);
-	private ConferenceManagerController manager = new ConferenceManagerController();
+	private CalendarController calendar = new CalendarController(fc);
+	private ConferenceManagerController manager;
 
 	public static User currentUser;
 	private String message = null;
@@ -80,6 +78,7 @@ public class ApplicationController implements Controller {
 
 	@FXML public void initialize() {
 
+		System.out.println("init app");
 		setupFeedFilterCBs();
 		setupTabPane();
 		reqConferenceFeed();
@@ -106,7 +105,7 @@ public class ApplicationController implements Controller {
 		Stage mainStage = (Stage) applicationWindow.getScene().getWindow();
 		mainStage.heightProperty().addListener(new ChangeListener<Number>() {
 			@Override public void changed(ObservableValue<? extends Number> arg0, Number arg1, Number arg2) {
-				feedController.resizeConferenceTabs(eventDetailsTP, arg2.intValue() / 2);
+				fc.resizeConferenceTabs(eventDetailsTP, arg2.intValue() / 2);
 			}
 		});
 	}
@@ -117,10 +116,10 @@ public class ApplicationController implements Controller {
 		eventDetailsTP.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
 			@Override public void changed(ObservableValue<? extends Tab> ov, Tab from, Tab to) {
 				if (to != null) {
-					feedController.setSelectedConferenceId(Integer.parseInt(to.getId()));
+					fc.setSelectedConferenceId(Integer.parseInt(to.getId()));
 					checkUsersParticipation();
 				} else {
-					feedController.setSelectedConferenceId(null);
+					fc.setSelectedConferenceId(null);
 				}
 			}
 		});
@@ -134,7 +133,7 @@ public class ApplicationController implements Controller {
 		conferenceFeedCB.getItems().addAll(feedOptions);
 		conferenceFeedCB.setValue("Nadchodzące konferencje");
 
-		ObservableList<String> feedNumberOptions = FXCollections.observableArrayList("20", "50", "100", "...");
+		ObservableList<String> feedNumberOptions = FXCollections.observableArrayList("20", "50", "...");
 
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
 		conferenceFeedNumberCB.setValue("50");
@@ -162,7 +161,7 @@ public class ApplicationController implements Controller {
 	// user select its cells
 	private void setupCalendar() {
 		calendar.setCalendarsDate(LocalDate.now());
-		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, feed, eventDetailsTP,
+		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, fc.getFeed(), eventDetailsTP,
 				listOfSelectedDaysEvents);
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 	}
@@ -208,6 +207,31 @@ public class ApplicationController implements Controller {
 		}, 0, 1000);
 	}
 
+	
+
+	public enum ParticipantsRole {
+				PARTICIPANT, ORGANIZER, PRELECTOR, SPONSOR, PENDING, NONE
+			} 
+
+	public static ParticipantsRole usersRoleOnConference(User user, Conference conference) {
+				for(User u : conference.getParticipants()) {
+					if(u.getId().equals(user.getId())) return ParticipantsRole.PARTICIPANT;
+				}
+				for(User u : conference.getOrganizers()) {
+					if(u.getId().equals(user.getId())) return ParticipantsRole.ORGANIZER;
+				}
+				for(User u : conference.getPrelectors()) {
+					if(u.getId().equals(user.getId())) return ParticipantsRole.PRELECTOR;
+				}
+				for(User u : conference.getSponsors()) {
+					if(u.getId().equals(user.getId())) return ParticipantsRole.SPONSOR;
+				}
+				for(User u : conference.getPending()) {
+					if(u.getId().equals(user.getId())) return ParticipantsRole.PENDING;
+				}
+				return ParticipantsRole.NONE;
+			}
+
 	// filters feed depending on conferenceCB's value - future/all/past
 	// conferences
 	@FXML private void filterFeed() {
@@ -218,11 +242,11 @@ public class ApplicationController implements Controller {
 		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
 			filter = ConferenceFilter.FUTURE;
 		}
-		ArrayList<Conference> filtered = feedController.filterFeed(feed, filter);
+		ArrayList<Conference> filtered = fc.filterFeed(fc.getFeed(), filter);
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				feedController.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter,
-						CHAR_LIMIT_IN_TITLEPANE, true);
+				fc.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter, CHAR_LIMIT_IN_TITLEPANE,
+						true);
 				refreshConferencesListView(searchField.getText());
 			}
 		});
@@ -231,11 +255,11 @@ public class ApplicationController implements Controller {
 	// checks if currentUser participates in given (selected) conference
 	// and modifies leave/join button text and behaviour accordingly
 	private void checkUsersParticipation() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
+		Integer selectedConfId = fc.getSelectedConferenceId();
 		// look for conference thats id is clicked
 		if (selectedConfId != null) {
 			try {
-				Conference selectedConf = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get();
+				Conference selectedConf = fc.getSelectedConference();
 				ArrayList<User> selectedConfParticipants = selectedConf.getParticipantsList();
 				ArrayList<User> selectedConfOrganizers = selectedConf.getOrganizers();
 				boolean currentUserTakesPart = false;
@@ -276,7 +300,7 @@ public class ApplicationController implements Controller {
 					}
 				}
 			} catch (NoSuchElementException e) {
-				feedController.setSelectedConferenceId(null);
+				fc.setSelectedConferenceId(null);
 			}
 		}
 	}
@@ -295,25 +319,25 @@ public class ApplicationController implements Controller {
 		if (eventName.equals("updateConferenceFeed")) {
 			// get temp feed to compare it with current one
 			tempFeed = res.getObject(ArrayList.class);
+			// fc.setFeed(tempFeed);
 
 			// run in JavaFX after background thread finishes work
 			// compare if feeds match, if so, don't fill vbox with new content
-			if (tempFeed != null && !tempFeed.toString().equals(feed.toString())) {
-				feed = tempFeed;
-				System.out.println("zmienił się feed");
+			if (tempFeed != null && !tempFeed.toString().equals(fc.getFeed().toString())) {
+				fc.setFeed(tempFeed);
 
 				Platform.runLater(new Runnable() {
 					@Override public void run() {
-						feedController.refreshConferenceTabs(eventDetailsTP, feed);
+						ArrayList<Conference> feed = fc.getFeed();
+						fc.refreshConferenceTabs(eventDetailsTP, feed);
 						// fill FeedBox and Calendar in JavaFX UI Thread
 						checkUsersParticipation();
 						filterFeed();
 						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel,
 								calendar.getCalendarsDate(), feed, eventDetailsTP, listOfSelectedDaysEvents);
 						refreshConferencesListView(searchField.getText());
-						feedController.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed,
-								eventDetailsTP, listOfSelectedDaysEvents, false);
-//						manager.refresh(feed);
+						fc.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed, eventDetailsTP,
+								listOfSelectedDaysEvents, false);
 					}
 				});
 			}
@@ -333,7 +357,7 @@ public class ApplicationController implements Controller {
 		}
 
 		FilteredList<Conference> searchBarFilteredData = new FilteredList<>(
-				FXCollections.observableArrayList(feedController.filterFeed(feed, filter)),
+				FXCollections.observableArrayList(fc.filterFeed(fc.getFeed(), filter)),
 				s -> s.getName().toLowerCase().contains(searchBoxContent.toLowerCase()));
 
 		ArrayList<Conference> searchBarFilteredData_ArrayList = new ArrayList<Conference>();
@@ -342,8 +366,8 @@ public class ApplicationController implements Controller {
 
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				feedController.fillListWithLabels(conferenceFeedList, searchBarFilteredData_ArrayList, eventDetailsTP,
-						filter, CHAR_LIMIT_IN_TITLEPANE, true);
+				fc.fillListWithLabels(conferenceFeedList, searchBarFilteredData_ArrayList, eventDetailsTP, filter,
+						CHAR_LIMIT_IN_TITLEPANE, true);
 			}
 		});
 	}
@@ -368,17 +392,20 @@ public class ApplicationController implements Controller {
 	}
 
 	@FXML public void manageConferenceBtn() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
-		String selectedConfName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
-		openNewConfManager(applicationWindow, feed, selectedConfId, selectedConfName);
+		Integer selectedConfId = fc.getSelectedConferenceId();
+		if (selectedConfId != null) {
+			String selectedConfName = fc.getSelectedConference().getName();
+			openNewConfManager(applicationWindow, fc.getFeed(), selectedConfId, selectedConfName);
+			System.out.println("pobrany manager " + manager);
+		}
 	}
 
 	// sends request to join conference after user confirms it
 	@FXML public void joinConferenceBtn() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
+		Integer selectedConfId = fc.getSelectedConferenceId();
 
 		if (selectedConfId != null) {
-			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
+			String conferenceName = fc.getSelectedConference().getName();
 
 			String message = "Czy na pewno chcesz wziąć udział w konferencji \"" + conferenceName + "\"?";
 			Platform.runLater(new Runnable() {
@@ -393,7 +420,7 @@ public class ApplicationController implements Controller {
 	private void reqJoinConference() {
 		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
 		userIdConferenceId.add(currentUser.getId());
-		userIdConferenceId.add(feedController.getSelectedConferenceId());
+		userIdConferenceId.add(fc.getSelectedConferenceId());
 
 		SocketEvent se = new SocketEvent("reqJoinConference", userIdConferenceId);
 		NetworkConnection.sendSocketEvent(se);
@@ -416,9 +443,9 @@ public class ApplicationController implements Controller {
 
 	// sends request to leave conference after user confirms it
 	@FXML public void leaveConferenceBtn() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
+		Integer selectedConfId = fc.getSelectedConferenceId();
 		if (selectedConfId != null) {
-			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
+			String conferenceName = fc.getSelectedConference().getName();
 			String message = "Czy na pewno chcesz zrezygnować z udziału w konferencji \"" + conferenceName + "\"?";
 			Platform.runLater(new Runnable() {
 				@Override public void run() {
@@ -432,7 +459,7 @@ public class ApplicationController implements Controller {
 	private void reqLeaveConference() {
 		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
 		userIdConferenceId.add(currentUser.getId());
-		userIdConferenceId.add(feedController.getSelectedConferenceId());
+		userIdConferenceId.add(fc.getSelectedConferenceId());
 
 		SocketEvent se = new SocketEvent("reqLeaveConference", userIdConferenceId);
 		NetworkConnection.sendSocketEvent(se);
@@ -454,9 +481,9 @@ public class ApplicationController implements Controller {
 	}
 
 	@FXML public void removeConferenceBtn() {
-		Integer selectedConfId = feedController.getSelectedConferenceId();
+		Integer selectedConfId = fc.getSelectedConferenceId();
 		if (selectedConfId != null) {
-			String conferenceName = feed.stream().filter(c -> c.getId() == selectedConfId).findFirst().get().getName();
+			String conferenceName = fc.getSelectedConference().getName();
 			String message = "Czy na pewno chcesz usunąć konferencję \"" + conferenceName + "\"?";
 			Platform.runLater(new Runnable() {
 				@Override public void run() {
@@ -468,7 +495,7 @@ public class ApplicationController implements Controller {
 
 	// actual request for leaving a conference
 	private void reqRemoveConference() {
-		SocketEvent se = new SocketEvent("reqRemoveConference", feedController.getSelectedConferenceId());
+		SocketEvent se = new SocketEvent("reqRemoveConference", fc.getSelectedConferenceId());
 		NetworkConnection.sendSocketEvent(se);
 
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
@@ -507,14 +534,14 @@ public class ApplicationController implements Controller {
 
 	public void changeMonthToNext() {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().plusMonths(1));
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
-				eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
 	}
 
 	public void changeMonthToPrevious() {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().minusMonths(1));
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
-				eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
 	}
 
 	public void changeMonthToChosen() {
@@ -529,14 +556,14 @@ public class ApplicationController implements Controller {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
-				eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
 	}
 
 	public void changeYearToChosen() {
 		int year = Integer.parseInt(yearsCB.getValue());
 		calendar.setCalendarsDate(calendar.getCalendarsDate().withYear(year));
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(), feed,
-				eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
 	}
 }

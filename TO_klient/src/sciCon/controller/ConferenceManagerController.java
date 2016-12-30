@@ -2,6 +2,7 @@ package sciCon.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -24,7 +25,6 @@ import sciCon.model.SocketEvent;
 import sciCon.model.User;
 import sciCon.model.User.UsersRole;
 
-
 public class ConferenceManagerController implements Controller {
 
 	@FXML Parent confManagerWindow;
@@ -36,24 +36,15 @@ public class ConferenceManagerController implements Controller {
 	@FXML private ComboBox<String> userOperationCB;
 	@FXML private ComboBox<String> fileOperationCB;
 
-	private ArrayList<Conference> feed;
-	private Integer selectedConferenceId;
+	private FeedController fC;
+	// private int selectedConferenceId;
 	private Conference selectedConference;
 	private HashMap<Integer, User> selectedUsers = new HashMap<Integer, User>();
 	private HashMap<Integer, User> deselectedUsers = new HashMap<Integer, User>();
 
 	private String message;
 
-	public void updateFeed(ArrayList<Conference> feed) {
-		this.feed = feed;
-	}
-
-	public void setSelectedConference(Integer confId) {
-		selectedConferenceId = confId;
-	}
-
 	public void refresh(ArrayList<Conference> feed) {
-		updateFeed(feed);
 		fillUsersList();
 	}
 
@@ -103,11 +94,10 @@ public class ConferenceManagerController implements Controller {
 	}
 
 	public void fillUsersList() {
-		System.out.println("fillList poszedł");
-		System.out.println(selectedConferenceId);
-		if (selectedConferenceId != null) {
-			selectedConference = feed.stream().filter(c -> c.getId() == selectedConferenceId).findFirst().get();
-			System.out.println(selectedConference);
+		System.out.println("wypełniam listę userów");
+		try {
+			selectedConference = fc.getSelectedConference();
+			// System.out.println(selectedConference);
 			ObservableList<Label> ol = FXCollections.observableArrayList();
 			usersLV.getItems().clear();
 			ArrayList<ArrayList<User>> selectedConferencesUsersGroups = new ArrayList<ArrayList<User>>();
@@ -121,7 +111,11 @@ public class ConferenceManagerController implements Controller {
 				addUserLabelsWithRoles(ol, selectedConferencesUsersGroups.get(i), roles[i]);
 			}
 			usersLV.setItems(ol);
+
+		} catch (NoSuchElementException e) {
+			System.out.println("nosuchel");
 		}
+
 	}
 
 	@FXML public void initialize() {
@@ -132,8 +126,8 @@ public class ConferenceManagerController implements Controller {
 		searchFileField.textProperty().addListener(obs -> {
 			filterListView(filesLV, searchFileField.getText());
 		});
-
 		setupFilterCBs();
+		refresh(fc.getFeed());
 	}
 
 	@FXML public void deselectSelectAllUsers() {
@@ -156,13 +150,18 @@ public class ConferenceManagerController implements Controller {
 
 	}
 
+	@FXML public void confirmUserOperationBtn() {
+		new Thread(() -> confirmUserOperation()).start();
+	}
+
 	@FXML public void confirmUserOperation() {
+		System.out.println("Zatwierdzam operację na userach");
 		String operation = userOperationCB.getValue();
 		String action = "reqSetRole";
 		ArrayList<Integer> usersIds = new ArrayList<Integer>(selectedUsers.keySet());
-		
+
 		User.UsersRole role = null;
-		
+
 		switch (operation) {
 			case "Ustaw status: organizator": {
 				role = UsersRole.ORGANIZER;
@@ -187,9 +186,9 @@ public class ConferenceManagerController implements Controller {
 			default:
 				break;
 		}
-		
-		if(role != null && usersIds.size() > 0) {
-			SocketEvent se = new SocketEvent(action, role, selectedConferenceId, usersIds);
+
+		if (role != null && usersIds.size() > 0) {
+			SocketEvent se = new SocketEvent(action, role, fC.getSelectedConferenceId(), usersIds);
 			NetworkConnection.sendSocketEvent(se);
 
 			SocketEvent res = NetworkConnection.rcvSocketEvent();
@@ -206,12 +205,19 @@ public class ConferenceManagerController implements Controller {
 		} else {
 			message = "Zaznacz conajmniej jednego użytkownika i akcję do wykonania.";
 		}
-		
+
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
+				System.out.print("w runlater: ");
+				System.out.println(fC.getSelectedConferenceId());
 				openDialogBox(confManagerWindow, message);
+				refresh(fC.getFeed());
 			}
 		});
+	}
+
+	@FXML public void confirmFileOperationBtn() {
+
 	}
 
 	@FXML public void confirmFileOperation() {
@@ -234,5 +240,9 @@ public class ConferenceManagerController implements Controller {
 		if (event.getCode() == KeyCode.ENTER) {
 			closeWindow(confManagerWindow);
 		}
+	}
+
+	public void setFeedController(FeedController fC) {
+		this.fC = fC;
 	}
 }

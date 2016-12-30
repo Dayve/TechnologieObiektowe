@@ -135,10 +135,6 @@ public class LoginRegisterController implements Controller {
 		}
 	}
 
-	@FXML private void goToApplication(Parent fromWindow) {
-		loadScene(fromWindow, "view/ApplicationLayout.fxml", 1024, 576, true, 1024, 576);
-	}
-
 	@FXML private void goToLogin(Event event) {
 		loadScene(registrationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
 	}

@@ -36,7 +36,7 @@
                </font></Button>
          </children>
       </AnchorPane>
-      <Button layoutX="236.0" layoutY="488.0" mnemonicParsing="false" onAction="#confirmUserOperation" text="Zatwierdź">
+      <Button layoutX="236.0" layoutY="488.0" mnemonicParsing="false" onAction="#confirmUserOperationBtn" text="Zatwierdź">
          <font>
             <Font size="13.0" />
          </font>
@@ -52,7 +52,7 @@
             <Font size="13.0" />
          </font>
       </Button>
-      <Button layoutX="547.0" layoutY="488.0" mnemonicParsing="false" onAction="#confirmFileOperation" text="Zatwierdź">
+      <Button layoutX="547.0" layoutY="488.0" mnemonicParsing="false" onAction="#confirmFileOperationBtn" text="Zatwierdź">
          <font>
             <Font size="13.0" />
          </font>

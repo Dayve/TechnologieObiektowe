@@ -126,7 +126,7 @@ public class Conference implements Serializable {
 		this.id = id;
 	}
 
-	private String userListToStr(ArrayList<User> uL) {
+	public static String userListToStr(ArrayList<User> uL) {
 		String str = "";
 		Iterator<User> it = uL.iterator();
 		while (it.hasNext()) {

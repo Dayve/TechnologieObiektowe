@@ -18,19 +18,39 @@ import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 
 public class FeedController implements Controller {
 
 	private Integer selectedConferenceId = null;
+	private ArrayList<Conference> feed = new ArrayList<Conference>();
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
+
+	public ArrayList<Conference> getFeed() {
+		return feed;
+	}
+
+	public void setFeed(ArrayList<Conference> feed) {
+		System.out.println("ustawiono feed");
+		this.feed = feed;
+	}
+
+	public Conference getSelectedConference() {
+		if (selectedConferenceId != null) {
+			return feed.stream().filter(c -> c.getId() == selectedConferenceId).findFirst().get();
+		} else {
+			return null;
+		}
+	}
 
 	public void setSelectedConferenceId(Integer selectedConferenceId) {
 		this.selectedConferenceId = selectedConferenceId;
@@ -126,26 +146,72 @@ public class FeedController implements Controller {
 	public void resizeConferenceTabs(TabPane tp, Integer size) {
 		for (Tab t : tp.getTabs()) {
 			VBox vb = (VBox) t.getContent();
-			TextArea confInfo = (TextArea) vb.getChildren().get(0);
+			ScrollPane confInfo = (ScrollPane) vb.getChildren().get(0);
 			confInfo.setPrefHeight(size);
 		}
 	}
 
+	private ScrollPane createConfDescriptionScrollPane(Conference c, double prefTabHeight) {
+		// TextFlow is built from many Text objects (which can have different
+		// styles)
+		TextFlow flow = new TextFlow();
+		flow.setPrefHeight(prefTabHeight);
+
+		ArrayList<Text> confDescriptionSections = new ArrayList<Text>(); // e.g.
+																			// "Tytuł",
+																			// "Organizatorzy"
+
+		// Styles:
+		String sectionNameStyle = new String("-fx-font-weight:bold;"), // For
+																		// "Tytuł",
+																		// "Organizatorzy"
+																		// and
+																		// the
+																		// rest
+				sectionContentStyle = new String(); // For content (text of
+													// description etc.)
+
+		String[] sectionNames = new String[] { "Temat:\n", "\n\nOrganizatorzy:\n", "\nCzas rozpoczęcia:\n",
+				"\n\nCzas zakończenia:\n", "\n\nMiejsce:\n", "\n\nPlan:\n", "\n\nOpis:\n",
+				"\n\nUczestnicy: (wg. roli)\n" };
+
+		String[] sectionContents = new String[] { c.getSubject(), Conference.userListToStr(c.getOrganizers()),
+				c.getStartTime().toString().replace("T", ", godz. "),
+				c.getEndTime().toString().replace("T", ", godz. "), c.getPlace(), c.getAgenda(), c.getDescription(),
+				c.getAllParticipantsListStr() };
+
+		for (int i = 0; i < sectionContents.length; ++i) {
+			// Label/section name:
+			Text currentSectionTitle = new Text(sectionNames[i]);
+			currentSectionTitle.setStyle(sectionNameStyle);
+			confDescriptionSections.add(currentSectionTitle);
+
+			// Content:
+			Text currentSectionContent = new Text(sectionContents[i]);
+			currentSectionContent.setStyle(sectionContentStyle);
+			confDescriptionSections.add(currentSectionContent);
+		}
+
+		ScrollPane scPane = new ScrollPane(flow);
+		scPane.setFitToWidth(true);
+
+		flow.getChildren().addAll(confDescriptionSections);
+		flow.setStyle("-fx-padding: 10 10 10 10;");
+		return scPane;
+	}
+	
 	public void refreshConferenceTabs(TabPane tp, ArrayList<Conference> confPool) {
 		try {
 			for (Iterator<Tab> iterator = tp.getTabs().iterator(); iterator.hasNext();) {
 				Tab t = iterator.next();
 				try {
-					Conference conf = confPool.stream().filter(c -> c.getId() == Integer.parseInt(t.getId()))
+					Conference c = confPool.stream().filter(conf -> conf.getId() == Integer.parseInt(t.getId()))
 							.findFirst().get();
 					VBox vbox = new VBox();
-					TextArea confInfo = new TextArea(conf.toString());
-					confInfo.setPrefHeight(tp.getHeight() / 2);
-					confInfo.setWrapText(true);
-					confInfo.setEditable(false);
+					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
 					Platform.runLater(new Runnable() {
 						@Override public void run() {
-							vbox.getChildren().add(confInfo);
+							vbox.getChildren().add(scPane);
 							t.setContent(vbox);
 						}
 					});
@@ -180,12 +246,15 @@ public class FeedController implements Controller {
 					tab.setText(c.getName());
 					tab.setId(currId.toString());
 					VBox vbox = new VBox();
-					TextArea confInfo = new TextArea(c.toString());
-					confInfo.setPrefHeight(tp.getHeight() / 2);
-					confInfo.setWrapText(true);
-					confInfo.setEditable(false);
 
-					vbox.getChildren().add(confInfo);
+					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
+
+					// VBOx is redundant only theoretically, the full hierarchy
+					// is:
+					// Tab[ VBox[ ScrollPane[ TextFlow[ Text, Text, Text, ... ]
+					// ] ] ]
+					vbox.getChildren().add(scPane);
+
 					tab.setContent(vbox);
 					tp.getTabs().add(tab);
 					openedTabsConferencesIds.put(currId, tab);

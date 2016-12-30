@@ -60,6 +60,18 @@ public class CalendarController implements Controller {
 		for (int i = 0; i < daysOfTheWeekColumnTitles.length; ++i) {
 			TableColumn<Week, String> col = new TableColumn<>(daysOfTheWeekColumnTitles[i]);
 
+			col.setMinWidth(10);
+			col.setPrefWidth(55);
+			col.setMaxWidth(200);
+			col.setResizable(false);
+			col.setSortable(false);
+
+			String defaultCellSettings = "-fx-alignment: CENTER; -fx-font-size: 14pt;",
+					participantMarker = "-fx-background-color: blue;",
+					organizerMarker = "-fx-background-color: yellow;", prelectorMarker = "-fx-background-color: gray;",
+					sponsorMarker = "-fx-background-color: pink;", pendingMarker = "-fx-background-color: red;",
+					noneYetMarker = "-fx-background-color: green;";
+
 			// Column-wise cell factory:
 			col.setCellFactory(tableColumn -> {
 				TableCell<Week, String> cell = new TableCell<Week, String>() {
@@ -67,24 +79,55 @@ public class CalendarController implements Controller {
 						super.updateItem(item, emptyCell);
 						this.setText(emptyCell ? null : item);
 
-						if (item == null || emptyCell) { // Skip checking cells,
-															// which are below
-															// the last week
-															// (row):
-							setStyle("");
-						} else {
-							// Mark not empty cell (skip those before 1 and
-							// after 28-31) if a conference is assigned to a
-							// given day:
+						setStyle(defaultCellSettings);
+
+						if (item != null || !emptyCell) {
 							if (!item.isEmpty()) {
-								if (isAnyConferenceAtDate(selectedDate.withDayOfMonth(Integer.parseInt(item)),
-										conferencesFeed)) {
-									setStyle("-fx-background-color: #b8b8b8");
+								ArrayList<Conference> thisDayConferences = getConferencesAtDate(
+										selectedDate.withDayOfMonth(Integer.parseInt(item)), conferencesFeed);
+								if (!thisDayConferences.isEmpty()) {
+									for (Conference c : thisDayConferences) {
+										// If you have some role in more than
+										// one conference in that day, style
+										// will be overwritten
+										// (in thisDayConferences array order)
+
+										switch (ApplicationController
+												.usersRoleOnConference(ApplicationController.currentUser, c)) {
+											// If you have two roles, style will
+											// be overwritten in this order:
+											case PARTICIPANT:
+												setStyle(defaultCellSettings + " " + participantMarker);
+												break;
+
+											case ORGANIZER:
+												setStyle(defaultCellSettings + " " + organizerMarker);
+												break;
+
+											case PRELECTOR:
+												setStyle(defaultCellSettings + " " + prelectorMarker);
+												break;
+
+											case SPONSOR:
+												setStyle(defaultCellSettings + " " + sponsorMarker);
+												break;
+
+											case PENDING:
+												setStyle(defaultCellSettings + " " + pendingMarker);
+												break;
+
+											case NONE:
+												setStyle(defaultCellSettings + " " + noneYetMarker);
+												break;
+										}
+									}
 								}
 							}
 						}
 					}
 				};
+
+				cell.setPrefHeight(col.getWidth());
 
 				// Handle action: left mouse button pressed:
 				cell.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -111,12 +154,6 @@ public class CalendarController implements Controller {
 
 				return cell;
 			});
-
-			col.setMinWidth(10);
-			col.setPrefWidth(55);
-			col.setMaxWidth(200);
-			col.setResizable(false);
-			col.setSortable(false);
 
 			col.setCellValueFactory(new PropertyValueFactory<>(daysOfTheWeekPropertyValues[i]));
 			dayOfTheWeekColumns.add(col);
@@ -225,6 +262,18 @@ public class CalendarController implements Controller {
 				break;
 		}
 		return result;
+	}
+
+	private static ArrayList<Conference> getConferencesAtDate(LocalDate givenDate,
+			ArrayList<Conference> conferencesFeed) {
+		ArrayList<Conference> results = new ArrayList<Conference>();
+
+		for (Conference d : conferencesFeed) {
+			if (d.getStartTime().toLocalDate().equals(givenDate)) {
+				results.add(d);
+			}
+		}
+		return results;
 	}
 
 	// Returns true if there is a conference (one or more) assigned to a

@@ -166,27 +166,23 @@ public class SciConServer implements Runnable {
 			}
 		}
 		
-		private void handleExpellUsers(ArrayList<Integer> usersIds, Integer conferenceId) {
-			SocketEvent se = null;
-			if (!dbConn.expellUsers(usersIds, conferenceId)) {
-				se = new SocketEvent("expellUsersFailed");
-			} else {
-				se = new SocketEvent("expellUsersSucceeded");
-			}
-			try {
-				objOut.writeObject(se);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
 		private void handleSetUsersRole(ArrayList<Integer> usersIds, UsersRole uR, Integer conferenceId) {
 			SocketEvent se = null;
-			if (!dbConn.updateUsersRoles(usersIds, uR, conferenceId)) {
-				se = new SocketEvent("setRoleFailed");
+			if(uR == UsersRole.NONE) {
+				if(dbConn.expellUsers(usersIds, conferenceId)) {
+					Conference c = dbConn.fetchConference(conferenceId);
+					se = new SocketEvent("expellSucceeded", c);
+				} else {
+					se = new SocketEvent("expellFailed");
+				}
+				
 			} else {
-				Conference c = dbConn.fetchConference(conferenceId);
-				se = new SocketEvent("setRoleSucceeded", c);
+				if (dbConn.updateUsersRoles(usersIds, uR, conferenceId)) {
+					Conference c = dbConn.fetchConference(conferenceId);
+					se = new SocketEvent("setRoleSucceeded", c);
+				} else {
+					se = new SocketEvent("setRoleFailed");
+				}
 			}
 			try {
 				objOut.writeObject(se);
@@ -325,13 +321,6 @@ public class SciConServer implements Runnable {
 							break;
 						}
 
-						case "reqExpellUsers": {
-							@SuppressWarnings("unchecked")
-							ArrayList<Integer> usersIds = se.getObject(ArrayList.class);
-							Integer conferenceId = se.getObject(Integer.class);
-							handleExpellUsers(usersIds, conferenceId);
-							break;
-						}
 						case "reqCurrentUser": {
 							handleSendCurrentUser();
 							break;

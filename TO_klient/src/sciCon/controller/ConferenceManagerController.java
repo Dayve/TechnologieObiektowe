@@ -177,7 +177,6 @@ public class ConferenceManagerController implements Controller {
 
 	@FXML public void confirmUserOperation() {
 		String operation = userOperationCB.getValue();
-		String action = "reqSetRole";
 		ArrayList<Integer> usersIds = new ArrayList<Integer>(selectedUsers.keySet());
 
 		User.UsersRole role = null;
@@ -200,7 +199,7 @@ public class ConferenceManagerController implements Controller {
 				break;
 			}
 			case "Wyproś": {
-				action = "reqExpellUsers";
+				role = UsersRole.NONE;
 				break;
 			}
 			default:
@@ -209,13 +208,13 @@ public class ConferenceManagerController implements Controller {
 
 		if (role != null && usersIds.size() > 0) {
 			if (role == UsersRole.ORGANIZER || willThereBeAnyOrganizerLeft()) {
-				SocketEvent se = new SocketEvent(action, role, selectedConferenceId, usersIds);
+				SocketEvent se = new SocketEvent("reqSetRole", role, selectedConferenceId, usersIds);
 				NetworkConnection.sendSocketEvent(se);
 
 				SocketEvent res = NetworkConnection.rcvSocketEvent();
 				String eventName = res.getName();
 
-				if (eventName.equals("setRoleSucceeded")) {
+				if (eventName.equals("setRoleSucceeded") || eventName.equals("expellSucceeded")) {
 					setSelectedConference(res.getObject(Conference.class));
 					message = "Pomyślnie wprowadzono zmiany.";
 					ApplicationController.makeRequest(RequestType.UPDATE_CONFERENCE_FEED);

@@ -144,6 +144,8 @@ public class DbConnection {
 				roleNumber = 3;
 				break;
 			}
+			default:
+				break;
 		}
 
 		for (Integer id : usersIds) {

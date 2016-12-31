@@ -18,6 +18,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
@@ -36,16 +37,23 @@ public class ConferenceManagerController implements Controller {
 	@FXML private ComboBox<String> userOperationCB;
 	@FXML private ComboBox<String> fileOperationCB;
 
-	private FeedController fC;
-	// private int selectedConferenceId;
+	private int selectedConferenceId;
 	private Conference selectedConference;
 	private HashMap<Integer, User> selectedUsers = new HashMap<Integer, User>();
 	private HashMap<Integer, User> deselectedUsers = new HashMap<Integer, User>();
 
 	private String message;
 
-	public void refresh(ArrayList<Conference> feed) {
+	private void setSelectedConference(Conference c) {
+		selectedConference = c;
+	}
+
+	public void refresh() {
 		fillUsersList();
+		for (Label l : usersLV.getItems()) {
+			l.setStyle(selectedUsers.containsKey(Integer.parseInt(l.getId())) ? "-fx-font-weight: bold;"
+					: "-fx-font-weight: normal;");
+		}
 	}
 
 	private void setupFilterCBs() {
@@ -69,7 +77,7 @@ public class ConferenceManagerController implements Controller {
 
 		for (User u : group) {
 			String title = u.getLogin() + " (" + u.getName() + " " + u.getSurname() + "), " + role;
-			label = new Label(addNLsIfTooLong(title, 35));
+			label = new Label(FeedController.addNLsIfTooLong(title, 35));
 
 			label.setId(u.getId().toString());
 			label.setPrefWidth(usersLV.getPrefWidth());
@@ -94,31 +102,25 @@ public class ConferenceManagerController implements Controller {
 	}
 
 	public void fillUsersList() {
-		System.out.println("wypełniam listę userów");
-		try {
-			selectedConference = fc.getSelectedConference();
-			// System.out.println(selectedConference);
-			ObservableList<Label> ol = FXCollections.observableArrayList();
-			usersLV.getItems().clear();
-			ArrayList<ArrayList<User>> selectedConferencesUsersGroups = new ArrayList<ArrayList<User>>();
-			selectedConferencesUsersGroups.add(selectedConference.getOrganizers());
-			selectedConferencesUsersGroups.add(selectedConference.getSponsors());
-			selectedConferencesUsersGroups.add(selectedConference.getPrelectors());
-			selectedConferencesUsersGroups.add(selectedConference.getParticipants());
-			selectedConferencesUsersGroups.add(selectedConference.getPending());
-			String[] roles = { "organizator", "sponsor", "prelegent", "uczestnik", "oczekujący" };
-			for (int i = 0; i < selectedConferencesUsersGroups.size(); i++) {
-				addUserLabelsWithRoles(ol, selectedConferencesUsersGroups.get(i), roles[i]);
-			}
-			usersLV.setItems(ol);
-
-		} catch (NoSuchElementException e) {
-			System.out.println("nosuchel");
+		ObservableList<Label> ol = FXCollections.observableArrayList();
+		usersLV.getItems().clear();
+		ArrayList<ArrayList<User>> selectedConferencesUsersGroups = new ArrayList<ArrayList<User>>();
+		selectedConferencesUsersGroups.add(selectedConference.getOrganizers());
+		selectedConferencesUsersGroups.add(selectedConference.getSponsors());
+		selectedConferencesUsersGroups.add(selectedConference.getPrelectors());
+		selectedConferencesUsersGroups.add(selectedConference.getParticipants());
+		selectedConferencesUsersGroups.add(selectedConference.getPending());
+		String[] roles = { "organizator", "sponsor", "prelegent", "uczestnik", "oczekujący" };
+		for (int i = 0; i < selectedConferencesUsersGroups.size(); i++) {
+			addUserLabelsWithRoles(ol, selectedConferencesUsersGroups.get(i), roles[i]);
 		}
-
+		usersLV.setItems(ol);
 	}
 
 	@FXML public void initialize() {
+		selectedConferenceId = fc.getSelectedConferenceId();
+		selectedConference = fc.getSelectedConference();
+
 		searchUserField.textProperty().addListener(obs -> {
 			filterListView(usersLV, searchUserField.getText());
 		});
@@ -127,22 +129,30 @@ public class ConferenceManagerController implements Controller {
 			filterListView(filesLV, searchFileField.getText());
 		});
 		setupFilterCBs();
-		refresh(fc.getFeed());
+		fillUsersList();
+	}
+
+	private void deselectAllUsers() {
+		for (Label l : usersLV.getItems()) {
+			l.setStyle("-fx-font-weight: normal;");
+		}
+		deselectedUsers.putAll(selectedUsers);
+		selectedUsers.clear();
+	}
+
+	private void selectAllUsers() {
+		for (Label l : usersLV.getItems()) {
+			l.setStyle("-fx-font-weight: bold;");
+		}
+		selectedUsers.putAll(deselectedUsers);
+		deselectedUsers.clear();
 	}
 
 	@FXML public void deselectSelectAllUsers() {
 		if (selectedUsers.isEmpty()) {
-			for (Label l : usersLV.getItems()) {
-				l.setStyle("-fx-font-weight: bold;");
-			}
-			selectedUsers.putAll(deselectedUsers);
-			deselectedUsers.clear();
+			selectAllUsers();
 		} else {
-			for (Label l : usersLV.getItems()) {
-				l.setStyle("-fx-font-weight: normal;");
-			}
-			deselectedUsers.putAll(selectedUsers);
-			selectedUsers.clear();
+			deselectAllUsers();
 		}
 	}
 
@@ -154,8 +164,18 @@ public class ConferenceManagerController implements Controller {
 		new Thread(() -> confirmUserOperation()).start();
 	}
 
+	private boolean willThereBeAnyOrganizerLeft() {
+		ArrayList<User> organizers = selectedConference.getOrganizers();
+		for (User u : deselectedUsers.values()) {
+			if (organizers.contains(u)) {
+				return true; // if there is any deselected organizer, break
+			}
+		}
+		return false; // if all deselected users are checked and none of them is
+						// an organizer
+	}
+
 	@FXML public void confirmUserOperation() {
-		System.out.println("Zatwierdzam operację na userach");
 		String operation = userOperationCB.getValue();
 		String action = "reqSetRole";
 		ArrayList<Integer> usersIds = new ArrayList<Integer>(selectedUsers.keySet());
@@ -188,19 +208,24 @@ public class ConferenceManagerController implements Controller {
 		}
 
 		if (role != null && usersIds.size() > 0) {
-			SocketEvent se = new SocketEvent(action, role, fC.getSelectedConferenceId(), usersIds);
-			NetworkConnection.sendSocketEvent(se);
+			if (role == UsersRole.ORGANIZER || willThereBeAnyOrganizerLeft()) {
+				SocketEvent se = new SocketEvent(action, role, selectedConferenceId, usersIds);
+				NetworkConnection.sendSocketEvent(se);
 
-			SocketEvent res = NetworkConnection.rcvSocketEvent();
-			String eventName = res.getName();
+				SocketEvent res = NetworkConnection.rcvSocketEvent();
+				String eventName = res.getName();
 
-			if (eventName.equals("setRoleSucceeded")) {
-				message = "Pomyślnie wprowadzono zmiany.";
-				ApplicationController.makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
-			} else if (eventName.equals("setRoleFailed")) {
-				message = "Nie udało się wprowadzić zmian.";
+				if (eventName.equals("setRoleSucceeded")) {
+					setSelectedConference(res.getObject(Conference.class));
+					message = "Pomyślnie wprowadzono zmiany.";
+					ApplicationController.makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
+				} else if (eventName.equals("setRoleFailed")) {
+					message = "Nie udało się wprowadzić zmian.";
+				} else {
+					message = "Nie udało się wprowadzić zmian. Serwer nie odpowiada.";
+				}
 			} else {
-				message = "Nie udało się wprowadzić zmian. Serwer nie odpowiada.";
+				message = "Po wykonaniu zmian musi pozostać co najmniej jeden organizator.";
 			}
 		} else {
 			message = "Zaznacz conajmniej jednego użytkownika i akcję do wykonania.";
@@ -208,10 +233,24 @@ public class ConferenceManagerController implements Controller {
 
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				System.out.print("w runlater: ");
-				System.out.println(fC.getSelectedConferenceId());
+				boolean notAnAdminAnymore = false;
+				try {
+					selectedConference.getOrganizers().stream()
+							.filter(o -> o.getId() == ApplicationController.currentUser.getId()).
+							findFirst().get(); // search for current users in organizer arraylist
+				} catch (NoSuchElementException e) {
+					// if theres no current user in organizers arraylist
+					message += " Nie jesteś już organizatorem i menadżer zostanie zamknięty.";
+					notAnAdminAnymore = true;
+				}
+				
+				refresh();
 				openDialogBox(confManagerWindow, message);
-				refresh(fC.getFeed());
+				if (notAnAdminAnymore) {
+					Stage st = (Stage) confManagerWindow.getScene().getWindow();
+					st.close();
+				}
+				
 			}
 		});
 	}
@@ -240,9 +279,5 @@ public class ConferenceManagerController implements Controller {
 		if (event.getCode() == KeyCode.ENTER) {
 			closeWindow(confManagerWindow);
 		}
-	}
-
-	public void setFeedController(FeedController fC) {
-		this.fC = fC;
 	}
 }

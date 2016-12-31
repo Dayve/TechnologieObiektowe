@@ -185,7 +185,8 @@ public class SciConServer implements Runnable {
 			if (!dbConn.updateUsersRoles(usersIds, uR, conferenceId)) {
 				se = new SocketEvent("setRoleFailed");
 			} else {
-				se = new SocketEvent("setRoleSucceeded");
+				Conference c = dbConn.fetchConference(conferenceId);
+				se = new SocketEvent("setRoleSucceeded", c);
 			}
 			try {
 				objOut.writeObject(se);

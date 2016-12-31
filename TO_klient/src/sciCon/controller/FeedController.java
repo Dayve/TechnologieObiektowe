@@ -27,9 +27,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import sciCon.model.Conference;
-import sciCon.model.Controller;
+import sciCon.model.Controller.ConferenceFilter;
 
-public class FeedController implements Controller {
+public class FeedController {
 
 	private Integer selectedConferenceId = null;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
@@ -40,7 +40,6 @@ public class FeedController implements Controller {
 	}
 
 	public void setFeed(ArrayList<Conference> feed) {
-		System.out.println("ustawiono feed");
 		this.feed = feed;
 	}
 
@@ -52,6 +51,10 @@ public class FeedController implements Controller {
 		}
 	}
 
+	public Conference getConference(int id) {
+		return feed.stream().filter(c -> c.getId() == id).findFirst().get();
+	}
+	
 	public void setSelectedConferenceId(Integer selectedConferenceId) {
 		this.selectedConferenceId = selectedConferenceId;
 	}
@@ -60,31 +63,45 @@ public class FeedController implements Controller {
 		return selectedConferenceId;
 	}
 
+	public static String addNLsIfTooLong(String givenString, int limit) {
+		String[] separateWords = givenString.split("\\s+");
+		String result = new String();
+		int howMuchCharsSoFar = 0;
+
+		for (int i = 0; i < separateWords.length; ++i) {
+			howMuchCharsSoFar += separateWords[i].length() + 1; // +1 because
+			// we assume that every word has a space at the end
+
+			if (howMuchCharsSoFar > limit) {
+				result += "\n";
+				howMuchCharsSoFar = 0;
+			}
+			result += separateWords[i] + " ";
+		}
+
+		return result.substring(0, result.length() - 1);
+	}
+	
 	public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 		LocalDateTime now = LocalDateTime.now();
 		now.format(formatter);
 		ArrayList<Conference> filtered = new ArrayList<Conference>();
-		// filtered.addAll(feed);
 		switch (cf) {
 			case PAST: {
 				filtered = (ArrayList<Conference>) feed.stream().filter(c -> c.getEndTime().isBefore(now))
 						.collect(Collectors.toList());
-				// filtered.removeIf(s -> s.getStartTime().isAfter(now));
 				break;
 			}
 			case FUTURE: {
 				filtered = (ArrayList<Conference>) feed.stream().filter(c -> c.getStartTime().isAfter(now))
 						.collect(Collectors.toList());
-				// filtered.removeIf(s -> s.getEndTime().isBefore(now));
 				break;
 			}
 			case ONGOING: {
 				filtered = (ArrayList<Conference>) feed.stream()
 						.filter(c -> c.getStartTime().isAfter(now) && c.getEndTime().isBefore(now))
 						.collect(Collectors.toList());
-				// filtered.removeIf(s -> s.getStartTime().isBefore(now) &&
-				// s.getEndTime().isAfter(now));
 				break;
 			}
 			case ALL: {
@@ -162,14 +179,9 @@ public class FeedController implements Controller {
 																			// "Organizatorzy"
 
 		// Styles:
-		String sectionNameStyle = new String("-fx-font-weight:bold;"), // For
-																		// "Tytuł",
-																		// "Organizatorzy"
-																		// and
-																		// the
-																		// rest
-				sectionContentStyle = new String(); // For content (text of
-													// description etc.)
+		String sectionNameStyle = new String("-fx-font-weight:bold;"), // For "Tytuł", "Organizatorzy" and the rest
+				
+				sectionContentStyle = new String(); // For content (text of description etc.)
 
 		String[] sectionNames = new String[] { "Temat:\n", "\n\nOrganizatorzy:\n", "\nCzas rozpoczęcia:\n",
 				"\n\nCzas zakończenia:\n", "\n\nMiejsce:\n", "\n\nPlan:\n", "\n\nOpis:\n",

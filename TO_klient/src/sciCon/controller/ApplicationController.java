@@ -77,8 +77,6 @@ public class ApplicationController implements Controller {
 	private static LinkedBlockingQueue<RequestType> requestQueue = new LinkedBlockingQueue<RequestType>();
 
 	@FXML public void initialize() {
-
-		System.out.println("init app");
 		setupFeedFilterCBs();
 		setupTabPane();
 		reqConferenceFeed();
@@ -395,8 +393,8 @@ public class ApplicationController implements Controller {
 		Integer selectedConfId = fc.getSelectedConferenceId();
 		if (selectedConfId != null) {
 			String selectedConfName = fc.getSelectedConference().getName();
-			openNewConfManager(applicationWindow, fc.getFeed(), selectedConfId, selectedConfName);
-			System.out.println("pobrany manager " + manager);
+			openNewWindow(applicationWindow, "view/ConferenceManagerLayout.fxml", 
+					650, 600, false, "Zarządzaj konferencją \"" + selectedConfName + "\"");
 		}
 	}
 

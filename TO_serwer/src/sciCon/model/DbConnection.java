@@ -176,15 +176,15 @@ public class DbConnection {
 
 	public boolean expellUsers(ArrayList<Integer> usersIds, Integer conferenceId) {
 		boolean succeeded = true;
-		for(Integer id: usersIds) {
-			if(!removeParticipant(id, conferenceId)) {
+		for (Integer id : usersIds) {
+			if (!removeParticipant(id, conferenceId)) {
 				succeeded = false;
 				break;
 			}
 		}
 		return succeeded;
 	}
-	
+
 	public boolean removeParticipant(int userId, int conferenceId) {
 		boolean succeeded = true;
 
@@ -389,11 +389,56 @@ public class DbConnection {
 		return allParticipants;
 	}
 
+	public Conference fetchConference(Integer conferenceId) {
+		Integer id = null;
+		String name = null, subject = null, place = null, description = null, agenda = null,
+				fetchConferenceQuery = "select id_wydarzenia, nazwa, temat, miejsce, opis,"
+						+ "plan, to_char(czas_rozpoczecia,'yyyy-mm-dd hh24:mi'), "
+						+ "to_char(czas_zakonczenia,'yyyy-mm-dd hh24:mi') from wydarzenie WHERE id_wydarzenia = (?)";
+		LocalDateTime startTime, endTime;
+		Conference ret = null;
+		try {
+			PreparedStatement pstmt;
+			String startTimeStr = null, endTimeStr = null;
+
+			pstmt = conn.prepareStatement(fetchConferenceQuery);
+			pstmt.setInt(1, conferenceId);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				id = rs.getInt(1);
+				name = rs.getString(2);
+				subject = rs.getString(3);
+				place = rs.getString(4);
+				description = rs.getString(5);
+				agenda = rs.getString(6);
+				startTimeStr = rs.getString(7);
+				endTimeStr = rs.getString(8);
+			} 
+			pstmt.close();
+			
+			// allParticipants[0] - organizers, [1] - prelectors,
+			// [2] - participants, [3]- sponsors, [4] - pending
+			ArrayList<ArrayList<User>> allParticipants = fetchAllConferenceParticipants(id);
+
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			startTime = LocalDateTime.parse(startTimeStr, formatter);
+			endTime = LocalDateTime.parse(endTimeStr, formatter);
+
+			ret = new Conference(id, name, subject, startTime, endTime, place, description, agenda,
+					allParticipants.get(0), allParticipants.get(1), allParticipants.get(2), allParticipants.get(3),
+					allParticipants.get(4));
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return ret;
+	}
+
 	public ArrayList<Conference> fetchConferenceFeed() {
 
 		// !past - show present and future conferences
 
-		int id = 0;
+		Integer id = null;
 		String name = null, subject = null, place = null, description = null, agenda = null,
 				conferenceFeedQuery = "select id_wydarzenia, nazwa, temat, miejsce, opis,"
 						+ "plan, to_char(czas_rozpoczecia,'yyyy-mm-dd hh24:mi'), "

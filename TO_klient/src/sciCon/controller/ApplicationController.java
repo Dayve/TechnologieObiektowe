@@ -60,7 +60,6 @@ public class ApplicationController implements Controller {
 	@FXML private TextField searchField;
 
 	private CalendarController calendar = new CalendarController(fc);
-	private ConferenceManagerController manager;
 
 	public static User currentUser;
 	private String message = null;

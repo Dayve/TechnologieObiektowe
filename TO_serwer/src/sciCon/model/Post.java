@@ -1,23 +1,19 @@
 package sciCon.model;
 
 public class Post {
-	private String username;
+	private User author;
 	private String content;
 
-	public Post(String username, String content) {
-		this.username = username;
+	public Post(User author, String content) {
+		this.author = author;
 		this.content = content;
 	}
 
-	public String getUsername() {
-		return username;
+	public User getAuthor() {
+		return author;
 	}
 
 	public String getContent() {
 		return content;
-	}
-
-	@Override public String toString() {
-		return "Post [username=" + username + ", content=" + content + "]";
 	}
 }

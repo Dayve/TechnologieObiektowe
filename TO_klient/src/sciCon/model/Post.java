@@ -1,23 +1,29 @@
 package sciCon.model;
 
-public class Post {
-	private String username;
-	private String content;
+import java.time.LocalDateTime;
 
-	public Post(String username, String content) {
-		this.username = username;
+public class Post {
+	private User author;
+	private String content;
+	
+
+	private LocalDateTime time;
+
+	public Post(User author, String content, LocalDateTime time) {
+		this.author = author;
 		this.content = content;
+		this.time = time;
 	}
 
-	public String getUsername() {
-		return username;
+	public User getAuthor() {
+		return author;
 	}
 
 	public String getContent() {
 		return content;
 	}
-
-	@Override public String toString() {
-		return "Post [username=" + username + ", content=" + content + "]";
+	
+	public LocalDateTime getTime() {
+		return time;
 	}
 }

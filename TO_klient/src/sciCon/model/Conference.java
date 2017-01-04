@@ -17,6 +17,8 @@ public class Conference implements Serializable {
 	private ArrayList<User> participants = new ArrayList<User>();
 	private ArrayList<User> sponsors = new ArrayList<User>();
 	private ArrayList<User> pending = new ArrayList<User>();
+	private ArrayList<Post> posts = new ArrayList<Post>();
+
 
 	private String name;
 	private String subject;
@@ -88,6 +90,10 @@ public class Conference implements Serializable {
 
 	public ArrayList<User> getOrganizers() {
 		return organizers;
+	}
+	
+	public ArrayList<Post> getPosts() {
+		return posts;
 	}
 
 	public Conference(int id, String name, String subject, LocalDateTime startTime, LocalDateTime endTime, String place,
@@ -178,21 +184,8 @@ public class Conference implements Serializable {
 	}
 
 	public static Comparator<Conference> confDateComparator = new Comparator<Conference>() {
-
 		public int compare(Conference c1, Conference c2) {
-			LocalDateTime ldt1 = c1.getStartTime();
-			LocalDateTime ldt2 = c2.getStartTime();
-			int ret = 0;
-
-			if (ldt1.isBefore(ldt2)) {
-				ret = 1;
-			} else {
-				if (ldt1.isAfter(ldt2)) {
-					ret = -1;
-				}
-			}
-			return ret;
-
+			return c2.getStartTime().compareTo(c1.getStartTime());
 		}
 	};
 

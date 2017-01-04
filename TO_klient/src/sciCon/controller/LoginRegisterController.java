@@ -30,14 +30,6 @@ public class LoginRegisterController implements Controller {
 		NetworkConnection.connect("localhost", 8080);
 	}
 
-	private boolean doPasswordsMatch(String password, String rePassword) {
-		if (password.equals(rePassword)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	public void initialize() {
 		// get a method to call it using reflection
 		new Thread(() -> ConnectToServer()).start();
@@ -83,7 +75,7 @@ public class LoginRegisterController implements Controller {
 		String name = nameField.getText();
 		String surname = surnameField.getText();
 
-		if (doPasswordsMatch(password, rePassword)) {
+		if (password.equals(rePassword)) {
 			User u = new User(login, password, name, surname);
 			SocketEvent e = new SocketEvent("reqRegister", u);
 

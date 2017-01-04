@@ -28,6 +28,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import sciCon.model.Conference;
 import sciCon.model.Controller.ConferenceFilter;
+import sciCon.model.Post;
+import sciCon.model.User;
 
 public class FeedController {
 
@@ -168,6 +170,39 @@ public class FeedController {
 		}
 	}
 
+	private ListView<TextFlow> createForumsListView(Conference c, double prefTabHeight) {
+		ListView<TextFlow> lv = new ListView<TextFlow>();
+		TextFlow flow = new TextFlow();
+		flow.setPrefHeight(prefTabHeight);
+
+		// Styles:
+		String boldStyle = new String("-fx-font-weight:bold;"), // for the author's name
+				regularStyle = new String(); // For content and date
+
+		ArrayList<Post> posts = new ArrayList<Post>();
+				//getSelectedConference().getPosts();
+		posts.add(new Post(getSelectedConference().getParticipants().get(0), "hello", LocalDateTime.now()));
+		posts.add(new Post(getSelectedConference().getParticipants().get(1), "hey you", LocalDateTime.now()));
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+		for(Post p : posts) {
+			// add date and \n (regular font)
+			Text date = new Text(p.getTime().format(formatter) + "\n");
+			date.setStyle(regularStyle);
+			// add author's text (bold)
+			Text author = new Text(p.getAuthor().getLogin() + ": ");
+			author.setStyle(boldStyle);
+			
+			// add post's content (regular font)
+			Text content = new Text(p.getContent());
+			content.setStyle(regularStyle);
+			lv.getItems().add(new TextFlow(date, author, content));
+		}
+		lv.setStyle("-fx-padding: 10 10 10 10;");
+		
+		return lv;
+	}
+	
 	private ScrollPane createConfDescriptionScrollPane(Conference c, double prefTabHeight) {
 		// TextFlow is built from many Text objects (which can have different
 		// styles)
@@ -221,9 +256,11 @@ public class FeedController {
 							.findFirst().get();
 					VBox vbox = new VBox();
 					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
+					ListView<TextFlow> forumsListView = createForumsListView(c, tp.getHeight()/2);
 					Platform.runLater(new Runnable() {
 						@Override public void run() {
 							vbox.getChildren().add(scPane);
+							vbox.getChildren().add(forumsListView);
 							t.setContent(vbox);
 						}
 					});
@@ -260,12 +297,14 @@ public class FeedController {
 					VBox vbox = new VBox();
 
 					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
+					ListView<TextFlow> forumPane = createForumsListView(c, tp.getHeight()/2);
 
 					// VBOx is redundant only theoretically, the full hierarchy
 					// is:
 					// Tab[ VBox[ ScrollPane[ TextFlow[ Text, Text, Text, ... ]
 					// ] ] ]
 					vbox.getChildren().add(scPane);
+					vbox.getChildren().add(forumPane);
 
 					tab.setContent(vbox);
 					tp.getTabs().add(tab);

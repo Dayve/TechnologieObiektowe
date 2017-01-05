@@ -1,5 +1,8 @@
 package sciCon.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
@@ -11,6 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -18,10 +22,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
+import sciCon.model.Paper;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
 import sciCon.model.User.UsersRole;
@@ -36,6 +42,8 @@ public class ConferenceManagerController implements Controller {
 
 	@FXML private ComboBox<String> userOperationCB;
 	@FXML private ComboBox<String> fileOperationCB;
+	
+	@FXML private Button plusButton;
 
 	private int selectedConferenceId;
 	private Conference selectedConference;
@@ -43,6 +51,9 @@ public class ConferenceManagerController implements Controller {
 	private HashMap<Integer, User> deselectedUsers = new HashMap<Integer, User>();
 
 	private String message;
+	private FileChooser fileChooser = new FileChooser();
+	
+	
 
 	private void setSelectedConference(Conference c) {
 		selectedConference = c;
@@ -130,6 +141,24 @@ public class ConferenceManagerController implements Controller {
 		});
 		setupFilterCBs();
 		fillUsersList();
+		
+		plusButton.setOnAction(
+		    new EventHandler<ActionEvent>() {
+		        @Override
+		        public void handle(final ActionEvent e) {
+		            File file = fileChooser.showOpenDialog((Stage) confManagerWindow.getScene().getWindow());
+		            new Thread(() -> readAndSendFile(file.getAbsolutePath())).start();
+		        }
+		    }
+		);	
+	}
+	
+	private void readAndSendFile(String pathWithFilename) {
+		Paper examplePaper = new Paper();
+		examplePaper.createFromExistingFile(pathWithFilename);
+		
+		SocketEvent se = new SocketEvent("fileSentToServer", examplePaper.getAsByteArray());
+		NetworkConnection.sendSocketEvent(se);
 	}
 
 	private void deselectAllUsers() {

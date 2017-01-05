@@ -1,9 +1,11 @@
 package sciCon;
 
 import java.io.EOFException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -12,16 +14,19 @@ import java.util.HashMap;
 
 import sciCon.model.Conference;
 import sciCon.model.DbConnection;
+import sciCon.model.Paper;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
 import sciCon.model.User.UsersRole;
 import sciCon.model.Validator;
 
 public class SciConServer implements Runnable {
+	
 	private ServerSocket listener;
 	public HashMap<Integer, User> loggedUsers = new HashMap<Integer, User>();
 	private int port;
 
+	
 	public SciConServer(int p) {
 		port = p;
 	}
@@ -268,6 +273,16 @@ public class SciConServer implements Runnable {
 					// name tells server what to do
 					String eventName = se.getName();
 					switch (eventName) {
+						case "fileSentToServer": {
+							byte[] testPaper_rawData = se.getObject(byte[].class);
+							
+							Paper testPaper = new Paper();
+							testPaper.createFromReceivedBytes(testPaper_rawData);
+							
+							testPaper.saveAsFile("D:/to-proj/");
+							break;
+						}
+					
 						// login request
 						case "reqLogin": {
 							User u = (User) se.getObject(User.class);

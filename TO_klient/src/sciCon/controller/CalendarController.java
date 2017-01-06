@@ -60,9 +60,9 @@ public class CalendarController implements Controller {
 		for (int i = 0; i < daysOfTheWeekColumnTitles.length; ++i) {
 			TableColumn<Week, String> col = new TableColumn<>(daysOfTheWeekColumnTitles[i]);
 
-			col.setMinWidth(10);
+			col.setMinWidth(55);
 			col.setPrefWidth(55);
-			col.setMaxWidth(200);
+			col.setMaxWidth(55);
 			col.setResizable(false);
 			col.setSortable(false);
 

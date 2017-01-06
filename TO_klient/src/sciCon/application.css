@@ -115,9 +115,9 @@
 }
 
 /* Disables grid lines in a TableView: */
-.table-view {
+/*.table-view {
   -fx-table-cell-border-color: transparent;
-}
+}*/
 
 .table-cell:focused {
     -fx-border-color: black;

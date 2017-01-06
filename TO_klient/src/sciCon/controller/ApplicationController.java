@@ -12,6 +12,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.sun.javafx.scene.control.skin.TableHeaderRow;
+
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -165,6 +167,22 @@ public class ApplicationController implements Controller {
 				.localDateToPolishDateString(calendar.getCalendarsDate());
 		monthsCB.setValue(currentDateInPolish.substring(0, currentDateInPolish.indexOf(" ")));
 		yearsCB.setValue(currentDateInPolish.substring(currentDateInPolish.indexOf(" ")+1));
+		
+		calendarTable.widthProperty().addListener(new ChangeListener<Number>()
+		{
+		    @SuppressWarnings("restriction")
+			@Override
+		    public void changed(ObservableValue<? extends Number> source, Number oldWidth, Number newWidth)
+		    {
+				TableHeaderRow header = (TableHeaderRow) calendarTable.lookup("TableHeaderRow");
+		        header.reorderingProperty().addListener(new ChangeListener<Boolean>() {
+		            @Override
+		            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+		                header.setReordering(false);
+		            }
+		        });
+		    }
+		});
 	}
 
 	// sets the timer up - every second timer checks requestsQueue, which

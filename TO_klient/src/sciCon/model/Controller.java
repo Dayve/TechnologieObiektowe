@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import sciCon.Client;
 import sciCon.controller.ConfirmationWindowController;
@@ -95,6 +96,7 @@ public interface Controller {
 			newScene = new Scene(loader.load());
 			newStage.setMaxHeight(250);
 			newStage.setMaxWidth(300);
+			newStage.initModality(Modality.WINDOW_MODAL);
 			newStage.initOwner(sourceStage);
 			newStage.setScene(newScene);
 			newStage.setResizable(false);
@@ -109,6 +111,10 @@ public interface Controller {
 	}
 
 	default public void openDialogBox(Parent window, String message) {
+		openDialogBox(window, message, false);
+	}
+			
+	default public void openDialogBox(Parent window, String message, Boolean modality) {
 		Stage sourceStage = (Stage) window.getScene().getWindow();
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Client.class.getResource("view/DialogBoxLayout.fxml"));
@@ -118,6 +124,9 @@ public interface Controller {
 			newScene = new Scene(loader.load());
 			newStage.setMaxHeight(305);
 			newStage.setMaxWidth(400);
+			if(modality) {
+				newStage.initModality(Modality.WINDOW_MODAL);
+			}
 			newStage.initOwner(sourceStage);
 			newStage.setScene(newScene);
 			newStage.setResizable(false);

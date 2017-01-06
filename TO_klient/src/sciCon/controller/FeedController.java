@@ -239,6 +239,7 @@ public class FeedController {
 			}
 			lv.setStyle("-fx-padding: 10 10 10 10;");
 			lv.setPrefHeight(prefForumsHeight);
+			lv.scrollTo(lv.getItems().size());
 		}
 		return lv;
 	}

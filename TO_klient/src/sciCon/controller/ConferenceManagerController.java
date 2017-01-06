@@ -276,7 +276,7 @@ public class ConferenceManagerController implements Controller {
 				}
 				
 				refresh();
-				openDialogBox(confManagerWindow, message);
+				openDialogBox(confManagerWindow, message, true);
 				if (notAnAdminAnymore) {
 					Stage st = (Stage) confManagerWindow.getScene().getWindow();
 					st.close();

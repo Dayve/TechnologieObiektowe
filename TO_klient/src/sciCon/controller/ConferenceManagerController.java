@@ -147,7 +147,9 @@ public class ConferenceManagerController implements Controller {
 		        @Override
 		        public void handle(final ActionEvent e) {
 		            File file = fileChooser.showOpenDialog((Stage) confManagerWindow.getScene().getWindow());
-		            new Thread(() -> readAndSendFile(file.getAbsolutePath())).start();
+		            if(file != null) {
+		            	new Thread(() -> readAndSendFile(file.getAbsolutePath())).start();
+		            }
 		        }
 		    }
 		);	

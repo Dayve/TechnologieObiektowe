@@ -36,15 +36,15 @@ public class CalendarController implements Controller {
 		return selectedDate;
 	}
 
-	public void refreshCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel,
+	public void refreshCalendarTable(TableView<Week> calendarTable,
 			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, TabPane tp,
 			ListView<Label> listOfSelectedDaysEvents) {
 		calendarTable.getItems().clear();
 		calendarTable.getColumns().clear();
-		fillCalendarTable(calendarTable, currentlyChosenDateLabel, conferencesFeed, tp, listOfSelectedDaysEvents);
+		fillCalendarTable(calendarTable, conferencesFeed, tp, listOfSelectedDaysEvents);
 	}
 
-	public void fillCalendarTable(TableView<Week> calendarTable, Label currentlyChosenDateLabel,
+	public void fillCalendarTable(TableView<Week> calendarTable,
 			ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {
 		// ColumnTitle are used only while displaying the content,
 		// PropertyValue however must be the same as variable names in Week
@@ -162,15 +162,11 @@ public class CalendarController implements Controller {
 		// Filling the actual table:
 		calendarTable.setItems(createThisMonthsWeeksRows(selectedDate));
 		calendarTable.getColumns().addAll(dayOfTheWeekColumns);
-
-		// Change label: (this function is called whenever the month is changed,
-		// so should be the label)
-		currentlyChosenDateLabel.setText(localDateToPolishDateString(selectedDate));
 	}
 
 	// Returns String containing: "<polish name of a month> <year>" for a given
 	// LocalDate:
-	private static String localDateToPolishDateString(LocalDate givenDate) {
+	static String localDateToPolishDateString(LocalDate givenDate) {
 		String result = new String();
 
 		switch (givenDate.getMonth()) {

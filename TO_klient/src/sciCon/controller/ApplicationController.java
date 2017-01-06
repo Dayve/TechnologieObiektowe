@@ -47,7 +47,6 @@ public class ApplicationController implements Controller {
 	@FXML private Button nextMonth;
 	@FXML private TableView<Week> calendarTable; // A TableView representing the
 	// calendar
-	@FXML private Label currentlyChosenDateLabel;
 	@FXML Button joinLeaveManageConfBtn;
 	@FXML Button removeConfBtn;
 	@FXML private ListView<Label> conferenceFeedList;
@@ -158,9 +157,14 @@ public class ApplicationController implements Controller {
 	// user select its cells
 	private void setupCalendar() {
 		calendar.setCalendarsDate(LocalDate.now());
-		calendar.fillCalendarTable(calendarTable, currentlyChosenDateLabel, fc.getFeed(), eventDetailsTP,
+		calendar.fillCalendarTable(calendarTable, fc.getFeed(), eventDetailsTP,
 				listOfSelectedDaysEvents);
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
+		// Set initial ComboBox values
+		String currentDateInPolish = CalendarController
+				.localDateToPolishDateString(calendar.getCalendarsDate());
+		monthsCB.setValue(currentDateInPolish.substring(0, currentDateInPolish.indexOf(" ")));
+		yearsCB.setValue(currentDateInPolish.substring(currentDateInPolish.indexOf(" ")+1));
 	}
 
 	// sets the timer up - every second timer checks requestsQueue, which
@@ -330,8 +334,8 @@ public class ApplicationController implements Controller {
 						// fill FeedBox and Calendar in JavaFX UI Thread
 						checkUsersParticipation();
 						filterFeed();
-						calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel,
-								calendar.getCalendarsDate(), feed, eventDetailsTP, listOfSelectedDaysEvents);
+						calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(), 
+								feed, eventDetailsTP, listOfSelectedDaysEvents);
 						refreshConferencesListView(searchField.getText());
 						fc.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed, eventDetailsTP,
 								listOfSelectedDaysEvents, false);
@@ -518,6 +522,8 @@ public class ApplicationController implements Controller {
 
 	public void logout() {
 		NetworkConnection.disconnect();
+		fc.clear();
+		Client.timer.cancel();
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
 				loadScene(applicationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);
@@ -531,14 +537,16 @@ public class ApplicationController implements Controller {
 
 	public void changeMonthToNext() {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().plusMonths(1));
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
 				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
+		updateComboBoxesAccordingToDate(calendar.getCalendarsDate());
 	}
 
 	public void changeMonthToPrevious() {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().minusMonths(1));
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
 				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
+		updateComboBoxesAccordingToDate(calendar.getCalendarsDate());
 	}
 
 	public void changeMonthToChosen() {
@@ -553,14 +561,21 @@ public class ApplicationController implements Controller {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
 				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
 	}
 
 	public void changeYearToChosen() {
 		int year = Integer.parseInt(yearsCB.getValue());
 		calendar.setCalendarsDate(calendar.getCalendarsDate().withYear(year));
-		calendar.refreshCalendarTable(calendarTable, currentlyChosenDateLabel, calendar.getCalendarsDate(),
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
 				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
+	}
+	
+	private void updateComboBoxesAccordingToDate(LocalDate givenDate) {
+		// Set new ComboBox values:
+		String currentDateInPolish = CalendarController.localDateToPolishDateString(givenDate);
+		monthsCB.setValue(currentDateInPolish.substring(0, currentDateInPolish.indexOf(" ")));
+		yearsCB.setValue(currentDateInPolish.substring(currentDateInPolish.indexOf(" ") + 1));
 	}
 }

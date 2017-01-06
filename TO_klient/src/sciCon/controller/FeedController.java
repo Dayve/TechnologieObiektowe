@@ -37,6 +37,12 @@ public class FeedController {
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
 
+	public void clear() {
+		feed.clear();
+		openedTabsConferencesIds.clear();
+		selectedConferenceId = null;
+	}
+	
 	public ArrayList<Conference> getFeed() {
 		return feed;
 	}
@@ -256,11 +262,11 @@ public class FeedController {
 							.findFirst().get();
 					VBox vbox = new VBox();
 					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
-					ListView<TextFlow> forumsListView = createForumsListView(c, tp.getHeight()/2);
+//					ListView<TextFlow> forumsListView = createForumsListView(c, tp.getHeight()/2);
 					Platform.runLater(new Runnable() {
 						@Override public void run() {
 							vbox.getChildren().add(scPane);
-							vbox.getChildren().add(forumsListView);
+//							vbox.getChildren().add(forumsListView);
 							t.setContent(vbox);
 						}
 					});
@@ -297,14 +303,14 @@ public class FeedController {
 					VBox vbox = new VBox();
 
 					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
-					ListView<TextFlow> forumPane = createForumsListView(c, tp.getHeight()/2);
+//					ListView<TextFlow> forumPane = createForumsListView(c, tp.getHeight()/2);
 
 					// VBOx is redundant only theoretically, the full hierarchy
 					// is:
 					// Tab[ VBox[ ScrollPane[ TextFlow[ Text, Text, Text, ... ]
 					// ] ] ]
 					vbox.getChildren().add(scPane);
-					vbox.getChildren().add(forumPane);
+//					vbox.getChildren().add(forumPane);
 
 					tab.setContent(vbox);
 					tp.getTabs().add(tab);

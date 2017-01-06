@@ -32,7 +32,6 @@
       <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.rowSpan="2">
          <children>
             <TableView fx:id="calendarTable" layoutX="50.0" layoutY="45.0" prefHeight="392.0" prefWidth="392.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="3.0" AnchorPane.topAnchor="28.0" />
-            <Label fx:id="currentlyChosenDateLabel" layoutX="14.0" layoutY="6.0" prefHeight="16.0" prefWidth="368.0" />
          </children>
       </AnchorPane>
       <GridPane GridPane.columnIndex="2" GridPane.rowIndex="1">

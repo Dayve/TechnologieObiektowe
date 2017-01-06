@@ -16,19 +16,23 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import sciCon.model.Conference;
 import sciCon.model.Controller.ConferenceFilter;
+import sciCon.model.NetworkConnection;
 import sciCon.model.Post;
+import sciCon.model.SocketEvent;
 import sciCon.model.User;
 
 public class FeedController {
@@ -42,7 +46,7 @@ public class FeedController {
 		openedTabsConferencesIds.clear();
 		selectedConferenceId = null;
 	}
-	
+
 	public ArrayList<Conference> getFeed() {
 		return feed;
 	}
@@ -62,7 +66,7 @@ public class FeedController {
 	public Conference getConference(int id) {
 		return feed.stream().filter(c -> c.getId() == id).findFirst().get();
 	}
-	
+
 	public void setSelectedConferenceId(Integer selectedConferenceId) {
 		this.selectedConferenceId = selectedConferenceId;
 	}
@@ -89,7 +93,7 @@ public class FeedController {
 
 		return result.substring(0, result.length() - 1);
 	}
-	
+
 	public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 		LocalDateTime now = LocalDateTime.now();
@@ -168,47 +172,71 @@ public class FeedController {
 		lv.setItems(ol);
 	}
 
-	public void resizeConferenceTabs(TabPane tp, Integer size) {
-		for (Tab t : tp.getTabs()) {
-			VBox vb = (VBox) t.getContent();
-			ScrollPane confInfo = (ScrollPane) vb.getChildren().get(0);
-			confInfo.setPrefHeight(size);
+	public void resizeSelectedConferenceTab(TabPane tp, Integer newHeight) {
+		Tab t = tp.getSelectionModel().getSelectedItem();
+		VBox vb = (VBox) t.getContent();
+		ObservableList<Node> children = vb.getChildren();
+		newHeight /= children.size();
+		for (Node child : children) {
+			((Region) child).setPrefHeight(newHeight);
 		}
 	}
 
-	private ListView<TextFlow> createForumsListView(Conference c, double prefTabHeight) {
+	@SuppressWarnings("unchecked") private ArrayList<Post> reqForumsFeed(Integer usersId, Integer conferencesId) {
+		ArrayList<Post> forumsFeed = null;
+		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
+		userIdConferenceId.add(ApplicationController.currentUser.getId());
+		userIdConferenceId.add(getSelectedConferenceId());
+		System.out.println("getSelectedConferenceId(): " + getSelectedConferenceId());
+		SocketEvent se = new SocketEvent("reqConferencesPosts", userIdConferenceId);
+
+		NetworkConnection.sendSocketEvent(se);
+		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		String eventName = res.getName();
+		if (eventName.equals("sendForumMessageSucceeded")) {
+			forumsFeed = res.getObject(ArrayList.class);
+		}
+		return forumsFeed;
+	}
+
+	private ListView<TextFlow> createForumsListView(Conference c, double prefForumsHeight) {
 		ListView<TextFlow> lv = new ListView<TextFlow>();
-		TextFlow flow = new TextFlow();
-		flow.setPrefHeight(prefTabHeight);
+//		TextFlow flow = new TextFlow();
+
+		ArrayList<Post> posts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId());
+		if (posts == null) {
+			return null;
+		}
 
 		// Styles:
-		String boldStyle = new String("-fx-font-weight:bold;"), // for the author's name
+		String boldStyle = new String("-fx-font-weight:bold;"), // for the
+																// author's name
 				regularStyle = new String(); // For content and date
 
-		ArrayList<Post> posts = new ArrayList<Post>();
-				//getSelectedConference().getPosts();
-		posts.add(new Post(getSelectedConference().getParticipants().get(0), "hello", LocalDateTime.now()));
-		posts.add(new Post(getSelectedConference().getParticipants().get(1), "hey you", LocalDateTime.now()));
-		
+		ArrayList<Post> fakePosts = new ArrayList<Post>();
+		// getSelectedConference().getPosts();
+		fakePosts.add(new Post(getSelectedConference().getParticipants().get(0), "hello", LocalDateTime.now()));
+		fakePosts.add(new Post(getSelectedConference().getParticipants().get(1), "hey you", LocalDateTime.now()));
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-		for(Post p : posts) {
+		for (Post p : posts) {
 			// add date and \n (regular font)
 			Text date = new Text(p.getTime().format(formatter) + "\n");
 			date.setStyle(regularStyle);
 			// add author's text (bold)
 			Text author = new Text(p.getAuthor().getLogin() + ": ");
 			author.setStyle(boldStyle);
-			
+
 			// add post's content (regular font)
 			Text content = new Text(p.getContent());
 			content.setStyle(regularStyle);
 			lv.getItems().add(new TextFlow(date, author, content));
 		}
 		lv.setStyle("-fx-padding: 10 10 10 10;");
-		
+		lv.setPrefHeight(prefForumsHeight);
 		return lv;
 	}
-	
+
 	private ScrollPane createConfDescriptionScrollPane(Conference c, double prefTabHeight) {
 		// TextFlow is built from many Text objects (which can have different
 		// styles)
@@ -220,9 +248,15 @@ public class FeedController {
 																			// "Organizatorzy"
 
 		// Styles:
-		String sectionNameStyle = new String("-fx-font-weight:bold;"), // For "Tytuł", "Organizatorzy" and the rest
-				
-				sectionContentStyle = new String(); // For content (text of description etc.)
+		String sectionNameStyle = new String("-fx-font-weight:bold;"), // For
+																		// "Tytuł",
+																		// "Organizatorzy"
+																		// and
+																		// the
+																		// rest
+
+				sectionContentStyle = new String(); // For content (text of
+													// description etc.)
 
 		String[] sectionNames = new String[] { "Temat:\n", "\n\nOrganizatorzy:\n", "\nCzas rozpoczęcia:\n",
 				"\n\nCzas zakończenia:\n", "\n\nMiejsce:\n", "\n\nPlan:\n", "\n\nOpis:\n",
@@ -252,7 +286,7 @@ public class FeedController {
 		flow.setStyle("-fx-padding: 10 10 10 10;");
 		return scPane;
 	}
-	
+
 	public void refreshConferenceTabs(TabPane tp, ArrayList<Conference> confPool) {
 		try {
 			for (Iterator<Tab> iterator = tp.getTabs().iterator(); iterator.hasNext();) {
@@ -261,15 +295,28 @@ public class FeedController {
 					Conference c = confPool.stream().filter(conf -> conf.getId() == Integer.parseInt(t.getId()))
 							.findFirst().get();
 					VBox vbox = new VBox();
-					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
+					double paneSize = tp.getHeight() / 2;
+					boolean showForum = true;
+					ListView<TextFlow> forumsListView = createForumsListView(c, paneSize);
+					if (forumsListView == null) {
+						paneSize = tp.getHeight();
+						showForum = false;
+					}
+					ScrollPane scPane = createConfDescriptionScrollPane(c, paneSize);
+
 //					ListView<TextFlow> forumsListView = createForumsListView(c, tp.getHeight()/2);
-					Platform.runLater(new Runnable() {
-						@Override public void run() {
-							vbox.getChildren().add(scPane);
-//							vbox.getChildren().add(forumsListView);
-							t.setContent(vbox);
-						}
-					});
+
+					vbox.getChildren().add(scPane);
+					if (showForum) {
+						vbox.getChildren().add(forumsListView);
+					}
+//					Platform.runLater(new Runnable() {
+//						@Override public void run() {
+//							
+//							
+//							t.setContent(vbox);
+//						}
+//					});
 				} catch (NoSuchElementException e) {
 					// if there's no such conference found remove its tab
 					openedTabsConferencesIds.remove(Integer.parseInt(t.getId()));
@@ -301,16 +348,23 @@ public class FeedController {
 					tab.setText(c.getName());
 					tab.setId(currId.toString());
 					VBox vbox = new VBox();
-
-					ScrollPane scPane = createConfDescriptionScrollPane(c, tp.getHeight()/2);
-//					ListView<TextFlow> forumPane = createForumsListView(c, tp.getHeight()/2);
+					double paneSize = tp.getHeight() / 2;
+					boolean showForum = true;
+					ListView<TextFlow> forumPane = createForumsListView(c, paneSize);
+					if (forumPane == null) {
+						paneSize = tp.getHeight();
+						showForum = false;
+					}
+					ScrollPane scPane = createConfDescriptionScrollPane(c, paneSize);
 
 					// VBOx is redundant only theoretically, the full hierarchy
 					// is:
 					// Tab[ VBox[ ScrollPane[ TextFlow[ Text, Text, Text, ... ]
 					// ] ] ]
 					vbox.getChildren().add(scPane);
-//					vbox.getChildren().add(forumPane);
+					if (showForum) {
+						vbox.getChildren().add(forumPane);
+					}
 
 					tab.setContent(vbox);
 					tp.getTabs().add(tab);

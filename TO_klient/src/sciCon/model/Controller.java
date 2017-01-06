@@ -1,7 +1,6 @@
 package sciCon.model;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
@@ -10,8 +9,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import sciCon.Client;
-import sciCon.controller.ApplicationController;
-import sciCon.controller.ConferenceManagerController;
 import sciCon.controller.ConfirmationWindowController;
 import sciCon.controller.DialogController;
 import sciCon.controller.FeedController;

@@ -40,6 +40,7 @@ import sciCon.model.SocketEvent;
 import sciCon.model.User;
 import sciCon.model.Week;
 
+@SuppressWarnings("restriction")
 public class ApplicationController implements Controller {
 
 	@FXML Parent applicationWindow;
@@ -103,7 +104,7 @@ public class ApplicationController implements Controller {
 		Stage mainStage = (Stage) applicationWindow.getScene().getWindow();
 		mainStage.heightProperty().addListener(new ChangeListener<Number>() {
 			@Override public void changed(ObservableValue<? extends Number> arg0, Number arg1, Number arg2) {
-				fc.resizeConferenceTabs(eventDetailsTP, arg2.intValue() / 2);
+				fc.resizeSelectedConferenceTab(eventDetailsTP, arg2.intValue());
 			}
 		});
 	}
@@ -114,8 +115,11 @@ public class ApplicationController implements Controller {
 		eventDetailsTP.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
 			@Override public void changed(ObservableValue<? extends Tab> ov, Tab from, Tab to) {
 				if (to != null) {
+					fc.resizeSelectedConferenceTab(eventDetailsTP, 
+							applicationWindow.getScene().getWindow().heightProperty().getValue().intValue());
 					fc.setSelectedConferenceId(Integer.parseInt(to.getId()));
 					checkUsersParticipation();
+					
 				} else {
 					fc.setSelectedConferenceId(null);
 				}
@@ -170,7 +174,6 @@ public class ApplicationController implements Controller {
 		
 		calendarTable.widthProperty().addListener(new ChangeListener<Number>()
 		{
-		    @SuppressWarnings("restriction")
 			@Override
 		    public void changed(ObservableValue<? extends Number> source, Number oldWidth, Number newWidth)
 		    {

@@ -1,5 +1,7 @@
 package sciCon.model;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -368,6 +370,34 @@ public class DbConnection {
 		return succeeded;
 	}
 
+	public boolean addFile(int userId, int conferenceId, String filename, byte[] rawData, String description) {
+		boolean succeeded = true;
+		
+		String addFileQuery = "insert into plik (id_pliku, id_wydarzenia, id_uzytkownika, nazwa, tresc, opis) "
+				+ "values (null, ?, ?, ?, ?, ?)";
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(addFileQuery);
+			pstmt.setInt(1, conferenceId);
+			pstmt.setInt(2, userId);
+			pstmt.setString(3, filename);
+			
+			InputStream in = new ByteArrayInputStream(rawData);
+			pstmt.setBinaryStream(4, in, rawData.length);
+			
+			pstmt.setString(5, description);
+			
+			pstmt.executeUpdate();
+			pstmt.close();
+		} catch (SQLException e) {
+			succeeded = false;
+			System.out.println("Adding a participant to database has failed.");
+			e.printStackTrace();
+		}
+		
+		return succeeded;
+}
+	
 	public ArrayList<Post> fetchConferencesPosts(Integer conferenceId) {
 		ArrayList<Post> posts = new ArrayList<Post>();
 		String fetchPostsQuery = "select id_posta, id_uzytkownika, "

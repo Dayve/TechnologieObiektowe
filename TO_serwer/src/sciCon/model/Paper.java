@@ -15,27 +15,71 @@ import java.nio.ByteOrder;
 public class Paper implements Serializable {
 	
 	private static final long serialVersionUID = 3578902895952322210L;
+	
 	private ByteBuffer buffer = null;
+	
+	public String filename;
+	public int authorsId;
+	public int targetConferenceId;
+	
+	private int fileSize;
+	
 	
 	public byte[] getAsByteArray() {
 		return buffer.array();
+	}
+	
+	public byte[] getRawFileData() {
+		byte[] fileBytes = new byte[fileSize];
+		
+		for(int i=0 ; i<fileSize ; ++i) {
+			fileBytes[i] = buffer.get(i + Integer.BYTES*4);
+		}
+		
+		return fileBytes;
 	}
 	
 	public void createFromReceivedBytes(byte[] receivedBytes) {
 		buffer = ByteBuffer.allocate(receivedBytes.length);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		buffer.put(receivedBytes);
+		
+		fileSize = buffer.getInt(0);
+		int fileNameLength = buffer.getInt(Integer.BYTES);
+		authorsId = buffer.getInt(2*Integer.BYTES);
+		targetConferenceId = buffer.getInt(3*Integer.BYTES);
+		
+		byte[] fileNameBytes = new byte[fileNameLength];
+
+		for(int i=0 ; i<fileNameLength ; ++i) {
+			fileNameBytes[i] = buffer.get(i + Integer.BYTES*4 + fileSize);
+		}
+		
+		filename = new String(fileNameBytes);
 	}
 	
-	public void createFromExistingFile(String pathWithFilename) {
-		File file = new File(pathWithFilename);
-		String filename = file.getName();
-		byte[] filenameStringAsBytes = filename.getBytes();
+	public void createFromExistingFile(String pathWithFilename, int givenUserId, int givenConferenceId) {
+		this.authorsId = givenUserId;
+		this.targetConferenceId = givenConferenceId;
 		
-		int size = new Long(file.length()).intValue();	
-		byte[] fileBytes = new byte[size];
+		File file = new File(pathWithFilename);
+		filename = file.getName();
+		fileSize = new Long(file.length()).intValue();
+		
+		byte[] fileNameAsBytes = filename.getBytes();
+		byte[] fileBytes = new byte[fileSize];
 
-		buffer = ByteBuffer.allocate(size + Integer.BYTES*2 + filenameStringAsBytes.length);
+		/* Byte array structure:
+		 * Constant size fields:
+		 *  1) fileSize (int, 4 bytes (we use Integer.BYTES, but it's equal to 4))
+		 *  2) fileNameAsBytes.length (int, 4 bytes)
+		 *  3) authorsId (int, 4 bytes)
+		 *  4) targetConferenceId (int, 4 bytes)
+		 * Variable size fields:
+		 *  5) actual file contents (byte[], the rest of the array)
+		 *  6) fileNameAsBytes (byte[], fileNameAsBytes.length bytes)
+		 */
+		buffer = ByteBuffer.allocate(Integer.BYTES*4 + fileSize + fileNameAsBytes.length);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		
 		try {
@@ -51,30 +95,18 @@ public class Paper implements Serializable {
 		}
 		
 		buffer.putInt(fileBytes.length);
-		buffer.putInt(filename.length());
+		buffer.putInt(fileNameAsBytes.length);
+		buffer.putInt(authorsId);
+		buffer.putInt(targetConferenceId);
+		
 		buffer.put(fileBytes);
-		buffer.put(filenameStringAsBytes);
+		buffer.put(fileNameAsBytes);
 	}
 	
 	public void saveAsFile(String path) {
-		try {
-			int howManyBytes = buffer.getInt(0);
-			int filenameLength = buffer.getInt(Integer.BYTES);
-			byte[] filenameBytes = new byte[filenameLength];
-			byte[] fileBytes = new byte[howManyBytes];
-			
-			for(int i=0 ; i<howManyBytes ; ++i) {
-				fileBytes[i] = buffer.get(i + Integer.BYTES*2);
-			}
-			
-			for(int i=0 ; i<filenameLength ; ++i) {
-				filenameBytes[i] = buffer.get(i + Integer.BYTES*2 + howManyBytes);
-			}
-			
-			String filename = new String(filenameBytes);
-			
+		try {			
 			OutputStream out = new FileOutputStream(path + filename);
-			out.write(fileBytes, 0, howManyBytes);
+			out.write(getRawFileData(), 0, fileSize);
 			out.close();
 		}
 		catch (FileNotFoundException e) {

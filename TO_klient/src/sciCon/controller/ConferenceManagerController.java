@@ -157,7 +157,8 @@ public class ConferenceManagerController implements Controller {
 	
 	private void readAndSendFile(String pathWithFilename) {
 		Paper examplePaper = new Paper();
-		examplePaper.createFromExistingFile(pathWithFilename);
+		examplePaper.createFromExistingFile(pathWithFilename, 
+				ApplicationController.currentUser.getId().intValue(), selectedConferenceId);
 		
 		SocketEvent se = new SocketEvent("fileSentToServer", examplePaper.getAsByteArray());
 		NetworkConnection.sendSocketEvent(se);

@@ -20,12 +20,11 @@ import sciCon.model.User.UsersRole;
 import sciCon.model.Validator;
 
 public class SciConServer implements Runnable {
-	
+
 	private ServerSocket listener;
 	public HashMap<Integer, User> loggedUsers = new HashMap<Integer, User>();
 	private int port;
 
-	
 	public SciConServer(int p) {
 		port = p;
 	}
@@ -169,17 +168,17 @@ public class SciConServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		private void handleSetUsersRole(ArrayList<Integer> usersIds, UsersRole uR, Integer conferenceId) {
 			SocketEvent se = null;
-			if(uR == UsersRole.NONE) {
-				if(dbConn.expellUsers(usersIds, conferenceId)) {
+			if (uR == UsersRole.NONE) {
+				if (dbConn.expellUsers(usersIds, conferenceId)) {
 					Conference c = dbConn.fetchConference(conferenceId);
 					se = new SocketEvent("expellSucceeded", c);
 				} else {
 					se = new SocketEvent("expellFailed");
 				}
-				
+
 			} else {
 				if (dbConn.updateUsersRoles(usersIds, uR, conferenceId)) {
 					Conference c = dbConn.fetchConference(conferenceId);
@@ -259,13 +258,12 @@ public class SciConServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		private void handleRequestConferencesPosts(int userId, int conferenceId) {
 			SocketEvent se = null;
 			UsersRole fetchedRole = dbConn.checkUsersRole(userId, conferenceId);
 			System.out.println("fetched role: " + fetchedRole);
-			if (fetchedRole == UsersRole.NONE ||
-					fetchedRole == UsersRole.PENDING) {
+			if (fetchedRole == UsersRole.NONE || fetchedRole == UsersRole.PENDING) {
 				se = new SocketEvent("sendForumMessageFailed");
 			} else {
 				ArrayList<Post> posts = dbConn.fetchConferencesPosts(conferenceId);
@@ -279,7 +277,7 @@ public class SciConServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		private void handleSendCurrentUser() {
 			SocketEvent se = null;
 
@@ -308,15 +306,16 @@ public class SciConServer implements Runnable {
 					String eventName = se.getName();
 					switch (eventName) {
 						case "fileSentToServer": {
-							byte[] testPaper_rawData = se.getObject(byte[].class);
-							
-							Paper testPaper = new Paper();
-							testPaper.createFromReceivedBytes(testPaper_rawData);
-							
-							testPaper.saveAsFile("D:/to-proj/");
+							byte[] receivedPaper_rawData = se.getObject(byte[].class);
+
+							Paper receivedPaper = new Paper();
+							receivedPaper.createFromReceivedBytes(receivedPaper_rawData);
+//							receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION/");
+
+							dbConn.addFile(receivedPaper.authorsId, receivedPaper.targetConferenceId,
+									receivedPaper.filename, receivedPaper.getRawFileData(), "No description");
 							break;
 						}
-					
 						// login request
 						case "reqLogin": {
 							User u = (User) se.getObject(User.class);
@@ -370,7 +369,7 @@ public class SciConServer implements Runnable {
 							handleSendForumMessage(userId, conferenceId, message);
 							break;
 						}
-						
+
 						case "reqConferencesPosts": {
 							@SuppressWarnings("unchecked")
 							ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
@@ -379,7 +378,7 @@ public class SciConServer implements Runnable {
 							handleRequestConferencesPosts(userId, conferenceId);
 							break;
 						}
-						
+
 						case "reqSetRole": {
 							@SuppressWarnings("unchecked")
 							ArrayList<Integer> usersIds = se.getObject(ArrayList.class);

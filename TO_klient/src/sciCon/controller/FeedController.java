@@ -174,11 +174,13 @@ public class FeedController {
 
 	public void resizeSelectedConferenceTab(TabPane tp, Integer newHeight) {
 		Tab t = tp.getSelectionModel().getSelectedItem();
-		VBox vb = (VBox) t.getContent();
-		ObservableList<Node> children = vb.getChildren();
-		newHeight /= children.size();
-		for (Node child : children) {
-			((Region) child).setPrefHeight(newHeight);
+		if (t != null) {
+			VBox vb = (VBox) t.getContent();
+			ObservableList<Node> children = vb.getChildren();
+			newHeight /= children.size();
+			for (Node child : children) {
+				((Region) child).setPrefHeight(newHeight);
+			}
 		}
 	}
 

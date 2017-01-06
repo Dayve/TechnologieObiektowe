@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class User implements Serializable {
 	private static final long serialVersionUID = -7433946303557607605L;
 	public enum UsersRole {
-		ORGANIZER, SPONSOR, PRELECTOR, PARTICIPANT, NONE
+		ORGANIZER, SPONSOR, PRELECTOR, PARTICIPANT, PENDING, NONE
 	}
 	private Integer id = null;
 	String login = null, name = null, surname = null, password = null, email = null, organization = null;

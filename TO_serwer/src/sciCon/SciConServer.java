@@ -15,6 +15,7 @@ import java.util.HashMap;
 import sciCon.model.Conference;
 import sciCon.model.DbConnection;
 import sciCon.model.Paper;
+import sciCon.model.Post;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
 import sciCon.model.User.UsersRole;
@@ -246,6 +247,40 @@ public class SciConServer implements Runnable {
 			}
 		}
 
+		private void handleSendForumMessage(int userId, int conferenceId, String message) {
+			SocketEvent se = null;
+			if (!dbConn.addPost(userId, conferenceId, message)) {
+				se = new SocketEvent("sendForumMessageFailed");
+			} else {
+				se = new SocketEvent("sendForumMessageSucceeded");
+			}
+
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		private void handleRequestConferencesPosts(int userId, int conferenceId) {
+			SocketEvent se = null;
+			UsersRole fetchedRole = dbConn.checkUsersRole(userId, conferenceId);
+			if (fetchedRole == UsersRole.NONE ||
+					fetchedRole == UsersRole.PENDING) {
+				se = new SocketEvent("sendForumMessageFailed");
+			} else {
+				ArrayList<Post> posts = dbConn.fetchConferencesPosts(conferenceId);
+				System.out.println("pobrane posty: " + posts);
+				se = new SocketEvent("sendForumMessageSucceeded", posts);
+			}
+
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		private void handleSendCurrentUser() {
 			SocketEvent se = null;
 
@@ -327,6 +362,25 @@ public class SciConServer implements Runnable {
 							break;
 						}
 
+						case "reqSendForumMessage": {
+							@SuppressWarnings("unchecked")
+							ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
+							String message = se.getObject(String.class);
+							int userId = userIdConferenceId.get(0);
+							int conferenceId = userIdConferenceId.get(1);
+							handleSendForumMessage(userId, conferenceId, message);
+							break;
+						}
+						
+						case "reqConferencesPosts": {
+							@SuppressWarnings("unchecked")
+							ArrayList<Integer> userIdConferenceId = se.getObject(ArrayList.class);
+							int userId = userIdConferenceId.get(0);
+							int conferenceId = userIdConferenceId.get(1);
+							handleRequestConferencesPosts(userId, conferenceId);
+							break;
+						}
+						
 						case "reqSetRole": {
 							@SuppressWarnings("unchecked")
 							ArrayList<Integer> usersIds = se.getObject(ArrayList.class);

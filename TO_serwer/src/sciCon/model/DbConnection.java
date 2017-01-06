@@ -90,23 +90,23 @@ public class DbConnection {
 		return count;
 	}
 
-	public boolean addParticipant(int userId, int conferenceId) {
+	public boolean addParticipant(int usersId, int conferencesId) {
 		boolean succeeded = true;
-		int participantId = maxEntry("id_uczestnika", "uczestnik") + 1;
+		int participantsId = maxEntry("id_uczestnika", "uczestnik") + 1;
 
 		String addParticipantQuery = "insert into uczestnik values(?, ?, ?)";
 		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 4)";
 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addParticipantQuery);
-			pstmt.setInt(1, participantId);
-			pstmt.setInt(2, conferenceId);
-			pstmt.setInt(3, userId);
+			pstmt.setInt(1, participantsId);
+			pstmt.setInt(2, conferencesId);
+			pstmt.setInt(3, usersId);
 			pstmt.executeUpdate();
 			pstmt.close();
 
 			pstmt = conn.prepareStatement(addParticipantRoleQuery);
-			pstmt.setInt(1, participantId);
+			pstmt.setInt(1, participantsId);
 			pstmt.executeUpdate();
 
 			pstmt.close();
@@ -176,6 +176,71 @@ public class DbConnection {
 		return succeeded;
 	}
 
+	public UsersRole checkUsersRole(Integer usersId, Integer conferencesId) {
+		UsersRole role = UsersRole.NONE;
+		String participantsRoleQuery = "select id_roli from rola_uczestnika where " + "id_udzialu = (?)";
+		Integer participantsId = getParticipantsId(usersId, conferencesId);
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(participantsRoleQuery);
+			pstmt.setInt(1, participantsId);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				Integer rolesId = rs.getInt(1);
+				switch (rolesId) {
+					case 0: {
+						role = UsersRole.ORGANIZER;
+						break;
+					}
+					case 1: {
+						role = UsersRole.PRELECTOR;
+						break;
+					}
+					case 2: {
+						role = UsersRole.PARTICIPANT;
+						break;
+					}
+					case 3: {
+						role = UsersRole.SPONSOR;
+						break;
+					}
+					case 4: {
+						role = UsersRole.PENDING;
+						break;
+					}
+					default: {
+						break;
+					}
+					// allParticipants[0] - organizers, [1] - prelectors,
+					// [2] - participants, [3]- sponsors, [4] - pending
+				}
+			}
+			pstmt.close();
+		} catch (SQLException | NullPointerException e) {
+//			role = UsersRole.NONE;
+//			e.printStackTrace();
+		}
+		return role;
+	}
+
+	private Integer getParticipantsId(Integer usersId, Integer conferencesId) {
+		String selectParticipantsIdQuery = "select id_uczestnika from uczestnik where "
+				+ "id_uzytkownika = (?) and id_wydarzenia = (?)";
+		Integer participantsId = null;
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(selectParticipantsIdQuery);
+			pstmt.setInt(1, usersId);
+			pstmt.setInt(2, conferencesId);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.next()) {
+				participantsId = rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			System.out.println("Getting participant's ID from database has failed.");
+			e.printStackTrace();
+		}
+		return participantsId;
+	}
+
 	public boolean expellUsers(ArrayList<Integer> usersIds, Integer conferenceId) {
 		boolean succeeded = true;
 		for (Integer id : usersIds) {
@@ -187,35 +252,24 @@ public class DbConnection {
 		return succeeded;
 	}
 
-	public boolean removeParticipant(int userId, int conferenceId) {
+	public boolean removeParticipant(int usersId, int conferencesId) {
 		boolean succeeded = true;
 
-		String selectParticipantIdQuery = "select id_uczestnika from uczestnik where "
-				+ "id_wydarzenia = (?) and id_uzytkownika = (?)";
 		String removeParticipantQuery = "delete from uczestnik where id_uczestnika = (?)";
-		Integer participantId = null;
+		Integer participantsId = null;
 
-		try {
-			PreparedStatement pstmt = conn.prepareStatement(selectParticipantIdQuery);
-			pstmt.setInt(1, conferenceId);
-			pstmt.setInt(2, userId);
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
-				participantId = rs.getInt(1);
-			}
-			pstmt.close();
-
-			if (participantId != null) {
-				pstmt = conn.prepareStatement(removeParticipantQuery);
-				pstmt.setInt(1, participantId);
+		participantsId = getParticipantsId(usersId, conferencesId);
+		if (participantsId != null) {
+			try {
+				PreparedStatement pstmt = conn.prepareStatement(removeParticipantQuery);
+				pstmt.setInt(1, participantsId);
 				pstmt.executeUpdate();
 				pstmt.close();
+			} catch (SQLException e) {
+				succeeded = false;
+				System.out.println("Removing a participant from database has failed.");
+				e.printStackTrace();
 			}
-
-		} catch (SQLException e) {
-			succeeded = false;
-			System.out.println("Removing a participant from database has failed.");
-			e.printStackTrace();
 		}
 		return succeeded;
 	}
@@ -289,6 +343,59 @@ public class DbConnection {
 			e.printStackTrace();
 		}
 		return succeeded;
+	}
+
+	public boolean addPost(int userId, int conferenceId, String message) {
+		boolean succeeded = true;
+
+		String addPostQuery = "insert into post (id_posta, id_wydarzenia, id_uzytkownika, tresc, data) "
+				+ "values (null, ?, ?, ?, sysdate)";
+
+//		System.out.println(LocalDateTime.now().toString().replace('T', ' ').substring(0, 16));
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(addPostQuery);
+			pstmt.setInt(1, conferenceId);
+			pstmt.setInt(2, userId);
+			pstmt.setString(3, message);
+//			pstmt.setString(4, LocalDateTime.now().toString());
+			pstmt.executeUpdate();
+			pstmt.close();
+		} catch (SQLException e) {
+			succeeded = false;
+			System.out.println("Adding a participant to database has failed.");
+			e.printStackTrace();
+		}
+		return succeeded;
+	}
+
+	public ArrayList<Post> fetchConferencesPosts(Integer conferenceId) {
+		ArrayList<Post> posts = new ArrayList<Post>();
+		String fetchPostsQuery = "select id_posta, id_uzytkownika, "
+				+ "tresc, to_char(data,'yyyy-mm-dd hh24:mi:ss') FROM" + " post WHERE id_wydarzenia = ? ORDER BY data",
+				message = null, timeStr = null;
+		Integer postsId = null, usersId = null;
+		LocalDateTime time = null;
+		System.out.println("dbconn - pobieram posty, id: ");
+		try {
+			PreparedStatement pstmt;
+			pstmt = conn.prepareStatement(fetchPostsQuery);
+			pstmt.setInt(1, conferenceId);
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				postsId = rs.getInt(1);
+				usersId = rs.getInt(2);
+				message = rs.getString(3);
+				timeStr = rs.getString(4);
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+				time = LocalDateTime.parse(timeStr, formatter);
+				System.out.print(postsId + " ");
+				posts.add(new Post(postsId, usersId, message, time));
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return posts;
 	}
 
 	public boolean registerUser(User u) {
@@ -415,9 +522,9 @@ public class DbConnection {
 				agenda = rs.getString(6);
 				startTimeStr = rs.getString(7);
 				endTimeStr = rs.getString(8);
-			} 
+			}
 			pstmt.close();
-			
+
 			// allParticipants[0] - organizers, [1] - prelectors,
 			// [2] - participants, [3]- sponsors, [4] - pending
 			ArrayList<ArrayList<User>> allParticipants = fetchAllConferenceParticipants(id);
@@ -429,7 +536,7 @@ public class DbConnection {
 			ret = new Conference(id, name, subject, startTime, endTime, place, description, agenda,
 					allParticipants.get(0), allParticipants.get(1), allParticipants.get(2), allParticipants.get(3),
 					allParticipants.get(4));
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

@@ -113,6 +113,30 @@
     -fx-background-insets: 1 1 1 0, 1, 2;
     -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
 }
+
+/* Disables grid lines in a TableView: */
+.table-view {
+  -fx-table-cell-border-color: transparent;
+}
+
+.table-cell:focused {
+    -fx-border-color: black;
+	-fx-table-cell-border-color: black;
+	-fx-border-width: 3.0px;
+	
+	-fx-background-color: transparent;
+	-fx-text-fill: black;
+	-fx-background-insets: 3,3,3,3;
+}
+
+.table-row-cell:empty {
+    -fx-background-color: white;
+}
+
+.table-row-cell:empty .table-cell {
+    -fx-border-width: 0px;
+}
+
 /*@font-face {
     src: url("UbuntuMono.ttf");
 }

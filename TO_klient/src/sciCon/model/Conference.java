@@ -190,7 +190,8 @@ public class Conference implements Serializable {
 	};
 
 	public ArrayList<User> getParticipantsList() {
-		ArrayList<User> ret = new ArrayList<User>(prelectors);
+		ArrayList<User> ret = new ArrayList<User>();
+		ret.addAll(prelectors);
 		ret.addAll(sponsors);
 		ret.addAll(participants);
 		ret.addAll(pending);

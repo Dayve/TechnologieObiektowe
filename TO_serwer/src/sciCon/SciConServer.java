@@ -262,12 +262,10 @@ public class SciConServer implements Runnable {
 		private void handleRequestConferencesPosts(int userId, int conferenceId) {
 			SocketEvent se = null;
 			UsersRole fetchedRole = dbConn.checkUsersRole(userId, conferenceId);
-			System.out.println("fetched role: " + fetchedRole);
 			if (fetchedRole == UsersRole.NONE || fetchedRole == UsersRole.PENDING) {
 				se = new SocketEvent("sendForumMessageFailed");
 			} else {
 				ArrayList<Post> posts = dbConn.fetchConferencesPosts(conferenceId);
-				System.out.println("pobrane posty: " + posts);
 				se = new SocketEvent("sendForumMessageSucceeded", posts);
 			}
 

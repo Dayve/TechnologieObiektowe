@@ -20,6 +20,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -29,7 +30,10 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import sciCon.Client;
@@ -60,6 +64,7 @@ public class ApplicationController implements Controller {
 	@FXML private ListView<Label> listOfSelectedDaysEvents;
 	@FXML private TabPane eventDetailsTP;
 	@FXML private TextField searchField;
+	@FXML private TextArea forumsMessage;
 
 	private CalendarController calendar = new CalendarController(fc);
 
@@ -82,6 +87,7 @@ public class ApplicationController implements Controller {
 		setupTabPane();
 		reqConferenceFeed();
 		setupTimer();
+		setupForumTextArea();
 		setupMonthsYearsCBs();
 		setupCalendar();
 		new Thread(() -> reqCurrentUser()).start();
@@ -99,7 +105,25 @@ public class ApplicationController implements Controller {
 		requestQueue.add(newRequest);
 	}
 
-	//
+	private void setupForumTextArea() {
+		forumsMessage.setOnKeyPressed(new EventHandler<KeyEvent>() {
+
+			@Override public void handle(KeyEvent event) {
+				if (event.getCode() == KeyCode.ENTER & 
+						(event.isControlDown() | event.isShiftDown())) {
+					forumsMessage.setText(forumsMessage.getText() + "\n");
+					forumsMessage.end();
+				} else if (event.getCode() == KeyCode.ENTER) {
+					if (forumsMessage.getText().length() > 0) {
+						reqSendForumMessage(forumsMessage.getText());
+						forumsMessage.clear();
+					}
+					event.consume();
+				}
+			}
+		});
+	}
+
 	private void setupTabResizeEvent() {
 		Stage mainStage = (Stage) applicationWindow.getScene().getWindow();
 		mainStage.heightProperty().addListener(new ChangeListener<Number>() {
@@ -115,11 +139,11 @@ public class ApplicationController implements Controller {
 		eventDetailsTP.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
 			@Override public void changed(ObservableValue<? extends Tab> ov, Tab from, Tab to) {
 				if (to != null) {
-					fc.resizeSelectedConferenceTab(eventDetailsTP, 
+					fc.resizeSelectedConferenceTab(eventDetailsTP,
 							applicationWindow.getScene().getWindow().heightProperty().getValue().intValue());
 					fc.setSelectedConferenceId(Integer.parseInt(to.getId()));
 					checkUsersParticipation();
-					
+
 				} else {
 					fc.setSelectedConferenceId(null);
 				}
@@ -163,28 +187,23 @@ public class ApplicationController implements Controller {
 	// user select its cells
 	private void setupCalendar() {
 		calendar.setCalendarsDate(LocalDate.now());
-		calendar.fillCalendarTable(calendarTable, fc.getFeed(), eventDetailsTP,
-				listOfSelectedDaysEvents);
+		calendar.fillCalendarTable(calendarTable, fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
 		calendarTable.getSelectionModel().setCellSelectionEnabled(true);
 		// Set initial ComboBox values
-		String currentDateInPolish = CalendarController
-				.localDateToPolishDateString(calendar.getCalendarsDate());
+		String currentDateInPolish = CalendarController.localDateToPolishDateString(calendar.getCalendarsDate());
 		monthsCB.setValue(currentDateInPolish.substring(0, currentDateInPolish.indexOf(" ")));
-		yearsCB.setValue(currentDateInPolish.substring(currentDateInPolish.indexOf(" ")+1));
-		
-		calendarTable.widthProperty().addListener(new ChangeListener<Number>()
-		{
-			@Override
-		    public void changed(ObservableValue<? extends Number> source, Number oldWidth, Number newWidth)
-		    {
+		yearsCB.setValue(currentDateInPolish.substring(currentDateInPolish.indexOf(" ") + 1));
+
+		calendarTable.widthProperty().addListener(new ChangeListener<Number>() {
+			@Override public void changed(ObservableValue<? extends Number> source, Number oldWidth, Number newWidth) {
 				TableHeaderRow header = (TableHeaderRow) calendarTable.lookup("TableHeaderRow");
-		        header.reorderingProperty().addListener(new ChangeListener<Boolean>() {
-		            @Override
-		            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-		                header.setReordering(false);
-		            }
-		        });
-		    }
+				header.reorderingProperty().addListener(new ChangeListener<Boolean>() {
+					@Override public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+							Boolean newValue) {
+						header.setReordering(false);
+					}
+				});
+			}
 		});
 	}
 
@@ -229,30 +248,57 @@ public class ApplicationController implements Controller {
 		}, 0, 1000);
 	}
 
-	
-
 	public enum ParticipantsRole {
-				PARTICIPANT, ORGANIZER, PRELECTOR, SPONSOR, PENDING, NONE
-			} 
+		PARTICIPANT, ORGANIZER, PRELECTOR, SPONSOR, PENDING, NONE
+	}
 
 	public static ParticipantsRole usersRoleOnConference(User user, Conference conference) {
-				for(User u : conference.getParticipants()) {
-					if(u.getId().equals(user.getId())) return ParticipantsRole.PARTICIPANT;
+		for (User u : conference.getParticipants()) {
+			if (u.getId().equals(user.getId()))
+				return ParticipantsRole.PARTICIPANT;
+		}
+		for (User u : conference.getOrganizers()) {
+			if (u.getId().equals(user.getId()))
+				return ParticipantsRole.ORGANIZER;
+		}
+		for (User u : conference.getPrelectors()) {
+			if (u.getId().equals(user.getId()))
+				return ParticipantsRole.PRELECTOR;
+		}
+		for (User u : conference.getSponsors()) {
+			if (u.getId().equals(user.getId()))
+				return ParticipantsRole.SPONSOR;
+		}
+		for (User u : conference.getPending()) {
+			if (u.getId().equals(user.getId()))
+				return ParticipantsRole.PENDING;
+		}
+		return ParticipantsRole.NONE;
+	}
+
+	private void reqSendForumMessage(String message) {
+		if (fc.getSelectedConferenceId() != null) {
+			if (message.length() > 0) {
+				ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
+				userIdConferenceId.add(currentUser.getId());
+				userIdConferenceId.add(fc.getSelectedConferenceId());
+				SocketEvent se = new SocketEvent("reqSendForumMessage", userIdConferenceId, message);
+
+				NetworkConnection.sendSocketEvent(se);
+				SocketEvent res = NetworkConnection.rcvSocketEvent();
+				String eventName = res.getName();
+				if (eventName.equals("sendForumMessageSucceeded")) {
+					reqConferenceFeed();
+				} else {
+					Platform.runLater(new Runnable() {
+						@Override public void run() {
+							openDialogBox(applicationWindow, "Wiadomość nie została wysłana.");
+						}
+					});
 				}
-				for(User u : conference.getOrganizers()) {
-					if(u.getId().equals(user.getId())) return ParticipantsRole.ORGANIZER;
-				}
-				for(User u : conference.getPrelectors()) {
-					if(u.getId().equals(user.getId())) return ParticipantsRole.PRELECTOR;
-				}
-				for(User u : conference.getSponsors()) {
-					if(u.getId().equals(user.getId())) return ParticipantsRole.SPONSOR;
-				}
-				for(User u : conference.getPending()) {
-					if(u.getId().equals(user.getId())) return ParticipantsRole.PENDING;
-				}
-				return ParticipantsRole.NONE;
 			}
+		}
+	}
 
 	// filters feed depending on conferenceCB's value - future/all/past
 	// conferences
@@ -355,8 +401,8 @@ public class ApplicationController implements Controller {
 						// fill FeedBox and Calendar in JavaFX UI Thread
 						checkUsersParticipation();
 						filterFeed();
-						calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(), 
-								feed, eventDetailsTP, listOfSelectedDaysEvents);
+						calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(), feed, eventDetailsTP,
+								listOfSelectedDaysEvents);
 						refreshConferencesListView(searchField.getText());
 						fc.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed, eventDetailsTP,
 								listOfSelectedDaysEvents, false);
@@ -417,8 +463,8 @@ public class ApplicationController implements Controller {
 		Integer selectedConfId = fc.getSelectedConferenceId();
 		if (selectedConfId != null) {
 			String selectedConfName = fc.getSelectedConference().getName();
-			openNewWindow(applicationWindow, "view/ConferenceManagerLayout.fxml", 
-					650, 600, false, "Zarządzaj konferencją \"" + selectedConfName + "\"");
+			openNewWindow(applicationWindow, "view/ConferenceManagerLayout.fxml", 650, 600, false,
+					"Zarządzaj konferencją \"" + selectedConfName + "\"");
 		}
 	}
 
@@ -558,15 +604,15 @@ public class ApplicationController implements Controller {
 
 	public void changeMonthToNext() {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().plusMonths(1));
-		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
-				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(), fc.getFeed(), eventDetailsTP,
+				listOfSelectedDaysEvents);
 		updateComboBoxesAccordingToDate(calendar.getCalendarsDate());
 	}
 
 	public void changeMonthToPrevious() {
 		calendar.setCalendarsDate(calendar.getCalendarsDate().minusMonths(1));
-		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
-				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(), fc.getFeed(), eventDetailsTP,
+				listOfSelectedDaysEvents);
 		updateComboBoxesAccordingToDate(calendar.getCalendarsDate());
 	}
 
@@ -582,17 +628,17 @@ public class ApplicationController implements Controller {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
-				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(), fc.getFeed(), eventDetailsTP,
+				listOfSelectedDaysEvents);
 	}
 
 	public void changeYearToChosen() {
 		int year = Integer.parseInt(yearsCB.getValue());
 		calendar.setCalendarsDate(calendar.getCalendarsDate().withYear(year));
-		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(),
-				fc.getFeed(), eventDetailsTP, listOfSelectedDaysEvents);
+		calendar.refreshCalendarTable(calendarTable, calendar.getCalendarsDate(), fc.getFeed(), eventDetailsTP,
+				listOfSelectedDaysEvents);
 	}
-	
+
 	private void updateComboBoxesAccordingToDate(LocalDate givenDate) {
 		// Set new ComboBox values:
 		String currentDateInPolish = CalendarController.localDateToPolishDateString(givenDate);

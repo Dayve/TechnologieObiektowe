@@ -8,10 +8,10 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -187,9 +187,8 @@ public class FeedController {
 	@SuppressWarnings("unchecked") private ArrayList<Post> reqForumsFeed(Integer usersId, Integer conferencesId) {
 		ArrayList<Post> forumsFeed = null;
 		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
-		userIdConferenceId.add(ApplicationController.currentUser.getId());
-		userIdConferenceId.add(getSelectedConferenceId());
-		System.out.println("getSelectedConferenceId(): " + getSelectedConferenceId());
+		userIdConferenceId.add(usersId);
+		userIdConferenceId.add(conferencesId);
 		SocketEvent se = new SocketEvent("reqConferencesPosts", userIdConferenceId);
 
 		NetworkConnection.sendSocketEvent(se);
@@ -202,40 +201,45 @@ public class FeedController {
 	}
 
 	private ListView<TextFlow> createForumsListView(Conference c, double prefForumsHeight) {
-		ListView<TextFlow> lv = new ListView<TextFlow>();
-//		TextFlow flow = new TextFlow();
-
 		ArrayList<Post> posts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId());
-		if (posts == null) {
-			return null;
+		ListView<TextFlow> lv = null;
+		if (posts != null) {
+			lv = new ListView<TextFlow>();
+			TextFlow flow = new TextFlow();
+			flow.setPrefHeight(prefForumsHeight);
+			ArrayList<User> selectedConfUsersList = new ArrayList<User>();
+			selectedConfUsersList.addAll(c.getOrganizers());
+			selectedConfUsersList.addAll(c.getParticipantsList());
+			Map<Integer, User> usersById = new HashMap<Integer, User>();
+			for (User u : selectedConfUsersList) {
+				usersById.put(u.getId(), u);
+			}
+
+			// Styles:
+			String boldStyle = new String("-fx-font-weight:bold;"), // for the
+																	// author's
+																	// name
+					regularStyle = new String(); // For content and date
+
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+			for (Post p : posts) {
+				// add date and \n (regular font)
+				Text date = new Text(p.getTime().format(formatter) + "\n");
+				date.setStyle(regularStyle);
+
+				User u = usersById.get(p.getAuthorsId());
+				// add author's text (bold)
+				Text author = new Text(u.getLogin() + ": ");
+				author.setStyle(boldStyle);
+
+				// add post's content (regular font)
+				Text content = new Text(p.getContent());
+				content.setStyle(regularStyle);
+				lv.getItems().add(new TextFlow(date, author, content));
+			}
+			lv.setStyle("-fx-padding: 10 10 10 10;");
+			lv.setPrefHeight(prefForumsHeight);
 		}
-
-		// Styles:
-		String boldStyle = new String("-fx-font-weight:bold;"), // for the
-																// author's name
-				regularStyle = new String(); // For content and date
-
-		ArrayList<Post> fakePosts = new ArrayList<Post>();
-		// getSelectedConference().getPosts();
-		fakePosts.add(new Post(getSelectedConference().getParticipants().get(0), "hello", LocalDateTime.now()));
-		fakePosts.add(new Post(getSelectedConference().getParticipants().get(1), "hey you", LocalDateTime.now()));
-
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-		for (Post p : posts) {
-			// add date and \n (regular font)
-			Text date = new Text(p.getTime().format(formatter) + "\n");
-			date.setStyle(regularStyle);
-			// add author's text (bold)
-			Text author = new Text(p.getAuthor().getLogin() + ": ");
-			author.setStyle(boldStyle);
-
-			// add post's content (regular font)
-			Text content = new Text(p.getContent());
-			content.setStyle(regularStyle);
-			lv.getItems().add(new TextFlow(date, author, content));
-		}
-		lv.setStyle("-fx-padding: 10 10 10 10;");
-		lv.setPrefHeight(prefForumsHeight);
 		return lv;
 	}
 

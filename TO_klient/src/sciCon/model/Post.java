@@ -1,26 +1,32 @@
 package sciCon.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Post {
-	private User author;
-	private String content;
-	
-
+public class Post implements Serializable{
+	private static final long serialVersionUID = -949648934513386484L;
+	private Integer postsId;
+	private Integer authorsId;
+	private String message;
 	private LocalDateTime time;
 
-	public Post(User author, String content, LocalDateTime time) {
-		this.author = author;
-		this.content = content;
+	public Post(Integer postsId, Integer authorsId, String message, LocalDateTime time) {
+		this.postsId = postsId;
+		this.authorsId = authorsId;
+		this.message = message;
 		this.time = time;
 	}
 
-	public User getAuthor() {
-		return author;
+	public Post(Integer authorsId, String message, LocalDateTime time) {
+		this(null, authorsId, message, time);
+	}
+	
+	public Integer getAuthorsId() {
+		return authorsId;
 	}
 
 	public String getContent() {
-		return content;
+		return message;
 	}
 	
 	public LocalDateTime getTime() {

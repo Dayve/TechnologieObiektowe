@@ -353,7 +353,6 @@ public class DbConnection {
 		String addPostQuery = "insert into post (id_posta, id_wydarzenia, id_uzytkownika, tresc, data) "
 				+ "values (null, ?, ?, ?, sysdate)";
 
-//		System.out.println(LocalDateTime.now().toString().replace('T', ' ').substring(0, 16));
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addPostQuery);
 			pstmt.setInt(1, conferenceId);
@@ -405,7 +404,6 @@ public class DbConnection {
 				message = null, timeStr = null;
 		Integer postsId = null, usersId = null;
 		LocalDateTime time = null;
-		System.out.println("dbconn - pobieram posty, id: ");
 		try {
 			PreparedStatement pstmt;
 			pstmt = conn.prepareStatement(fetchPostsQuery);
@@ -418,7 +416,6 @@ public class DbConnection {
 				timeStr = rs.getString(4);
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 				time = LocalDateTime.parse(timeStr, formatter);
-				System.out.print(postsId + " ");
 				posts.add(new Post(postsId, usersId, message, time));
 			}
 			pstmt.close();

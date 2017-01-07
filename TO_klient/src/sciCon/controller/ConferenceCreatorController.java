@@ -25,7 +25,8 @@ public class ConferenceCreatorController implements Controller {
 	@FXML Parent confCreatorWindow;
 	@FXML private TextField nameField;
 	@FXML private TextField subjectField;
-	@FXML private DatePicker dateField;
+	@FXML private DatePicker startDateField;
+	@FXML private DatePicker endDateField;
 	@FXML private ComboBox<String> startHr;
 	@FXML private ComboBox<String> startMin;
 	@FXML private ComboBox<String> endHr;
@@ -48,7 +49,8 @@ public class ConferenceCreatorController implements Controller {
 		endHr.getItems().addAll(hours);
 		startMin.getItems().addAll(minutes);
 		endMin.getItems().addAll(minutes);
-		dateField.setValue(conferenceDestinedDay);
+		startDateField.setValue(conferenceDestinedDay);
+		endDateField.setValue(conferenceDestinedDay);
 	}
 
 	// This function is called when a day is clicked (from CalendarController):
@@ -60,7 +62,8 @@ public class ConferenceCreatorController implements Controller {
 		String name = nameField.getText();
 		String subject = subjectField.getText();
 		// get LocalDateTime from LocalDate
-		LocalDateTime date = dateField.getValue().atStartOfDay();
+		LocalDateTime startDate = startDateField.getValue().atStartOfDay();
+		LocalDateTime endDate = endDateField.getValue().atStartOfDay();
 		String startHrCB = startHr.getSelectionModel().getSelectedItem();
 		String startMinCB = startMin.getSelectionModel().getSelectedItem();
 		String endHrCB = endHr.getSelectionModel().getSelectedItem();
@@ -70,8 +73,8 @@ public class ConferenceCreatorController implements Controller {
 
 		if (startHrCB != null && startMinCB != null && endHrCB != null && endMinCB != null) {
 
-			LocalDateTime startTime = date.plusHours(Long.parseLong(startHrCB)).plusMinutes(Long.parseLong(startMinCB));
-			LocalDateTime endTime = date.plusHours(Long.parseLong(endHrCB)).plusMinutes(Long.parseLong(endMinCB));
+			LocalDateTime startTime = startDate.plusHours(Long.parseLong(startHrCB)).plusMinutes(Long.parseLong(startMinCB));
+			LocalDateTime endTime = endDate.plusHours(Long.parseLong(endHrCB)).plusMinutes(Long.parseLong(endMinCB));
 
 			String place = placeField.getText();
 			String description = descriptionField.getText();

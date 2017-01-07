@@ -9,18 +9,14 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="confCreatorWindow" prefHeight="500.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.ConferenceCreatorController">
+<AnchorPane fx:id="confCreatorWindow" prefHeight="545.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sciCon.controller.ConferenceCreatorController">
    <children>
-      <Button layoutX="130.0" layoutY="450.0" mnemonicParsing="false" onAction="#closeWindowBtn" onKeyReleased="#closeBtnEnterKey" prefHeight="30.0" text="Zamknij okno">
+      <Button layoutX="135.0" layoutY="495.0" mnemonicParsing="false" onAction="#closeWindowBtn" onKeyReleased="#closeBtnEnterKey" prefHeight="30.0" text="Zamknij okno">
          <font>
             <Font size="13.0" />
          </font>
       </Button>
-      <Label layoutX="153.0" layoutY="124.0" text="godz.">
-         <font>
-            <Font size="13.0" />
-         </font></Label>
-      <Label layoutX="312.0" layoutY="124.0" text="do">
+      <Label layoutX="274.0" layoutY="124.0" text="godz.">
          <font>
             <Font size="13.0" />
          </font></Label>
@@ -32,34 +28,50 @@
          <font>
             <Font size="13.0" />
          </font></TextField>
-      <DatePicker fx:id="dateField" layoutX="50.0" layoutY="120.0" prefHeight="30.0" prefWidth="100.0" />
-      <ComboBox fx:id="startHr" layoutX="187.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
-      <ComboBox fx:id="startMin" layoutX="252.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
-      <ComboBox fx:id="endHr" layoutX="331.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
-      <ComboBox fx:id="endMin" layoutX="395.0" layoutY="120.0" prefHeight="30.0" prefWidth="55.0" />
-      <TextArea fx:id="placeField" layoutX="50.0" layoutY="165.0" prefHeight="60.0" prefWidth="400.0" promptText="Miejsce konferencji" wrapText="true">
+      <DatePicker fx:id="startDateField" layoutX="140.0" layoutY="120.0" prefHeight="30.0" prefWidth="124.0" />
+      <ComboBox fx:id="startHr" layoutX="315.0" layoutY="119.0" prefHeight="30.0" prefWidth="60.0" />
+      <ComboBox fx:id="startMin" layoutX="390.0" layoutY="120.0" prefHeight="30.0" prefWidth="60.0" />
+      <ComboBox fx:id="endHr" layoutX="315.0" layoutY="164.0" prefHeight="30.0" prefWidth="60.0" />
+      <ComboBox fx:id="endMin" layoutX="390.0" layoutY="165.0" prefHeight="30.0" prefWidth="60.0" />
+      <TextArea fx:id="placeField" layoutX="50.0" layoutY="210.0" prefHeight="60.0" prefWidth="400.0" promptText="Miejsce konferencji" wrapText="true">
          <font>
             <Font size="13.0" />
          </font></TextArea>
-      <TextArea fx:id="descriptionField" layoutX="50.0" layoutY="240.0" prefHeight="90.0" prefWidth="400.0" promptText="Opis konferencji" wrapText="true">
+      <TextArea fx:id="descriptionField" layoutX="50.0" layoutY="285.0" prefHeight="90.0" prefWidth="400.0" promptText="Opis konferencji" wrapText="true">
          <font>
             <Font size="13.0" />
          </font></TextArea>
-      <TextArea fx:id="agendaField" layoutX="50.0" layoutY="345.0" prefHeight="90.0" prefWidth="400.0" promptText="Plan konferencji" wrapText="true">
+      <TextArea fx:id="agendaField" layoutX="50.0" layoutY="390.0" prefHeight="90.0" prefWidth="400.0" promptText="Plan konferencji" wrapText="true">
          <font>
             <Font size="13.0" />
          </font></TextArea>
-      <Button layoutX="270.0" layoutY="450.0" mnemonicParsing="false" onAction="#addConferenceBtn" onKeyReleased="#addConferenceBtnEnterKey" prefHeight="30.0" text="Dodaj">
+      <Button layoutX="285.0" layoutY="495.0" mnemonicParsing="false" onAction="#addConferenceBtn" onKeyReleased="#addConferenceBtnEnterKey" prefHeight="30.0" text="Dodaj">
          <font>
             <Font size="13.0" />
          </font></Button>
-      <Label layoutX="246.0" layoutY="124.0" text=":">
+      <Label layoutX="381.0" layoutY="124.0" text=":">
          <font>
             <Font size="13.0" />
          </font></Label>
-      <Label layoutX="389.0" layoutY="124.0" text=":">
+      <Label layoutX="381.0" layoutY="169.0" text=":">
          <font>
             <Font size="13.0" />
          </font></Label>
+      <Label layoutX="50.0" layoutY="124.0" text="Rozpoczęcie:">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <Label layoutX="50.0" layoutY="169.0" text="Zakończenie:">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Label>
+      <DatePicker fx:id="endDateField" layoutX="140.0" layoutY="165.0" prefHeight="30.0" prefWidth="124.0" />
+      <Label layoutX="274.0" layoutY="169.0" text="godz.">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>

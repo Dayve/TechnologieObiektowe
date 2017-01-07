@@ -28,7 +28,9 @@
     -fx-padding:0;
 }
 
-
+.date-picker {
+	-fx-font: 13px "Inconsolata";
+}
 .button:focused,
 .toggle-button:focused,
 .radio-button:focused > .radio,

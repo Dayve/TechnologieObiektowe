@@ -36,7 +36,7 @@ import sciCon.model.SocketEvent;
 import sciCon.model.User;
 
 public class FeedController {
-
+	
 	private Integer selectedConferenceId = null;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
@@ -311,19 +311,10 @@ public class FeedController {
 					}
 					ScrollPane scPane = createConfDescriptionScrollPane(c, paneSize);
 
-//					ListView<TextFlow> forumsListView = createForumsListView(c, tp.getHeight()/2);
-
 					vbox.getChildren().add(scPane);
 					if (showForum) {
 						vbox.getChildren().add(forumsListView);
 					}
-//					Platform.runLater(new Runnable() {
-//						@Override public void run() {
-//							
-//							
-//							t.setContent(vbox);
-//						}
-//					});
 				} catch (NoSuchElementException e) {
 					// if there's no such conference found remove its tab
 					openedTabsConferencesIds.remove(Integer.parseInt(t.getId()));
@@ -339,9 +330,8 @@ public class FeedController {
 	}
 
 	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
-
+		
 		Integer currId = getSelectedConferenceId();
-
 		if (!openedTabsConferencesIds.containsKey(currId)) {
 			for (Conference c : confPool) {
 				if (c.getId() == currId) {

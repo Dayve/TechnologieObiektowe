@@ -1,5 +1,6 @@
 package sciCon.controller;
 
+import java.beans.EventSetDescriptor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -117,6 +118,7 @@ public class ApplicationController implements Controller {
 					if (forumsMessage.getText().length() > 0) {
 						reqSendForumMessage(forumsMessage.getText());
 						forumsMessage.clear();
+						fc.refreshConferenceTab(eventDetailsTP, fc.getSelectedConferenceId(), fc.getFeed());
 					}
 					event.consume();
 				}
@@ -219,7 +221,7 @@ public class ApplicationController implements Controller {
 						// TODO: requestQueue.contains() and remove() should be
 						// changed to something
 						// more appropriate once we extend requestType
-
+						fc.refreshConferenceTab(eventDetailsTP, fc.getSelectedConferenceId(), fc.getFeed());
 						if (requestQueue.contains(RequestType.UPDATE_CONFERENCE_FEED)
 								|| checkedRequestsWithoutUpdate > 10) {
 							reqConferenceFeed();
@@ -388,12 +390,10 @@ public class ApplicationController implements Controller {
 			// get temp feed to compare it with current one
 			tempFeed = res.getObject(ArrayList.class);
 			// fc.setFeed(tempFeed);
-
-			// run in JavaFX after background thread finishes work
-			// compare if feeds match, if so, don't fill vbox with new content
 			if (tempFeed != null && !tempFeed.toString().equals(fc.getFeed().toString())) {
 				fc.setFeed(tempFeed);
-
+				// run in JavaFX after background thread finishes work
+				// compare if feeds match, if so, don't fill vbox with new content
 				Platform.runLater(new Runnable() {
 					@Override public void run() {
 						ArrayList<Conference> feed = fc.getFeed();

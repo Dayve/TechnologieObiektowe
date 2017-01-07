@@ -36,7 +36,7 @@ import sciCon.model.SocketEvent;
 import sciCon.model.User;
 
 public class FeedController {
-	
+
 	private Integer selectedConferenceId = null;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
@@ -294,32 +294,47 @@ public class FeedController {
 		return scPane;
 	}
 
+	public void refreshConferenceTab(TabPane tp, Integer tabsId, ArrayList<Conference> confPool) {
+//		int tabsId = Integer.parseInt(t.getId());
+		Conference c = null;
+		// tabsId could be null if ApplicationController tried to refresh forum
+		// but there weren't any tabs selected
+		if(tabsId == null) {
+			return;
+		}
+		for (Conference fromPool : confPool) {
+			if (fromPool.getId() == tabsId) {
+				c = fromPool;
+				break;
+			}
+		}
+		if (c == null) {
+			// if there's no such conference found remove its tab
+			openedTabsConferencesIds.remove(tabsId);
+			tp.getTabs().remove(tabsId);
+		}
+		
+		VBox vbox = new VBox();
+		double paneSize = tp.getHeight() / 2;
+		boolean showForum = true;
+		ListView<TextFlow> forumsListView = createForumsListView(c, paneSize);
+		if (forumsListView == null) {
+			paneSize = tp.getHeight();
+			showForum = false;
+		}
+		ScrollPane scPane = createConfDescriptionScrollPane(c, paneSize);
+		vbox.getChildren().add(scPane);
+		if (showForum) {
+			vbox.getChildren().add(forumsListView);
+		}
+		openedTabsConferencesIds.get(tabsId).setContent(vbox);
+	}
+	
 	public void refreshConferenceTabs(TabPane tp, ArrayList<Conference> confPool) {
 		try {
 			for (Iterator<Tab> iterator = tp.getTabs().iterator(); iterator.hasNext();) {
 				Tab t = iterator.next();
-				try {
-					Conference c = confPool.stream().filter(conf -> conf.getId() == Integer.parseInt(t.getId()))
-							.findFirst().get();
-					VBox vbox = new VBox();
-					double paneSize = tp.getHeight() / 2;
-					boolean showForum = true;
-					ListView<TextFlow> forumsListView = createForumsListView(c, paneSize);
-					if (forumsListView == null) {
-						paneSize = tp.getHeight();
-						showForum = false;
-					}
-					ScrollPane scPane = createConfDescriptionScrollPane(c, paneSize);
-
-					vbox.getChildren().add(scPane);
-					if (showForum) {
-						vbox.getChildren().add(forumsListView);
-					}
-				} catch (NoSuchElementException e) {
-					// if there's no such conference found remove its tab
-					openedTabsConferencesIds.remove(Integer.parseInt(t.getId()));
-					iterator.remove();
-				}
+				refreshConferenceTab(tp, Integer.parseInt(t.getId()), confPool);
 			}
 		} catch (ConcurrentModificationException e) {
 			// happens when there is only one tab opened
@@ -330,7 +345,7 @@ public class FeedController {
 	}
 
 	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
-		
+
 		Integer currId = getSelectedConferenceId();
 		if (!openedTabsConferencesIds.containsKey(currId)) {
 			for (Conference c : confPool) {

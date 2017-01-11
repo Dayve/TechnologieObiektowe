@@ -1,6 +1,8 @@
 package sciCon.model;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
@@ -143,4 +145,24 @@ public interface Controller {
 		Stage stage = (Stage) window.getScene().getWindow();
 		stage.close();
 	}
+	
+	public default String doHash(String password){
+        String result = "";
+         try {
+        	 MessageDigest md = MessageDigest.getInstance("SHA-1");
+             md.update(password.getBytes());
+             
+             byte byteArray[] = md.digest();
+             StringBuffer hash = new StringBuffer();
+             
+             for(int i = 0; i < byteArray.length; i++){
+                 hash.append(Integer.toString((byteArray[i] & 0xff) + 0x100, 16).substring(1));
+             }
+             result = hash.toString();
+             
+         } catch (NoSuchAlgorithmException e) {
+ 			e.printStackTrace();
+         }       
+         return result;       
+     }
 }

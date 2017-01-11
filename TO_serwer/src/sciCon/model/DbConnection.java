@@ -28,12 +28,11 @@ public class DbConnection {
 	}
 
 	public boolean doesUserExist(String login) {
-		String loginQuery = "select login from uzytkownik where login = (?)";
+		String loginQuery = "select 1 from uzytkownik where login = (?)";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(loginQuery);
 			pstmt.setString(1, login);
 			ResultSet rs = pstmt.executeQuery();
-
 			if (rs.next()) {
 				return true;
 			}
@@ -49,7 +48,7 @@ public class DbConnection {
 	 */
 	public User getUser(String _login, String _password) {
 
-		String loginQuery = "select id_uzytkownika, login, haslo, imie, nazwisko, email, organizacja"
+		String loginQuery = "select id_uzytkownika, login, imie, nazwisko, email, organizacja"
 				+ " from uzytkownik where login = (?) and haslo = (?)";
 		Integer id = null;
 		User u = null;
@@ -125,25 +124,25 @@ public class DbConnection {
 
 		String selectParticipantIdQuery = "select id_uczestnika from uczestnik where "
 				+ "id_wydarzenia = (?) and id_uzytkownika = (?)";
-		String updateRoleQuery = "update rola_uczestnika set id_roli = (?) WHERE id_udzialu = (?)";
+		String updateRoleQuery = "update uczestnik set id_roli = (?) WHERE id_uczestnika = (?)";
 		Integer participantId = null;
 		Integer roleNumber = null;
 
 		switch (role) {
 			case ORGANIZER: {
-				roleNumber = 0;
-				break;
-			}
-			case PRELECTOR: {
 				roleNumber = 1;
 				break;
 			}
-			case PARTICIPANT: {
+			case PRELECTOR: {
 				roleNumber = 2;
 				break;
 			}
-			case SPONSOR: {
+			case PARTICIPANT: {
 				roleNumber = 3;
+				break;
+			}
+			case SPONSOR: {
+				roleNumber = 4;
 				break;
 			}
 			default:
@@ -180,7 +179,7 @@ public class DbConnection {
 
 	public UsersRole checkUsersRole(Integer usersId, Integer conferencesId) {
 		UsersRole role = UsersRole.NONE;
-		String participantsRoleQuery = "select id_roli from rola_uczestnika where " + "id_udzialu = (?)";
+		String participantsRoleQuery = "select id_roli from uczestnik where " + "id_uczestnika = (?)";
 		Integer participantsId = getParticipantsId(usersId, conferencesId);
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(participantsRoleQuery);
@@ -189,23 +188,23 @@ public class DbConnection {
 			if (rs.next()) {
 				Integer rolesId = rs.getInt(1);
 				switch (rolesId) {
-					case 0: {
+					case 1: {
 						role = UsersRole.ORGANIZER;
 						break;
 					}
-					case 1: {
+					case 2: {
 						role = UsersRole.PRELECTOR;
 						break;
 					}
-					case 2: {
+					case 3: {
 						role = UsersRole.PARTICIPANT;
 						break;
 					}
-					case 3: {
+					case 4: {
 						role = UsersRole.SPONSOR;
 						break;
 					}
-					case 4: {
+					case 5: {
 						role = UsersRole.PENDING;
 						break;
 					}
@@ -236,6 +235,7 @@ public class DbConnection {
 			if (rs.next()) {
 				participantsId = rs.getInt(1);
 			}
+			pstmt.close();
 		} catch (SQLException e) {
 			System.out.println("Getting participant's ID from database has failed.");
 			e.printStackTrace();
@@ -285,20 +285,25 @@ public class DbConnection {
 
 		User organizer = c.getFirstOrganizer();
 
-		int eventId = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
-		int participantId = this.maxEntry("id_uczestnika", "uczestnik") + 1;
+//		int eventId = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
+//		int participantId = this.maxEntry("id_uczestnika", "uczestnik") + 1;
 
-		String addConferenceQuery = "insert into wydarzenie values(?, ?, ?, ?, ?, ?, "
-				+ "to_date(?,'YYYY-MM-DD HH24:MI'), to_date(?,'YYYY-MM-DD HH24:MI'))";
-		String addOrganizerQuery = "insert into uczestnik values(?, ?, ?)";
-		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 0)";
+//		String addConferenceQuery = "insert into wydarzenie values(?, ?, ?, ?, ?, ?, "
+//				+ "to_date(?,'YYYY-MM-DD HH24:MI'), to_date(?,'YYYY-MM-DD HH24:MI'))";
+//		String addOrganizerQuery = "insert into uczestnik values(?, ?, ?)";
+//		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 0)";
+		String addConferenceProcedure = "{call add_event(?, ?, ?, ?, ?, ?, ?, ?)}";
 
 		String insertStartTime = startTime.toString().replace('T', ' ');
 		String insertEndTime = endTime.toString().replace('T', ' ');
+		
+		System.out.println(insertStartTime);
 
 		try {
-			PreparedStatement pstmt = conn.prepareStatement(addConferenceQuery);
-			pstmt.setInt(1, eventId);
+			PreparedStatement pstmt = conn.prepareStatement(addConferenceProcedure);
+//			PreparedStatement pstmt = conn.prepareStatement(addConferenceQuery);
+//			pstmt.setInt(1, eventId);
+			pstmt.setInt(1, organizer.getId());
 			pstmt.setString(2, name);
 			pstmt.setString(3, subject);
 			pstmt.setString(4, place);
@@ -308,17 +313,17 @@ public class DbConnection {
 			pstmt.setString(8, insertEndTime);
 			pstmt.executeUpdate();
 			pstmt.close();
-
-			pstmt = conn.prepareStatement(addOrganizerQuery);
-			pstmt.setInt(1, participantId);
-			pstmt.setInt(2, eventId);
-			pstmt.setInt(3, organizer.getId());
-			pstmt.executeUpdate();
-			pstmt.close();
-
-			pstmt = conn.prepareStatement(addParticipantRoleQuery);
-			pstmt.setInt(1, participantId);
-			pstmt.executeUpdate();
+//
+//			pstmt = conn.prepareStatement(addOrganizerQuery);
+//			pstmt.setInt(1, participantId);
+//			pstmt.setInt(2, eventId);
+//			pstmt.setInt(3, organizer.getId());
+//			pstmt.executeUpdate();
+//			pstmt.close();
+//
+//			pstmt = conn.prepareStatement(addParticipantRoleQuery);
+//			pstmt.setInt(1, participantId);
+//			pstmt.executeUpdate();
 
 			pstmt.close();
 		} catch (SQLException e) {
@@ -350,8 +355,8 @@ public class DbConnection {
 	public boolean addPost(int userId, int conferenceId, String message) {
 		boolean succeeded = true;
 
-		String addPostQuery = "insert into post (id_posta, id_wydarzenia, id_uzytkownika, tresc, data) "
-				+ "values (null, ?, ?, ?, sysdate)";
+		String addPostQuery = "insert into post (id_posta, id_wydarzenia, id_uzytkownika, tresc, data_utworzenia, data_edycji) "
+				+ "values (null, ?, ?, ?, sysdate, sysdate)";
 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addPostQuery);
@@ -400,7 +405,8 @@ public class DbConnection {
 	public ArrayList<Post> fetchConferencesPosts(Integer conferenceId) {
 		ArrayList<Post> posts = new ArrayList<Post>();
 		String fetchPostsQuery = "select id_posta, id_uzytkownika, "
-				+ "tresc, to_char(data,'yyyy-mm-dd hh24:mi:ss') FROM" + " post WHERE id_wydarzenia = ? ORDER BY data",
+				+ "tresc, to_char(data_utworzenia,'yyyy-mm-dd hh24:mi:ss') FROM" + 
+				" post WHERE id_wydarzenia = ? ORDER BY data_utworzenia",
 				message = null, timeStr = null;
 		Integer postsId = null, usersId = null;
 		LocalDateTime time = null;
@@ -466,12 +472,16 @@ public class DbConnection {
 
 		Integer userId = null, statusId = null;
 		String login = null, name = null, surname = null, email = null, organization = null,
+//				fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika, uzytkownik.login, uzytkownik.imie, "
+//						+ "uzytkownik.nazwisko, uzytkownik.email, uzytkownik.organizacja, "
+//						+ "rola_uczestnika.id_roli FROM uzytkownik JOIN uczestnik ON "
+//						+ "uzytkownik.id_uzytkownika = uczestnik.id_uzytkownika JOIN rola_uczestnika "
+//						+ "ON uczestnik.id_uczestnika = rola_uczestnika.id_udzialu WHERE uczestnik.id_uczestnika "
+//						+ "IN (SELECT id_uczestnika FROM uczestnik WHERE id_wydarzenia = (?))";
 				fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika, uzytkownik.login, uzytkownik.imie, "
 						+ "uzytkownik.nazwisko, uzytkownik.email, uzytkownik.organizacja, "
-						+ "rola_uczestnika.id_roli FROM uzytkownik JOIN uczestnik ON "
-						+ "uzytkownik.id_uzytkownika = uczestnik.id_uzytkownika JOIN rola_uczestnika "
-						+ "ON uczestnik.id_uczestnika = rola_uczestnika.id_udzialu WHERE uczestnik.id_uczestnika "
-						+ "IN (SELECT id_uczestnika FROM uczestnik WHERE id_wydarzenia = (?))";
+						+ "uczestnik.id_roli FROM uzytkownik JOIN uczestnik ON uzytkownik.id_uzytkownika = "
+						+ "uczestnik.id_uzytkownika WHERE uczestnik.id_wydarzenia = (?)";
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(fetchParticipantsQuery);
 			pstmt.setInt(1, conferenceId);
@@ -489,23 +499,23 @@ public class DbConnection {
 				u = new User(userId, login, name, surname, email, organization);
 
 				switch (statusId) {
-					case 0: {
+					case 1: {
 						organizers.add(u);
 						break;
 					}
-					case 1: {
+					case 2: {
 						prelectors.add(u);
 						break;
 					}
-					case 2: {
+					case 3: {
 						participants.add(u);
 						break;
 					}
-					case 3: {
+					case 4: {
 						sponsors.add(u);
 						break;
 					}
-					case 4: {
+					case 5: {
 						pending.add(u);
 					}
 					default:

@@ -17,6 +17,11 @@ public class Post implements Serializable{
 		this.time = time;
 	}
 
+	
+	public Integer getPostsId() {
+		return postsId;
+	}
+
 	public Post(Integer authorsId, String message, LocalDateTime time) {
 		this(null, authorsId, message, time);
 	}

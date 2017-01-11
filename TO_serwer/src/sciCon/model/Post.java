@@ -17,6 +17,10 @@ public class Post implements Serializable{
 		this.time = time;
 	}
 
+	public Integer getPostsId() {
+		return postsId;
+	}
+	
 	public Integer getAuthorsId() {
 		return authorsId;
 	}

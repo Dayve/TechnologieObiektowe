@@ -1,6 +1,5 @@
 package sciCon.controller;
 
-import java.beans.EventSetDescriptor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -43,6 +42,7 @@ import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
+import sciCon.model.User.UsersRole;
 import sciCon.model.Week;
 
 @SuppressWarnings("restriction")
@@ -95,6 +95,7 @@ public class ApplicationController implements Controller {
 
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
+				loginLabel.setText(currentUser.getLogin());
 				setupTabResizeEvent();
 			}
 		});
@@ -110,8 +111,7 @@ public class ApplicationController implements Controller {
 		forumsMessage.setOnKeyPressed(new EventHandler<KeyEvent>() {
 
 			@Override public void handle(KeyEvent event) {
-				if (event.getCode() == KeyCode.ENTER & 
-						(event.isControlDown() | event.isShiftDown())) {
+				if (event.getCode() == KeyCode.ENTER & (event.isControlDown() | event.isShiftDown())) {
 					forumsMessage.setText(forumsMessage.getText() + "\n");
 					forumsMessage.end();
 				} else if (event.getCode() == KeyCode.ENTER) {
@@ -222,6 +222,7 @@ public class ApplicationController implements Controller {
 						// changed to something
 						// more appropriate once we extend requestType
 						fc.refreshConferenceTab(eventDetailsTP, fc.getSelectedConferenceId(), fc.getFeed());
+//						System.out.println("REQQ SIZE: " + requestQueue.size());
 						if (requestQueue.contains(RequestType.UPDATE_CONFERENCE_FEED)
 								|| checkedRequestsWithoutUpdate > 10) {
 							reqConferenceFeed();
@@ -250,32 +251,28 @@ public class ApplicationController implements Controller {
 		}, 0, 1000);
 	}
 
-	public enum ParticipantsRole {
-		PARTICIPANT, ORGANIZER, PRELECTOR, SPONSOR, PENDING, NONE
-	}
-
-	public static ParticipantsRole usersRoleOnConference(User user, Conference conference) {
+	public static UsersRole usersRoleOnConference(User user, Conference conference) {
 		for (User u : conference.getParticipants()) {
 			if (u.getId().equals(user.getId()))
-				return ParticipantsRole.PARTICIPANT;
+				return UsersRole.PARTICIPANT;
 		}
 		for (User u : conference.getOrganizers()) {
 			if (u.getId().equals(user.getId()))
-				return ParticipantsRole.ORGANIZER;
+				return UsersRole.ORGANIZER;
 		}
 		for (User u : conference.getPrelectors()) {
 			if (u.getId().equals(user.getId()))
-				return ParticipantsRole.PRELECTOR;
+				return UsersRole.PRELECTOR;
 		}
 		for (User u : conference.getSponsors()) {
 			if (u.getId().equals(user.getId()))
-				return ParticipantsRole.SPONSOR;
+				return UsersRole.SPONSOR;
 		}
 		for (User u : conference.getPending()) {
 			if (u.getId().equals(user.getId()))
-				return ParticipantsRole.PENDING;
+				return UsersRole.PENDING;
 		}
-		return ParticipantsRole.NONE;
+		return UsersRole.NONE;
 	}
 
 	private void reqSendForumMessage(String message) {
@@ -289,9 +286,7 @@ public class ApplicationController implements Controller {
 				NetworkConnection.sendSocketEvent(se);
 				SocketEvent res = NetworkConnection.rcvSocketEvent();
 				String eventName = res.getName();
-				if (eventName.equals("sendForumMessageSucceeded")) {
-					reqConferenceFeed();
-				} else {
+				if (!eventName.equals("sendForumMessageSucceeded")) {
 					Platform.runLater(new Runnable() {
 						@Override public void run() {
 							openDialogBox(applicationWindow, "Wiadomość nie została wysłana.");
@@ -330,45 +325,82 @@ public class ApplicationController implements Controller {
 		if (selectedConfId != null) {
 			try {
 				Conference selectedConf = fc.getSelectedConference();
-				ArrayList<User> selectedConfParticipants = selectedConf.getParticipantsList();
-				ArrayList<User> selectedConfOrganizers = selectedConf.getOrganizers();
-				boolean currentUserTakesPart = false;
-				boolean currentUserIsOrganizer = false;
+//				ArrayList<User> selectedConfParticipants = selectedConf.getParticipantsList();
+//				ArrayList<User> selectedConfOrganizers = selectedConf.getOrganizers();
+				UsersRole role = usersRoleOnConference(currentUser, selectedConf);
+//				boolean currentUserTakesPart = false;
+//				boolean currentUserIsOrganizer = false;
 				// check if current user takes part in selected conference
-				for (User u : selectedConfParticipants) {
-					if (u.getId() == currentUser.getId()) {
-						currentUserTakesPart = true;
-						break;
-					}
-				}
+//				for (User u : selectedConfParticipants) {
+//					if (u.getId() == currentUser.getId()) {
+//						currentUserTakesPart = true;
+//						break;
+//					}
+//				}
 				// check if current user is organizer of selected conference
-				for (User u : selectedConfOrganizers) {
-					if (u.getId() == currentUser.getId()) {
-						currentUserIsOrganizer = true;
+//				for (User u : selectedConfOrganizers) {
+//					if (u.getId() == currentUser.getId()) {
+//						currentUserIsOrganizer = true;
+//						break;
+//					}
+//				}
+				switch (role) {
+					case ORGANIZER: {
+						removeConfBtn.setDisable(false);
+						joinLeaveManageConfBtn.setOnAction((event) -> {
+							manageConferenceBtn();
+						});
+						joinLeaveManageConfBtn.setText("Zarządzaj");
+						forumsMessage.setVisible(true);
 						break;
 					}
-				}
-
-				if (currentUserIsOrganizer) {
-					removeConfBtn.setDisable(false);
-					joinLeaveManageConfBtn.setOnAction((event) -> {
-						manageConferenceBtn();
-					});
-					joinLeaveManageConfBtn.setText("Zarządzaj");
-				} else {
-					removeConfBtn.setDisable(true);
-					if (currentUserTakesPart || currentUserIsOrganizer) {
+					case PRELECTOR:
+					case PARTICIPANT:
+					case SPONSOR: {
+						removeConfBtn.setDisable(true);
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> leaveConferenceBtn()).start();
 						});
 						joinLeaveManageConfBtn.setText("Wycofaj się");
-					} else {
+						forumsMessage.setVisible(true);
+						break;
+					}
+					case NONE: {
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> joinConferenceBtn()).start();
 						});
 						joinLeaveManageConfBtn.setText("Weź udział");
 					}
+					case PENDING: {
+						removeConfBtn.setDisable(true);
+						forumsMessage.setVisible(false);
+						break;
+					}
+					default:
+						break;
+
 				}
+
+//				if (role == UsersRole.ORGANIZER) {
+//					removeConfBtn.setDisable(false);
+//					joinLeaveManageConfBtn.setOnAction((event) -> {
+//						manageConferenceBtn();
+//					});
+//					joinLeaveManageConfBtn.setText("Zarządzaj");
+//				} else {
+//					removeConfBtn.setDisable(true);
+//					if (role != UsersRole.NONE) {
+//						joinLeaveManageConfBtn.setOnAction((event) -> {
+//							new Thread(() -> leaveConferenceBtn()).start();
+//						});
+//						joinLeaveManageConfBtn.setText("Wycofaj się");
+//					} else {
+//						joinLeaveManageConfBtn.setOnAction((event) -> {
+//							new Thread(() -> joinConferenceBtn()).start();
+//						});
+//						joinLeaveManageConfBtn.setText("Weź udział");
+//					}
+//				}
 			} catch (NoSuchElementException e) {
 				fc.setSelectedConferenceId(null);
 			}
@@ -379,6 +411,7 @@ public class ApplicationController implements Controller {
 	// compares it with current data and if there is difference, updates
 	// information
 	@SuppressWarnings("unchecked") @FXML public void reqConferenceFeed() {
+//		System.out.println("POCZATEK REQUESTFEED");
 		SocketEvent e = new SocketEvent("reqConferenceFeed");
 		NetworkConnection.sendSocketEvent(e);
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
@@ -393,7 +426,8 @@ public class ApplicationController implements Controller {
 			if (tempFeed != null && !tempFeed.toString().equals(fc.getFeed().toString())) {
 				fc.setFeed(tempFeed);
 				// run in JavaFX after background thread finishes work
-				// compare if feeds match, if so, don't fill vbox with new content
+				// compare if feeds match, if so, don't fill vbox with new
+				// content
 				Platform.runLater(new Runnable() {
 					@Override public void run() {
 						ArrayList<Conference> feed = fc.getFeed();
@@ -442,7 +476,7 @@ public class ApplicationController implements Controller {
 
 	// sends request for the current user object and puts it in currentUser
 	// static variable
-	public void reqCurrentUser() {
+	public static void reqCurrentUser() {
 		SocketEvent se = new SocketEvent("reqCurrentUser");
 		NetworkConnection.sendSocketEvent(se);
 		SocketEvent res = NetworkConnection.rcvSocketEvent();
@@ -451,12 +485,6 @@ public class ApplicationController implements Controller {
 		if (eventName.equals("currentUserSucceeded")) {
 			currentUser = res.getObject(User.class);
 		}
-
-		Platform.runLater(new Runnable() {
-			@Override public void run() {
-				loginLabel.setText("Zalogowano: " + currentUser.getLogin() + ".");
-			}
-		});
 	}
 
 	@FXML public void manageConferenceBtn() {
@@ -600,6 +628,10 @@ public class ApplicationController implements Controller {
 
 	@FXML public void addConferenceBtn() {
 		openNewWindow(applicationWindow, "view/ConferenceCreatorLayout.fxml", 600, 650, false, "Dodaj konferencję");
+	}
+	
+	@FXML public void editProfileBtn() {
+		openNewWindow(applicationWindow, "view/ProfileEditorLayout.fxml", 320, 465, false, "Edytuj profil");
 	}
 
 	public void changeMonthToNext() {

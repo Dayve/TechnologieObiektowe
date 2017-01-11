@@ -1,9 +1,6 @@
 
 package sciCon.controller;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -87,7 +84,7 @@ public class LoginRegisterController implements Controller {
 
 			message = res.getObject(String.class);
 		} else {
-			message = "Podane hasa nie są identyczne.";
+			message = "Podane hasła nie są identyczne.";
 		}
 
 		// run in JavaFX after background thread finishes work
@@ -98,25 +95,6 @@ public class LoginRegisterController implements Controller {
 		});
 	}
 	
-	public static String doHash(String password){
-		        String result = "";
-		         try {
-		        	 MessageDigest md = MessageDigest.getInstance("SHA-1");
-		             md.update(password.getBytes());
-		             
-		             byte byteArray[] = md.digest();
-		             StringBuffer hash = new StringBuffer();
-		             
-		             for(int i = 0; i < byteArray.length; i++){
-		                 hash.append(Integer.toString((byteArray[i] & 0xff) + 0x100, 16).substring(1));
-		             }
-		             result = hash.toString();
-		             
-		         } catch (NoSuchAlgorithmException e) {
-		 			e.printStackTrace();
-		         }       
-		         return result;       
-		     }
 
 	@FXML private void registerBtn() {
 		new Thread(() -> reqRegister()).start();

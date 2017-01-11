@@ -102,7 +102,7 @@ public class ConferenceCreatorController implements Controller {
 		}
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				openDialogBox(confCreatorWindow, message);
+				openDialogBox(confCreatorWindow, message, true);
 			}
 		});
 

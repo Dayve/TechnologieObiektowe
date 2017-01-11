@@ -9,7 +9,6 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
@@ -39,6 +38,7 @@ public class FeedController {
 
 	private Integer selectedConferenceId = null;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
+	private HashMap<Integer, Post> selectedConferencesPosts = new HashMap<Integer, Post>();
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
 
 	public void clear() {
@@ -186,6 +186,7 @@ public class FeedController {
 
 	@SuppressWarnings("unchecked") private ArrayList<Post> reqForumsFeed(Integer usersId, Integer conferencesId) {
 		ArrayList<Post> forumsFeed = null;
+		ArrayList<Post> postDifferentFromCurrent = new ArrayList<Post>();
 		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
 		userIdConferenceId.add(usersId);
 		userIdConferenceId.add(conferencesId);
@@ -196,17 +197,32 @@ public class FeedController {
 		String eventName = res.getName();
 		if (eventName.equals("sendForumMessageSucceeded")) {
 			forumsFeed = res.getObject(ArrayList.class);
+			if(forumsFeed == null) {
+				return null;
+			}
+			for (int j = forumsFeed.size() - 1; j >= 0; j--) {
+				Post p = forumsFeed.get(j);
+				if(selectedConferencesPosts.containsKey(p.getPostsId())) {
+					if(!p.getContent().equals(selectedConferencesPosts.get(p.getPostsId()).getContent())) {
+						postDifferentFromCurrent.add(p);
+					} else {
+						break;
+					}
+				} else {
+					postDifferentFromCurrent.add(p);
+				}
+			}
 		}
-		return forumsFeed;
+		return postDifferentFromCurrent;
 	}
 
-	private ListView<TextFlow> createForumsListView(Conference c, double prefForumsHeight) {
-		ArrayList<Post> posts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId());
-		ListView<TextFlow> lv = null;
-		if (posts != null) {
-			lv = new ListView<TextFlow>();
-			TextFlow flow = new TextFlow();
-			flow.setPrefHeight(prefForumsHeight);
+	private boolean updateForumsListViewWithPosts(ListView<TextFlow> lv, Conference c) {
+		ArrayList<Post> newPosts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId());
+//		lv.getItems().clear();
+		if (newPosts != null) {
+//			lv = new ListView<TextFlow>();
+//			TextFlow flow = new TextFlow();
+//			flow.setPrefHeight(prefForumsHeight);
 			ArrayList<User> selectedConfUsersList = new ArrayList<User>();
 			selectedConfUsersList.addAll(c.getOrganizers());
 			selectedConfUsersList.addAll(c.getParticipantsList());
@@ -222,7 +238,8 @@ public class FeedController {
 					regularStyle = new String(); // For content and date
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-			for (Post p : posts) {
+			for (int j = newPosts.size() - 1; j >= 0; j--) {
+				Post p = newPosts.get(j);
 				// add date and \n (regular font)
 				Text date = new Text(p.getTime().format(formatter) + "\n");
 				date.setStyle(regularStyle);
@@ -235,35 +252,34 @@ public class FeedController {
 				// add post's content (regular font)
 				Text content = new Text(p.getContent());
 				content.setStyle(regularStyle);
-				lv.getItems().add(new TextFlow(date, author, content));
+				TextFlow flow = new TextFlow(date, author, content);
+				flow.setId(p.getPostsId().toString());
+				selectedConferencesPosts.put(p.getPostsId(), p);
+				lv.getItems().add(flow);
 			}
 			lv.setStyle("-fx-padding: 10 10 10 10;");
-			lv.setPrefHeight(prefForumsHeight);
-			lv.scrollTo(lv.getItems().size());
+			return true;
+		} else {
+			return false;
 		}
-		return lv;
 	}
 
-	private ScrollPane createConfDescriptionScrollPane(Conference c, double prefTabHeight) {
+
+	private void updateConfDescriptionScrollPane(ScrollPane scPane, Conference c) {
 		// TextFlow is built from many Text objects (which can have different
 		// styles)
 		TextFlow flow = new TextFlow();
-		flow.setPrefHeight(prefTabHeight);
 
-		ArrayList<Text> confDescriptionSections = new ArrayList<Text>(); // e.g.
-																			// "Tytuł",
-																			// "Organizatorzy"
+		// e.g. "Tytuł", "Organizatorzy"
+		ArrayList<Text> confDescriptionSections = new ArrayList<Text>();
 
 		// Styles:
-		String sectionNameStyle = new String("-fx-font-weight:bold;"), // For
-																		// "Tytuł",
-																		// "Organizatorzy"
-																		// and
-																		// the
-																		// rest
-
-				sectionContentStyle = new String(); // For content (text of
-													// description etc.)
+		
+		// For "Tytuł", "Organizatorzy" and the rest
+		String sectionNameStyle = new String("-fx-font-weight:bold;"),
+				
+				// For content (text of description etc.)										
+				sectionContentStyle = new String(); 
 
 		String[] sectionNames = new String[] { "Temat:\n", "\n\nOrganizatorzy:\n", "\nCzas rozpoczęcia:\n",
 				"\n\nCzas zakończenia:\n", "\n\nMiejsce:\n", "\n\nPlan:\n", "\n\nOpis:\n",
@@ -286,12 +302,9 @@ public class FeedController {
 			confDescriptionSections.add(currentSectionContent);
 		}
 
-		ScrollPane scPane = new ScrollPane(flow);
-		scPane.setFitToWidth(true);
-
 		flow.getChildren().addAll(confDescriptionSections);
 		flow.setStyle("-fx-padding: 10 10 10 10;");
-		return scPane;
+		scPane.setContent(flow);
 	}
 
 	public void refreshConferenceTab(TabPane tp, Integer tabsId, ArrayList<Conference> confPool) {
@@ -299,7 +312,7 @@ public class FeedController {
 		Conference c = null;
 		// tabsId could be null if ApplicationController tried to refresh forum
 		// but there weren't any tabs selected
-		if(tabsId == null) {
+		if (tabsId == null) {
 			return;
 		}
 		for (Conference fromPool : confPool) {
@@ -313,23 +326,24 @@ public class FeedController {
 			openedTabsConferencesIds.remove(tabsId);
 			tp.getTabs().remove(tabsId);
 		}
-		
-		VBox vbox = new VBox();
-		double paneSize = tp.getHeight() / 2;
-		boolean showForum = true;
-		ListView<TextFlow> forumsListView = createForumsListView(c, paneSize);
-		if (forumsListView == null) {
-			paneSize = tp.getHeight();
-			showForum = false;
+
+//		VBox vbox = new VBox();
+//		double paneSize = tp.getHeight() / 2;
+
+//		System.out.println("pies i kot");
+		VBox vb = (VBox) openedTabsConferencesIds.get(tabsId).getContent();
+		if(vb.getChildren().size() >= 1) {
+			ScrollPane confInfoPane = (ScrollPane) vb.getChildren().get(0);
 		}
-		ScrollPane scPane = createConfDescriptionScrollPane(c, paneSize);
-		vbox.getChildren().add(scPane);
-		if (showForum) {
-			vbox.getChildren().add(forumsListView);
-		}
-		openedTabsConferencesIds.get(tabsId).setContent(vbox);
+		if(vb.getChildren().size() == 2) {
+			ListView<TextFlow> forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
+			updateForumsListViewWithPosts(forumsListView, c);
+		} 
+//		System.out.println("zaraz wypełniam");
+
+//		ListView<TextFlow> forumsListView = createForumsListView(c, paneSize);
 	}
-	
+
 	public void refreshConferenceTabs(TabPane tp, ArrayList<Conference> confPool) {
 		try {
 			for (Iterator<Tab> iterator = tp.getTabs().iterator(); iterator.hasNext();) {
@@ -361,20 +375,23 @@ public class FeedController {
 					tab.setId(currId.toString());
 					VBox vbox = new VBox();
 					double paneSize = tp.getHeight() / 2;
-					boolean showForum = true;
-					ListView<TextFlow> forumPane = createForumsListView(c, paneSize);
-					if (forumPane == null) {
+					ListView<TextFlow> forumPane = new ListView<TextFlow>();
+					boolean fillForumSucceeded = updateForumsListViewWithPosts(forumPane, c);
+					if (!fillForumSucceeded) {
 						paneSize = tp.getHeight();
-						showForum = false;
 					}
-					ScrollPane scPane = createConfDescriptionScrollPane(c, paneSize);
-
+					ScrollPane scPane = new ScrollPane();
+					updateConfDescriptionScrollPane(scPane, c);
+					scPane.setFitToWidth(true);
 					// VBOx is redundant only theoretically, the full hierarchy
 					// is:
 					// Tab[ VBox[ ScrollPane[ TextFlow[ Text, Text, Text, ... ]
 					// ] ] ]
+					
 					vbox.getChildren().add(scPane);
-					if (showForum) {
+					if (fillForumSucceeded) {
+						forumPane.setPrefHeight(paneSize);
+						forumPane.scrollTo(forumPane.getItems().size());
 						vbox.getChildren().add(forumPane);
 					}
 

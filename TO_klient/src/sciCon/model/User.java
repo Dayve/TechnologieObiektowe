@@ -11,7 +11,7 @@ public class User implements Serializable {
 	Integer id = null;
 	String login = null, name = null, surname = null, password = null, email = null, organization = null;
 
-	public User(Integer id, String login, String password, String name, String surname, String organization) {
+	public User(Integer id, String login, String password, String name, String surname, String email, String organization) {
 		this.id = id;
 		this.login = login;
 		this.password = password;
@@ -19,7 +19,7 @@ public class User implements Serializable {
 		this.surname = surname;
 		this.organization = organization;
 	}
-
+	
 	public User(String login, String password) {
 		this.login = login;
 		this.password = password;

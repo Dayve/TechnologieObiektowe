@@ -108,6 +108,7 @@ public class ApplicationController implements Controller {
 	}
 
 	private void setupForumTextArea() {
+		forumsMessage.setVisible(false);
 		forumsMessage.setOnKeyPressed(new EventHandler<KeyEvent>() {
 
 			@Override public void handle(KeyEvent event) {

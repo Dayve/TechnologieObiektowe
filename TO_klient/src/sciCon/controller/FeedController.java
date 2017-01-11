@@ -223,7 +223,7 @@ public class FeedController {
 	private boolean updateForumsListViewWithPosts(ListView<TextFlow> lv, Conference c) {
 		ArrayList<Post> newPosts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId());
 //		lv.getItems().clear();
-		if (newPosts != null) {
+		if (newPosts.size() > 0) {
 //			lv = new ListView<TextFlow>();
 //			TextFlow flow = new TextFlow();
 //			flow.setPrefHeight(prefForumsHeight);
@@ -386,6 +386,7 @@ public class FeedController {
 						paneSize = tp.getHeight();
 					}
 					ScrollPane scPane = new ScrollPane();
+					scPane.setPrefHeight(paneSize);
 					updateConfDescriptionScrollPane(scPane, c);
 					scPane.setFitToWidth(true);
 					// VBOx is redundant only theoretically, the full hierarchy
@@ -394,6 +395,7 @@ public class FeedController {
 					// ] ] ]
 					
 					vbox.getChildren().add(scPane);
+					System.out.println("fill forum succeded:" + fillForumSucceeded);
 					if (fillForumSucceeded) {
 						forumPane.setPrefHeight(paneSize);
 						forumPane.scrollTo(forumPane.getItems().size());

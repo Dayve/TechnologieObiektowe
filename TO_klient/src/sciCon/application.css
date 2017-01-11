@@ -139,14 +139,15 @@
     -fx-border-width: 0px;
 }
 
+.root {
+    -fx-base: #B2CDFC;
+    -fx-background: #CFD6FC;
+}
 /*@font-face {
     src: url("UbuntuMono.ttf");
 }
 
-.root {
-    -fx-background-color: #546d85;
-    -fx-font-family: "Ubuntu Mono"
-}
+
 .button {
     -fx-text-fill: white;
     -fx-font-family: "Arial Narrow"; 

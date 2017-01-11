@@ -213,6 +213,10 @@ public class FeedController {
 				}
 			}
 		}
+		System.out.println("posts Different from current:");
+		for(Post p: postDifferentFromCurrent) {
+			System.out.println(p);
+		}
 		return postDifferentFromCurrent;
 	}
 
@@ -250,7 +254,7 @@ public class FeedController {
 				author.setStyle(boldStyle);
 
 				// add post's content (regular font)
-				Text content = new Text(p.getContent());
+				Text content = new Text(addNLsIfTooLong(p.getContent(), 60));
 				content.setStyle(regularStyle);
 				TextFlow flow = new TextFlow(date, author, content);
 				flow.setId(p.getPostsId().toString());
@@ -260,6 +264,7 @@ public class FeedController {
 			lv.setStyle("-fx-padding: 10 10 10 10;");
 			return true;
 		} else {
+			System.out.println("req posts -> false");
 			return false;
 		}
 	}

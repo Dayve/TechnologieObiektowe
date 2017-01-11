@@ -308,12 +308,11 @@ public class SciConServer implements Runnable {
 
 							Paper receivedPaper = new Paper();
 							receivedPaper.createFromReceivedBytes(receivedPaper_rawData);
-//							receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION/");
+							//receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION");
 
-							dbConn.addFile(receivedPaper.authorsId, receivedPaper.targetConferenceId,
-									receivedPaper.filename, receivedPaper.getRawFileData(), "No description");
+							dbConn.addFile(receivedPaper);
 							break;
-						}
+}
 						// login request
 						case "reqLogin": {
 							User u = (User) se.getObject(User.class);

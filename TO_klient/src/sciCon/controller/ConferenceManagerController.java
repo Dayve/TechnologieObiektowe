@@ -145,20 +145,26 @@ public class ConferenceManagerController implements Controller {
 		        @Override
 		        public void handle(final ActionEvent e) {
 		            File file = fileChooser.showOpenDialog((Stage) confManagerWindow.getScene().getWindow());
-		            if(file != null) {
-		            	new Thread(() -> readAndSendFile(file.getAbsolutePath())).start();
+		            if(file != null) {	
+		            	Thread t = new Thread(new Runnable() {
+		                    public void run() {
+		                    	readAndSendFile(file.getAbsolutePath());
+		                    }
+		            	});
+		            	t.start();
 		            }
 		        }
 		    }
 		);	
 	}
 	
-	private void readAndSendFile(String pathWithFilename) {
+	public void readAndSendFile(String pathWithFilename) {
 		Paper examplePaper = new Paper();
+		System.out.println("File author: " + ApplicationController.currentUser.getName());
 		examplePaper.createFromExistingFile(pathWithFilename, 
-				ApplicationController.currentUser.getId().intValue(), selectedConferenceId);
+				ApplicationController.currentUser, selectedConferenceId, "Sample description. Test file.");
 		
-		SocketEvent se = new SocketEvent("fileSentToServer", examplePaper.getAsByteArray());
+		SocketEvent se = new SocketEvent("fileSentToServer", examplePaper.getWholeBufferAsByteArray());
 		NetworkConnection.sendSocketEvent(se);
 	}
 

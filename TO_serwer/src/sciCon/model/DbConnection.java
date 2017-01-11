@@ -374,7 +374,7 @@ public class DbConnection {
 		return succeeded;
 	}
 
-	public boolean addFile(int userId, int conferenceId, String filename, byte[] rawData, String description) {
+	public boolean addFile(Paper receivedPaper) {
 		boolean succeeded = true;
 		
 		String addFileQuery = "insert into plik (id_pliku, id_wydarzenia, id_uzytkownika, nazwa, tresc, opis) "
@@ -382,14 +382,14 @@ public class DbConnection {
 		
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addFileQuery);
-			pstmt.setInt(1, conferenceId);
-			pstmt.setInt(2, userId);
-			pstmt.setString(3, filename);
+			pstmt.setInt(1, receivedPaper.fileInfo.getTargetConferenceId());
+			pstmt.setInt(2, receivedPaper.fileInfo.getAuthor().getId());
+			pstmt.setString(3, receivedPaper.fileInfo.getFilename());
 			
-			InputStream in = new ByteArrayInputStream(rawData);
-			pstmt.setBinaryStream(4, in, rawData.length);
+			InputStream in = new ByteArrayInputStream(receivedPaper.getRawFileData());
+			pstmt.setBinaryStream(4, in, receivedPaper.getRawFileData().length);
 			
-			pstmt.setString(5, description);
+			pstmt.setString(5, receivedPaper.fileInfo.getDescription());
 			
 			pstmt.executeUpdate();
 			pstmt.close();

@@ -60,7 +60,7 @@ public class LoginRegisterController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
 				if (flag) {
-					loadScene(loginWindow, "view/ApplicationLayout.fxml", 1024, 576, true, 1024, 576);
+					loadScene(loginWindow, "view/ApplicationLayout.fxml", 1200, 675, true, 1200, 675);
 				} else {
 					openDialogBox(loginWindow, message);
 				}

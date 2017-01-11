@@ -1,87 +1,135 @@
 package sciCon.model;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 
-public class Paper implements Serializable {
+public class Paper implements Serializable {	
 	
 	private static final long serialVersionUID = 3578902895952322210L;
 	
+	/* Buffer structure:
+	 *  1) Size of fileInfo			(int, 4 bytes)
+	 *  2) File size				(int, 4 bytes)
+	 *  
+	 *  3) fileInfo as bytes		(byte[], fileInfoSize bytes)
+	 *  4) Actual file contents		(byte[], fileSize bytes)
+	 */
+	
 	private ByteBuffer buffer = null;
 	
-	public String filename;
-	public int authorsId;
-	public int targetConferenceId;
+	private int fileSize; // It's the size (number of bytes) of raw file data, not the whole buffer
+	private int rawDataOffset; // The offset inside the buffer
 	
-	private int fileSize;
+	private int fileInfoSize;
+	private int rawFileInfoOffset;
+	
+	public FileInfo fileInfo;
 	
 	
-	public byte[] getAsByteArray() {
+	public byte[] getWholeBufferAsByteArray() {
 		return buffer.array();
 	}
+	
 	
 	public byte[] getRawFileData() {
 		byte[] fileBytes = new byte[fileSize];
 		
 		for(int i=0 ; i<fileSize ; ++i) {
-			fileBytes[i] = buffer.get(i + Integer.BYTES*4);
+			fileBytes[i] = buffer.get(rawDataOffset+i);
 		}
 		
 		return fileBytes;
 	}
 	
+	
+	public byte[] getRawFileInfo() {
+		byte[] fileInfoBytes = new byte[fileInfoSize];
+		
+		for(int i=0 ; i<fileInfoSize ; ++i) {
+			fileInfoBytes[i] = buffer.get(rawFileInfoOffset+i);
+		}
+		
+		return fileInfoBytes;
+	}
+
+	
 	public void createFromReceivedBytes(byte[] receivedBytes) {
-		buffer = ByteBuffer.allocate(receivedBytes.length);
+		buffer = ByteBuffer.allocate(receivedBytes.length + 8);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		buffer.put(receivedBytes);
 		
-		fileSize = buffer.getInt(0);
-		int fileNameLength = buffer.getInt(Integer.BYTES);
-		authorsId = buffer.getInt(2*Integer.BYTES);
-		targetConferenceId = buffer.getInt(3*Integer.BYTES);
+		int fetchPointer = 0;
 		
-		byte[] fileNameBytes = new byte[fileNameLength];
-
-		for(int i=0 ; i<fileNameLength ; ++i) {
-			fileNameBytes[i] = buffer.get(i + Integer.BYTES*4 + fileSize);
+		// Fetch sizes:
+		fileInfoSize = buffer.getInt(fetchPointer);
+		fetchPointer += Integer.BYTES;
+		
+		fileSize = buffer.getInt(fetchPointer);
+		fetchPointer += Integer.BYTES;
+		
+		// Fetch file info:
+		byte[] fileInfoAsBytes = new byte[fileInfoSize];
+		
+		rawFileInfoOffset = fetchPointer;
+		
+		for(int i=0 ; i<fileInfoSize ; ++i, ++fetchPointer) {
+			fileInfoAsBytes[i] = buffer.get(fetchPointer);
 		}
 		
-		filename = new String(fileNameBytes);
+		try {
+			fileInfo = (FileInfo) deserialize(fileInfoAsBytes);
+			System.out.println("Received file metadata:\n" + fileInfo);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("Received file size:\n" + fileSize + " bytes");
+		
+		// Enable fetching the actual file contents:
+		rawDataOffset = fetchPointer;
 	}
 	
-	public void createFromExistingFile(String pathWithFilename, int givenUserId, int givenConferenceId) {
-		this.authorsId = givenUserId;
-		this.targetConferenceId = givenConferenceId;
+	
+	public void createFromExistingFile(String pathWithFilename, User author, int givenConferenceId, String desc) {
+		File file = new File(pathWithFilename);		
+		fileInfo = new FileInfo(file.getName(), desc, author, givenConferenceId);
+		System.out.println("Sent file metadata:\n" + fileInfo);
 		
-		File file = new File(pathWithFilename);
-		filename = file.getName();
-		fileSize = new Long(file.length()).intValue();
 		
-		byte[] fileNameAsBytes = filename.getBytes();
+		byte[] fileInfoAsBytes = null;
+		
+		try {
+			fileInfoAsBytes = serialize(fileInfo);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		fileSize = new Long(file.length()).intValue(); // Up to 2,14 GB
 		byte[] fileBytes = new byte[fileSize];
-
-		/* Byte array structure:
-		 * Constant size fields:
-		 *  1) fileSize (int, 4 bytes (we use Integer.BYTES, but it's equal to 4))
-		 *  2) fileNameAsBytes.length (int, 4 bytes)
-		 *  3) authorsId (int, 4 bytes)
-		 *  4) targetConferenceId (int, 4 bytes)
-		 * Variable size fields:
-		 *  5) actual file contents (byte[], the rest of the array)
-		 *  6) fileNameAsBytes (byte[], fileNameAsBytes.length bytes)
-		 */
-		buffer = ByteBuffer.allocate(Integer.BYTES*4 + fileSize + fileNameAsBytes.length);
+		System.out.println("Sent file size:\n" + fileSize + " bytes");
+		fileInfoSize = fileInfoAsBytes.length;
+		
+		buffer = ByteBuffer.allocate(Integer.BYTES*2 + fileInfoSize + fileSize + 8);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		
+		rawDataOffset = Integer.BYTES*2 + fileInfoSize;
+		rawFileInfoOffset = Integer.BYTES*2;
+				
 		try {
 			InputStream in = new FileInputStream(file);
 			in.read(fileBytes);
@@ -93,26 +141,47 @@ public class Paper implements Serializable {
 		catch (IOException ioException) {
 			ioException.printStackTrace();
 		}
-		
-		buffer.putInt(fileBytes.length);
-		buffer.putInt(fileNameAsBytes.length);
-		buffer.putInt(authorsId);
-		buffer.putInt(targetConferenceId);
-		
+
+		buffer.putInt(fileInfoSize);
+		buffer.putInt(fileSize);
+		buffer.put(fileInfoAsBytes);
 		buffer.put(fileBytes);
-		buffer.put(fileNameAsBytes);
 	}
 	
+	
 	public void saveAsFile(String path) {
+		// Add forwardslash if needed:
+		if(path.charAt(path.length() - 1) != '/') path += "/";
+		
 		try {			
-			OutputStream out = new FileOutputStream(path + filename);
+			OutputStream out = new FileOutputStream(path + fileInfo.getFilename());
 			out.write(getRawFileData(), 0, fileSize);
 			out.close();
 		}
 		catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} 
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+	
+	
+    public static byte[] serialize(Object obj) throws IOException {
+        try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
+            try(ObjectOutputStream o = new ObjectOutputStream(b)){
+                o.writeObject(obj);
+            }
+            return b.toByteArray();
+        }
+    }
+
+    
+    public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+        try(ByteArrayInputStream b = new ByteArrayInputStream(bytes)){
+            try(ObjectInputStream o = new ObjectInputStream(b)){
+                return o.readObject();
+            }
+        }
+    }
 }

@@ -474,6 +474,7 @@ public class ApplicationController implements Controller {
 		});
 	}
 
+	
 	// sends request for the current user object and puts it in currentUser
 	// static variable
 	public static void reqCurrentUser() {
@@ -495,7 +496,18 @@ public class ApplicationController implements Controller {
 					"Zarządzaj konferencją \"" + selectedConfName + "\"");
 		}
 	}
-
+	
+	@FXML public void manageFilesBtn() {
+		Integer selectedConfId = fc.getSelectedConferenceId();
+		UploadFileController.setSelectedConferenceId(selectedConfId);
+		
+		if (selectedConfId != null) {
+			String selectedConfName = fc.getSelectedConference().getName();
+			openNewWindow(applicationWindow, "view/FileManagerLayout.fxml", 650, 600, false,
+					"Zarządzaj plikami konferencji \"" + selectedConfName + "\"");
+		}
+	}
+	
 	// sends request to join conference after user confirms it
 	@FXML public void joinConferenceBtn() {
 		Integer selectedConfId = fc.getSelectedConferenceId();

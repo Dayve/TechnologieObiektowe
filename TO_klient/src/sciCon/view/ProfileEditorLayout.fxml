@@ -14,6 +14,11 @@
             <Font size="14.0" />
          </font>
       </Label>
+      <Button layoutX="168.0" layoutY="250.0" mnemonicParsing="false" onAction="#confirmBtn" onKeyReleased="#confirmBtnEnterKey" text="Zatwierdź" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="80.0">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Button>
       <PasswordField fx:id="currentPasswordField" layoutX="50.0" layoutY="65.0" prefHeight="30.0" prefWidth="220.0" promptText="Obecne hasło" AnchorPane.topAnchor="65.0">
          <font>
             <Font size="13.0" />
@@ -49,11 +54,6 @@
             <Font size="13.0" />
          </font>
       </TextField>
-      <Button layoutX="168.0" layoutY="250.0" mnemonicParsing="false" onAction="#confirmBtn" onKeyReleased="#confirmBtnEnterKey" text="Zatwierdź" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="80.0">
-         <font>
-            <Font size="13.0" />
-         </font>
-      </Button>
       <Button layoutX="85.0" layoutY="250.0" mnemonicParsing="false" onAction="#closeWindowBtn" onKeyReleased="#closeBtnEnterKey" text="Zakończ" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="80.0">
          <font>
             <Font size="13.0" />

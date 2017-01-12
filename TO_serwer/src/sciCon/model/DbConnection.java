@@ -93,23 +93,17 @@ public class DbConnection {
 
 	public boolean addParticipant(int usersId, int conferencesId) {
 		boolean succeeded = true;
-		int participantsId = maxEntry("id_uczestnika", "uczestnik") + 1;
 
-		String addParticipantQuery = "insert into uczestnik values(?, ?, ?)";
-		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 4)";
+		String addParticipantQuery = "insert into uczestnik(id_uczestnika, id_wydarzenia, id_uzytkownika, id_roli)"
+				+ " values(?, ?, ?, ?)";
 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addParticipantQuery);
-			pstmt.setInt(1, participantsId);
+			pstmt.setNull(1, java.sql.Types.INTEGER);
 			pstmt.setInt(2, conferencesId);
 			pstmt.setInt(3, usersId);
+			pstmt.setInt(4, 5); // set role 5 - pending
 			pstmt.executeUpdate();
-			pstmt.close();
-
-			pstmt = conn.prepareStatement(addParticipantRoleQuery);
-			pstmt.setInt(1, participantsId);
-			pstmt.executeUpdate();
-
 			pstmt.close();
 		} catch (SQLException e) {
 			succeeded = false;
@@ -355,7 +349,8 @@ public class DbConnection {
 	public boolean addPost(int userId, int conferenceId, String message) {
 		boolean succeeded = true;
 
-		String addPostQuery = "insert into post (id_posta, id_wydarzenia, id_uzytkownika, tresc, data_utworzenia, data_edycji) "
+		String addPostQuery = "insert into post (id_posta, id_wydarzenia,"
+				+ " id_uzytkownika, tresc, data_utworzenia, data_edycji) "
 				+ "values (null, ?, ?, ?, sysdate, sysdate)";
 
 		try {

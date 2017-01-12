@@ -65,7 +65,7 @@
           <RowConstraints maxHeight="1.7976931348623157E308" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Edytuj profil" GridPane.columnIndex="5">
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#editProfileBtn" text="Edytuj profil" GridPane.columnIndex="5">
                <font>
                   <Font size="13.0" />
                </font>
@@ -185,10 +185,13 @@
             <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
          </GridPane.margin>
       </ListView>
-      <TextArea fx:id="forumsMessage" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="50.0" GridPane.columnIndex="1" GridPane.rowIndex="6">
+      <TextArea fx:id="forumsMessage" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="50.0" promptText="Napisz wiadomość na forum" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="6">
          <GridPane.margin>
             <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
          </GridPane.margin>
+         <font>
+            <Font size="13.0" />
+         </font>
       </TextArea>
    </children>
 </GridPane>

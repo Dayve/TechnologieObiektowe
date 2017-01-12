@@ -18,6 +18,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
+import sciCon.model.User.UsersRole;
 import sciCon.model.Week;
 
 public class CalendarController implements Controller {
@@ -36,16 +37,15 @@ public class CalendarController implements Controller {
 		return selectedDate;
 	}
 
-	public void refreshCalendarTable(TableView<Week> calendarTable,
-			LocalDate calendarsDate, ArrayList<Conference> conferencesFeed, TabPane tp,
-			ListView<Label> listOfSelectedDaysEvents) {
+	public void refreshCalendarTable(TableView<Week> calendarTable, LocalDate calendarsDate,
+			ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {
 		calendarTable.getItems().clear();
 		calendarTable.getColumns().clear();
 		fillCalendarTable(calendarTable, conferencesFeed, tp, listOfSelectedDaysEvents);
 	}
 
-	public void fillCalendarTable(TableView<Week> calendarTable,
-			ArrayList<Conference> conferencesFeed, TabPane tp, ListView<Label> listOfSelectedDaysEvents) {
+	public void fillCalendarTable(TableView<Week> calendarTable, ArrayList<Conference> conferencesFeed, TabPane tp,
+			ListView<Label> listOfSelectedDaysEvents) {
 		// ColumnTitle are used only while displaying the content,
 		// PropertyValue however must be the same as variable names in Week
 		// class.
@@ -66,11 +66,7 @@ public class CalendarController implements Controller {
 			col.setResizable(false);
 			col.setSortable(false);
 
-			String defaultCellSettings = "-fx-alignment: CENTER; -fx-font-size: 14pt;",
-					participantMarker = "-fx-background-color: blue;",
-					organizerMarker = "-fx-background-color: yellow;", prelectorMarker = "-fx-background-color: gray;",
-					sponsorMarker = "-fx-background-color: pink;", pendingMarker = "-fx-background-color: red;",
-					noneYetMarker = "-fx-background-color: green;";
+			String defaultCellSettings = "-fx-alignment: CENTER; -fx-font-size: 14pt;";
 
 			// Column-wise cell factory:
 			col.setCellFactory(tableColumn -> {
@@ -92,33 +88,13 @@ public class CalendarController implements Controller {
 										// will be overwritten
 										// (in thisDayConferences array order)
 
-										switch (ApplicationController
-												.usersRoleOnConference(ApplicationController.currentUser, c)) {
-											// If you have two roles, style will
-											// be overwritten in this order:
-											case PARTICIPANT:
-												setStyle(defaultCellSettings + " " + participantMarker);
-												break;
-
-											case ORGANIZER:
-												setStyle(defaultCellSettings + " " + organizerMarker);
-												break;
-
-											case PRELECTOR:
-												setStyle(defaultCellSettings + " " + prelectorMarker);
-												break;
-
-											case SPONSOR:
-												setStyle(defaultCellSettings + " " + sponsorMarker);
-												break;
-
-											case PENDING:
-												setStyle(defaultCellSettings + " " + pendingMarker);
-												break;
-
-											case NONE:
-												setStyle(defaultCellSettings + " " + noneYetMarker);
-												break;
+										if (ApplicationController.usersRoleOnConference(
+												ApplicationController.currentUser, c) != UsersRole.NONE) {
+											setStyle(defaultCellSettings + " " 
+											+ "-fx-font-weight: bold; -fx-background-color: #A5BEE9;");
+										} else {
+											setStyle(defaultCellSettings + " " + 
+										"-fx-font-weight: bolder;");
 										}
 									}
 								}

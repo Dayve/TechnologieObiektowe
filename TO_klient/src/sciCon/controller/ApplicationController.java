@@ -3,6 +3,7 @@ package sciCon.controller;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,6 +58,7 @@ public class ApplicationController implements Controller {
 	// calendar
 	@FXML Button joinLeaveManageConfBtn;
 	@FXML Button removeConfBtn;
+	@FXML Button filesMenuButton;
 	@FXML private ListView<Label> conferenceFeedList;
 	@FXML private AnchorPane feedAnchorPane;
 	@FXML private ComboBox<String> conferenceFeedCB;
@@ -79,7 +81,7 @@ public class ApplicationController implements Controller {
 		PAST, FUTURE, ALL
 	};
 
-	public static final int CHAR_LIMIT_IN_TITLEPANE = 35;
+	public static final int CHAR_LIMIT_IN_TITLEPANE = 30;
 
 	private static LinkedBlockingQueue<RequestType> requestQueue = new LinkedBlockingQueue<RequestType>();
 
@@ -149,6 +151,7 @@ public class ApplicationController implements Controller {
 
 				} else {
 					fc.setSelectedConferenceId(null);
+					checkUsersParticipation();
 				}
 			}
 		});
@@ -326,31 +329,20 @@ public class ApplicationController implements Controller {
 		if (selectedConfId != null) {
 			try {
 				Conference selectedConf = fc.getSelectedConference();
-//				ArrayList<User> selectedConfParticipants = selectedConf.getParticipantsList();
-//				ArrayList<User> selectedConfOrganizers = selectedConf.getOrganizers();
 				UsersRole role = usersRoleOnConference(currentUser, selectedConf);
-//				boolean currentUserTakesPart = false;
-//				boolean currentUserIsOrganizer = false;
-				// check if current user takes part in selected conference
-//				for (User u : selectedConfParticipants) {
-//					if (u.getId() == currentUser.getId()) {
-//						currentUserTakesPart = true;
-//						break;
-//					}
-//				}
-				// check if current user is organizer of selected conference
-//				for (User u : selectedConfOrganizers) {
-//					if (u.getId() == currentUser.getId()) {
-//						currentUserIsOrganizer = true;
-//						break;
-//					}
-//				}
 				switch (role) {
 					case ORGANIZER: {
 						removeConfBtn.setDisable(false);
-						joinLeaveManageConfBtn.setOnAction((event) -> {
-							manageConferenceBtn();
-						});
+						filesMenuButton.setDisable(false);
+						// if the conference has already ended, don't let change users' roles
+						if(selectedConf.getEndTime().isAfter(LocalDateTime.now())) {
+							joinLeaveManageConfBtn.setDisable(false);
+							joinLeaveManageConfBtn.setOnAction((event) -> {
+								manageConferenceBtn();
+							});
+						} else {
+							joinLeaveManageConfBtn.setDisable(true);
+						}
 						joinLeaveManageConfBtn.setText("Zarządzaj");
 						forumsMessage.setVisible(true);
 						break;
@@ -359,6 +351,8 @@ public class ApplicationController implements Controller {
 					case PARTICIPANT:
 					case SPONSOR: {
 						removeConfBtn.setDisable(true);
+						joinLeaveManageConfBtn.setDisable(false);
+						filesMenuButton.setDisable(false);
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> leaveConferenceBtn()).start();
 						});
@@ -367,44 +361,39 @@ public class ApplicationController implements Controller {
 						break;
 					}
 					case NONE: {
+						joinLeaveManageConfBtn.setDisable(false);
+						filesMenuButton.setDisable(true);
+						removeConfBtn.setDisable(true);
+						forumsMessage.setVisible(false);
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> joinConferenceBtn()).start();
 						});
 						joinLeaveManageConfBtn.setText("Weź udział");
+						break;
 					}
 					case PENDING: {
+						joinLeaveManageConfBtn.setDisable(false);
+						filesMenuButton.setDisable(true);
 						removeConfBtn.setDisable(true);
 						forumsMessage.setVisible(false);
+						joinLeaveManageConfBtn.setOnAction((event) -> {
+							new Thread(() -> leaveConferenceBtn()).start();
+						});
+						joinLeaveManageConfBtn.setText("Wycofaj się");
 						break;
 					}
 					default:
 						break;
-
 				}
-
-//				if (role == UsersRole.ORGANIZER) {
-//					removeConfBtn.setDisable(false);
-//					joinLeaveManageConfBtn.setOnAction((event) -> {
-//						manageConferenceBtn();
-//					});
-//					joinLeaveManageConfBtn.setText("Zarządzaj");
-//				} else {
-//					removeConfBtn.setDisable(true);
-//					if (role != UsersRole.NONE) {
-//						joinLeaveManageConfBtn.setOnAction((event) -> {
-//							new Thread(() -> leaveConferenceBtn()).start();
-//						});
-//						joinLeaveManageConfBtn.setText("Wycofaj się");
-//					} else {
-//						joinLeaveManageConfBtn.setOnAction((event) -> {
-//							new Thread(() -> joinConferenceBtn()).start();
-//						});
-//						joinLeaveManageConfBtn.setText("Weź udział");
-//					}
-//				}
 			} catch (NoSuchElementException e) {
 				fc.setSelectedConferenceId(null);
+				checkUsersParticipation();
 			}
+		} else { // if no conference is selected
+			filesMenuButton.setDisable(true);
+			removeConfBtn.setDisable(true);
+			forumsMessage.setVisible(false);
+			joinLeaveManageConfBtn.setDisable(true);
 		}
 	}
 
@@ -500,11 +489,11 @@ public class ApplicationController implements Controller {
 	
 	@FXML public void manageFilesBtn() {
 		Integer selectedConfId = fc.getSelectedConferenceId();
-		UploadFileController.setSelectedConferenceId(selectedConfId);
 		
 		if (selectedConfId != null) {
+			UploadFileController.setSelectedConferenceId(selectedConfId);
 			String selectedConfName = fc.getSelectedConference().getName();
-			openNewWindow(applicationWindow, "view/FileManagerLayout.fxml", 650, 600, false,
+			openNewWindow(applicationWindow, "view/FileManagerLayout.fxml", 700, 500, false,
 					"Zarządzaj plikami konferencji \"" + selectedConfName + "\"");
 		}
 	}

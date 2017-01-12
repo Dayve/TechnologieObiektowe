@@ -23,7 +23,7 @@
             <Font size="13.0" />
          </font>
       </Button>
-      <ComboBox fx:id="userOperationCB" layoutX="166.0" layoutY="501.0" prefHeight="29.0" prefWidth="190.0" promptText="Zmień role użytkowników" AnchorPane.bottomAnchor="30.0" />
+      <ComboBox fx:id="userOperationCB" layoutX="166.0" layoutY="501.0" prefHeight="29.0" prefWidth="190.0" promptText="Zmień role użytkowników" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="155.0" AnchorPane.rightAnchor="133.0" />
       <Button layoutX="164.0" layoutY="450.0" mnemonicParsing="false" onAction="#deselectSelectAllUsers" text="Odznacz/zaznacz wszystkich">
          <font>
             <Font size="13.0" />

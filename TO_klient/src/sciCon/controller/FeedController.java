@@ -189,7 +189,7 @@ public class FeedController {
 					break;
 
 				case PENDING:
-					label.setStyle(myConferencesStyle + "-fx-text-fill: #C9C9C9;");
+					label.setStyle(myConferencesStyle + "-fx-text-fill: #A7A7A7;");
 					break;
 
 				case NONE:

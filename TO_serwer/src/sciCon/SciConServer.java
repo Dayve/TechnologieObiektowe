@@ -87,8 +87,8 @@ public class SciConServer implements Runnable {
 			} else {
 
 				message = interpretValidationCode(validationCode, "Zarejestrowano",
-						"Login musi mieć co najmniej 3 znaki i składać się z liter, cyfr lub znaku \"_\".",
-						"Hasło musi mieć co najmniej 6 znaków.", "Imię i nazwisko muszą mieć co najmniej po 2 znaki.");
+						"Login musi mieć od 3 do 30 znaków i składać się z liter, cyfr lub znaku \"_\".",
+						"Hasło musi mieć od 6 do 40 znaków.", "Imię i nazwisko muszą mieć od 2 do 30 znaków.");
 
 				if (validationCode == 0) {
 					if (!dbConn.registerUser(u)) {

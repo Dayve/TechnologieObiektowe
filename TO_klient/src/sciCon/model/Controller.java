@@ -96,6 +96,7 @@ public interface Controller {
 		Scene newScene = null;
 		try {
 			newScene = new Scene(loader.load());
+			newScene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
 			newStage.setMaxHeight(250);
 			newStage.setMaxWidth(300);
 			newStage.initModality(Modality.WINDOW_MODAL);
@@ -124,6 +125,7 @@ public interface Controller {
 		Scene newScene = null;
 		try {
 			newScene = new Scene(loader.load());
+			newScene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
 			newStage.setMaxHeight(305);
 			newStage.setMaxWidth(400);
 			if(modality) {
@@ -162,7 +164,7 @@ public interface Controller {
              
          } catch (NoSuchAlgorithmException e) {
  			e.printStackTrace();
-         }       
+         }
          return result;       
      }
 }

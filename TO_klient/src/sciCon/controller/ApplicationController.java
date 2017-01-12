@@ -639,7 +639,7 @@ public class ApplicationController implements Controller {
 	}
 	
 	@FXML public void editProfileBtn() {
-		openNewWindow(applicationWindow, "view/ProfileEditorLayout.fxml", 320, 465, false, "Edytuj profil");
+		openNewWindow(applicationWindow, "view/ProfileEditorLayout.fxml", 400, 465, false, "Edytuj profil");
 	}
 
 	public void changeMonthToNext() {

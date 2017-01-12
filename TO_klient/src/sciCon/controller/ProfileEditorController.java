@@ -92,6 +92,10 @@ public class ProfileEditorController implements Controller {
 		}
 	}
 	
+	@FXML private void deleteAccountBtn(ActionEvent event) {
+		
+	}
+	
 	@FXML private void closeBtnEnterKey(KeyEvent event) {
 		if (event.getCode() == KeyCode.ENTER) {
 			closeWindow(profileEditorWindow);

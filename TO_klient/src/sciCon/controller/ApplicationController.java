@@ -255,7 +255,13 @@ public class ApplicationController implements Controller {
 		}, 0, 1000);
 	}
 
-	public static UsersRole usersRoleOnConference(User user, Conference conference) {
+	public static UsersRole usersRoleOnConference(User user, Integer conferenceId) {
+		Conference conference = null;
+		for(Conference c : fc.getFeed()) {
+			if(conferenceId.equals(c.getId())) {
+				conference = c;
+			}
+		}
 		for (User u : conference.getParticipants()) {
 			if (u.getId().equals(user.getId()))
 				return UsersRole.PARTICIPANT;
@@ -329,7 +335,7 @@ public class ApplicationController implements Controller {
 		if (selectedConfId != null) {
 			try {
 				Conference selectedConf = fc.getSelectedConference();
-				UsersRole role = usersRoleOnConference(currentUser, selectedConf);
+				UsersRole role = usersRoleOnConference(currentUser, selectedConfId);
 				switch (role) {
 					case ORGANIZER: {
 						removeConfBtn.setDisable(false);

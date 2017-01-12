@@ -89,7 +89,7 @@ public class CalendarController implements Controller {
 										// (in thisDayConferences array order)
 
 										if (ApplicationController.usersRoleOnConference(
-												ApplicationController.currentUser, c) != UsersRole.NONE) {
+												ApplicationController.currentUser, c.getId()) != UsersRole.NONE) {
 											setStyle(defaultCellSettings + " " 
 											+ "-fx-font-weight: bold; -fx-background-color: #A5BEE9;");
 										} else {

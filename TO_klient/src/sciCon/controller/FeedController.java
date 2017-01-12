@@ -171,9 +171,9 @@ public class FeedController {
 			
 			String myConferencesStyle = "-fx-font-weight: bold;";
 			switch (ApplicationController
-					.usersRoleOnConference(ApplicationController.currentUser, c)) {
+					.usersRoleOnConference(ApplicationController.currentUser, c.getId())) {
 				case PARTICIPANT:
-					label.setStyle(myConferencesStyle + "-fx-text-fill: #A5BEE9;");
+					label.setStyle(myConferencesStyle);
 					break;
 
 				case ORGANIZER:
@@ -181,7 +181,7 @@ public class FeedController {
 					break;
 
 				case PRELECTOR:
-					label.setStyle(myConferencesStyle + "-fx-text-fill: #471CF0;");
+					label.setStyle(myConferencesStyle + "-fx-text-fill: #A5BEE9;");
 					break;
 
 				case SPONSOR:
@@ -330,8 +330,9 @@ public class FeedController {
 			currentSectionContent.setStyle(sectionContentStyle);
 			confDescriptionSections.add(currentSectionContent);
 		}
-
+		
 		flow.getChildren().addAll(confDescriptionSections);
+		flow.setPrefWidth(scPane.getWidth());
 		flow.setStyle("-fx-padding: 10 10 10 10;");
 		scPane.setContent(flow);
 	}
@@ -352,19 +353,15 @@ public class FeedController {
 		}
 		if (c == null) {
 			// if there's no such conference found remove its tab
-			System.out.println("number of tabs: " + tp.getTabs().size());
-			System.out.println("removing tab: " + tabsId);
-			System.out.println(openedTabsConferencesIds.keySet());
 			tp.getTabs().remove(openedTabsConferencesIds.get(tabsId));
 			openedTabsConferencesIds.remove(tabsId);
-			System.out.println("number of tabs: " + tp.getTabs().size());
-			System.out.println(openedTabsConferencesIds.keySet());
 			
 		} else {
 
 			VBox vb = (VBox) openedTabsConferencesIds.get(tabsId).getContent();
 			if (vb.getChildren().size() >= 1) {
 				ScrollPane confInfoPane = (ScrollPane) vb.getChildren().get(0);
+				updateConfDescriptionScrollPane(confInfoPane, c);
 			}
 			if (vb.getChildren().size() == 2) {
 				ListView<TextFlow> forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
@@ -410,7 +407,7 @@ public class FeedController {
 					ListView<TextFlow> forumPane;
 					double paneSize = tp.getHeight();
 					UsersRole currUsersRole = ApplicationController
-							.usersRoleOnConference(ApplicationController.currentUser, c);
+							.usersRoleOnConference(ApplicationController.currentUser, c.getId());
 					if(currUsersRole != UsersRole.NONE && currUsersRole != UsersRole.PENDING) {
 						paneSize /= 2;
 						forumPane = new ListView<TextFlow>();

@@ -1,18 +1,16 @@
 package sciCon.controller;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -20,7 +18,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
@@ -34,14 +31,10 @@ public class ConferenceManagerController implements Controller {
 
 	@FXML Parent confManagerWindow;
 	@FXML private TextField searchUserField;
-	@FXML private TextField searchFileField;
 	@FXML private ListView<Label> usersLV;
-	@FXML private ListView filesLV;
 
 	@FXML private ComboBox<String> userOperationCB;
 	@FXML private ComboBox<String> fileOperationCB;
-	
-	@FXML private Button plusButton;
 
 	private int selectedConferenceId;
 	private Conference selectedConference;
@@ -49,9 +42,7 @@ public class ConferenceManagerController implements Controller {
 	private HashMap<Integer, User> deselectedUsers = new HashMap<Integer, User>();
 
 	private String message;
-	private FileChooser fileChooser = new FileChooser();
-	
-	
+	private boolean notAnAdminAnymore = false;
 
 	private void setSelectedConference(Conference c) {
 		selectedConference = c;
@@ -70,14 +61,6 @@ public class ConferenceManagerController implements Controller {
 				"Ustaw status: sponsor", "Ustaw status: prelegent", "Ustaw status: uczestnik", "Wyproś");
 
 		userOperationCB.getItems().addAll(userActions);
-
-		ObservableList<String> fileActions = FXCollections.observableArrayList("Usuń pliki");
-
-		fileOperationCB.getItems().addAll(fileActions);
-	}
-
-	private void filterListView(ListView<Label> lv, String text) {
-
 	}
 
 	private void addUserLabelsWithRoles(ObservableList<Label> ol, ArrayList<User> group, String role) {
@@ -130,42 +113,8 @@ public class ConferenceManagerController implements Controller {
 		selectedConferenceId = fc.getSelectedConferenceId();
 		selectedConference = fc.getSelectedConference();
 
-		searchUserField.textProperty().addListener(obs -> {
-			filterListView(usersLV, searchUserField.getText());
-		});
-
-		searchFileField.textProperty().addListener(obs -> {
-			filterListView(filesLV, searchFileField.getText());
-		});
 		setupFilterCBs();
 		fillUsersList();
-		
-		plusButton.setOnAction(
-		    new EventHandler<ActionEvent>() {
-		        @Override
-		        public void handle(final ActionEvent e) {
-		            File file = fileChooser.showOpenDialog((Stage) confManagerWindow.getScene().getWindow());
-		            if(file != null) {	
-		            	Thread t = new Thread(new Runnable() {
-		                    public void run() {
-		                    	readAndSendFile(file.getAbsolutePath());
-		                    }
-		            	});
-		            	t.start();
-		            }
-		        }
-		    }
-		);	
-	}
-	
-	public void readAndSendFile(String pathWithFilename) {
-		Paper examplePaper = new Paper();
-		System.out.println("File author: " + ApplicationController.currentUser.getName());
-		examplePaper.createFromExistingFile(pathWithFilename, 
-				ApplicationController.currentUser, selectedConferenceId, "Sample description. Test file.");
-		
-		SocketEvent se = new SocketEvent("fileSentToServer", examplePaper.getWholeBufferAsByteArray());
-		NetworkConnection.sendSocketEvent(se);
 	}
 
 	private void deselectAllUsers() {
@@ -192,10 +141,6 @@ public class ConferenceManagerController implements Controller {
 		}
 	}
 
-	@FXML public void deselectSelectAllFiles() {
-
-	}
-
 	@FXML public void confirmUserOperationBtn() {
 		new Thread(() -> confirmUserOperation()).start();
 	}
@@ -213,97 +158,83 @@ public class ConferenceManagerController implements Controller {
 
 	@FXML public void confirmUserOperation() {
 		String operation = userOperationCB.getValue();
+		if(operation == null) {
+			return ;
+		}
 		ArrayList<Integer> usersIds = new ArrayList<Integer>(selectedUsers.keySet());
-
-		User.UsersRole role = null;
-
+		User.UsersRole targetRole = null;
+		
 		switch (operation) {
 			case "Ustaw status: organizator": {
-				role = UsersRole.ORGANIZER;
+				targetRole = UsersRole.ORGANIZER;
 				break;
 			}
 			case "Ustaw status: sponsor": {
-				role = UsersRole.SPONSOR;
+				targetRole = UsersRole.SPONSOR;
 				break;
 			}
 			case "Ustaw status: prelegent": {
-				role = UsersRole.PRELECTOR;
+				targetRole = UsersRole.PRELECTOR;
 				break;
 			}
 			case "Ustaw status: uczestnik": {
-				role = UsersRole.PARTICIPANT;
+				targetRole = UsersRole.PARTICIPANT;
 				break;
 			}
 			case "Wyproś": {
-				role = UsersRole.NONE;
+				targetRole = UsersRole.NONE;
 				break;
 			}
 			default:
 				break;
 		}
 
-		if (role != null && usersIds.size() > 0) {
-			if (role == UsersRole.ORGANIZER || willThereBeAnyOrganizerLeft()) {
-				SocketEvent se = new SocketEvent("reqSetRole", role, selectedConferenceId, usersIds);
-				NetworkConnection.sendSocketEvent(se);
+		if (ApplicationController.usersRoleOnConference(ApplicationController.currentUser,
+				selectedConferenceId) == UsersRole.ORGANIZER) {
+			if (targetRole != null && usersIds.size() > 0) {
+				if (targetRole == UsersRole.ORGANIZER || willThereBeAnyOrganizerLeft()) {
+					SocketEvent se = new SocketEvent("reqSetRole", targetRole, selectedConferenceId, usersIds);
+					NetworkConnection.sendSocketEvent(se);
 
-				SocketEvent res = NetworkConnection.rcvSocketEvent();
-				String eventName = res.getName();
+					SocketEvent res = NetworkConnection.rcvSocketEvent();
+					String eventName = res.getName();
 
-				if (eventName.equals("setRoleSucceeded") || eventName.equals("expellSucceeded")) {
-					setSelectedConference(res.getObject(Conference.class));
-					message = "Pomyślnie wprowadzono zmiany.";
-					ApplicationController.makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
-				} else if (eventName.equals("setRoleFailed")) {
-					message = "Nie udało się wprowadzić zmian.";
+					if (eventName.equals("setRoleSucceeded") || eventName.equals("expellSucceeded")) {
+						setSelectedConference(res.getObject(Conference.class));
+						message = "Pomyślnie wprowadzono zmiany.";
+						ApplicationController.makeRequest(RequestType.UPDATE_CONFERENCE_FEED);
+					} else if (eventName.equals("setRoleFailed")) {
+						message = "Nie udało się wprowadzić zmian.";
+					} else {
+						message = "Nie udało się wprowadzić zmian. Serwer nie odpowiada.";
+					}
 				} else {
-					message = "Nie udało się wprowadzić zmian. Serwer nie odpowiada.";
+					message = "Po wykonaniu zmian musi pozostać co najmniej jeden organizator.";
 				}
 			} else {
-				message = "Po wykonaniu zmian musi pozostać co najmniej jeden organizator.";
+				message = "Zaznacz conajmniej jednego użytkownika i akcję do wykonania.";
 			}
 		} else {
-			message = "Zaznacz conajmniej jednego użytkownika i akcję do wykonania.";
+			notAnAdminAnymore = true;
 		}
 
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				boolean notAnAdminAnymore = false;
-				try {
-					selectedConference.getOrganizers().stream()
-							.filter(o -> o.getId() == ApplicationController.currentUser.getId()).
-							findFirst().get(); // search for current users in organizer arraylist
-				} catch (NoSuchElementException e) {
+
+				if (notAnAdminAnymore) {
 					// if theres no current user in organizers arraylist
-					message += " Nie jesteś już organizatorem i menadżer zostanie zamknięty.";
+					message = " Nie jesteś już organizatorem i menadżer zostanie zamknięty.";
 					notAnAdminAnymore = true;
 				}
-				
 				refresh();
 				openDialogBox(confManagerWindow, message, true);
 				if (notAnAdminAnymore) {
 					Stage st = (Stage) confManagerWindow.getScene().getWindow();
 					st.close();
 				}
-				
+
 			}
 		});
-	}
-
-	@FXML public void confirmFileOperationBtn() {
-
-	}
-
-	@FXML public void confirmFileOperation() {
-
-	}
-
-	@FXML public void reqModifyUsersRole() {
-
-	}
-
-	@FXML public void addFileBtn() {
-
 	}
 
 	@FXML public void closeWindowBtn(ActionEvent event) {

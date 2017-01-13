@@ -86,7 +86,8 @@ public class ConferenceCreatorController implements Controller {
 			SocketEvent se = new SocketEvent("reqAddConference", conf);
 			NetworkConnection.sendSocketEvent(se);
 
-			SocketEvent res = NetworkConnection.rcvSocketEvent();
+			SocketEvent res = NetworkConnection.rcvSocketEvent("addConferenceSucceeded", 
+					"addConferenceFailed");
 			String eventName = res.getName();
 
 			if (eventName.equals("addConferenceSucceeded")) {

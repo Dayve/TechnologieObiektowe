@@ -22,7 +22,7 @@ public interface Controller {
 	};
 
 	public enum RequestType {
-		UPDATE_CONFERENCE_FEED, REQUEST_JOINING_CONFERENCE, REQUEST_LEAVING_CONFERENCE, REQUEST_REMOVING_CONFERENCE
+		UPDATE_CONFERENCE_FEED, REQUEST_JOINING_CONFERENCE, REQUEST_LEAVING_CONFERENCE, REQUEST_REMOVING_CONFERENCE, REQUEST_LOGOUT
 	};
 
 	public final FeedController fc = new FeedController();
@@ -58,14 +58,23 @@ public interface Controller {
 		loadScene(sourceStage, path, w, h, resizable, minW, minH);
 	}
 
-
 	default public void openNewWindow(Parent sourceWindow, String path, int minW, int minH, boolean resizable,
 			String title) {
-		openNewWindow(new FXMLLoader(), sourceWindow, path, minW, minH, resizable, title);
+		openNewWindow(new FXMLLoader(), sourceWindow, path, minW, minH, resizable, false, title);
+	}
+	
+	default public void openNewWindow(Parent sourceWindow, String path, int minW, int minH, boolean resizable,
+			boolean modal, String title) {
+		openNewWindow(new FXMLLoader(), sourceWindow, path, minW, minH, resizable, modal, title);
 	}
 
 	default public void openNewWindow(FXMLLoader loader, Parent sourceWindow, String path, int minW, int minH,
 			boolean resizable, String title) {
+		openNewWindow(loader, sourceWindow, path, minW, minH, resizable, false, title);
+	}
+
+	default public void openNewWindow(FXMLLoader loader, Parent sourceWindow, String path, int minW, int minH,
+			boolean resizable, boolean modality, String title) {
 		Stage sourceStage = (Stage) sourceWindow.getScene().getWindow();
 		loader.setLocation(Client.class.getResource(path));
 		Stage newStage = new Stage();
@@ -75,6 +84,9 @@ public interface Controller {
 			newStage.setMaxHeight(minH + 25);
 			newStage.setMaxWidth(minW);
 			newStage.initOwner(sourceStage);
+			if (modality) {
+				newStage.initModality(Modality.WINDOW_MODAL);
+			}
 			newScene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
 			newStage.setScene(newScene);
 
@@ -89,9 +101,18 @@ public interface Controller {
 	}
 
 	default public void openConfirmationWindow(Parent window, String message, RequestType requestType) {
+		openConfirmationWindow(window, "view/ConfirmationLayout.fxml", message, requestType, "Powiadomienie");
+	}
+	
+	default public void openConfirmationWindow(Parent window, String path, String title) {
+		openConfirmationWindow(window, path, null , null, title);
+	}
+	
+	default public void openConfirmationWindow(Parent window, String path, String message, 
+			RequestType requestType, String title) {
 		Stage sourceStage = (Stage) window.getScene().getWindow();
 		FXMLLoader loader = new FXMLLoader();
-		loader.setLocation(Client.class.getResource("view/ConfirmationLayout.fxml"));
+		loader.setLocation(Client.class.getResource(path));
 		Stage newStage = new Stage();
 		Scene newScene = null;
 		try {
@@ -103,10 +124,12 @@ public interface Controller {
 			newStage.initOwner(sourceStage);
 			newStage.setScene(newScene);
 			newStage.setResizable(false);
-			newStage.setTitle("Powiadomienie");
-			ConfirmationWindowController controller = loader.<ConfirmationWindowController>getController();
-			controller.setConfirmationMessage(message);
-			controller.setRequestType(requestType);
+			newStage.setTitle(title);
+			if(requestType != null) {
+				ConfirmationWindowController controller = loader.<ConfirmationWindowController>getController();
+				controller.setConfirmationMessage(message);
+				controller.setRequestType(requestType);
+			}
 			newStage.showAndWait();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -116,8 +139,8 @@ public interface Controller {
 	default public void openDialogBox(Parent window, String message) {
 		openDialogBox(window, message, false);
 	}
-			
-	default public void openDialogBox(Parent window, String message, Boolean modality) {
+
+	default public void openDialogBox(Parent window, String message, boolean modality) {
 		Stage sourceStage = (Stage) window.getScene().getWindow();
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Client.class.getResource("view/DialogBoxLayout.fxml"));
@@ -128,7 +151,7 @@ public interface Controller {
 			newScene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
 			newStage.setMaxHeight(305);
 			newStage.setMaxWidth(400);
-			if(modality) {
+			if (modality) {
 				newStage.initModality(Modality.WINDOW_MODAL);
 			}
 			newStage.initOwner(sourceStage);
@@ -148,23 +171,29 @@ public interface Controller {
 		stage.close();
 	}
 	
-	public default String doHash(String password){
-        String result = "";
-         try {
-        	 MessageDigest md = MessageDigest.getInstance("SHA-1");
-             md.update(password.getBytes());
-             
-             byte byteArray[] = md.digest();
-             StringBuffer hash = new StringBuffer();
-             
-             for(int i = 0; i < byteArray.length; i++){
-                 hash.append(Integer.toString((byteArray[i] & 0xff) + 0x100, 16).substring(1));
-             }
-             result = hash.toString();
-             
-         } catch (NoSuchAlgorithmException e) {
- 			e.printStackTrace();
-         }
-         return result;       
-     }
+	default public void closeWindow(Event event) {
+		Parent window = (Parent) event.getSource();
+		Stage stage = (Stage) window.getScene().getWindow();
+		stage.close();
+	}
+
+	public default String doHash(String password) {
+		String result = "";
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-1");
+			md.update(password.getBytes());
+
+			byte byteArray[] = md.digest();
+			StringBuffer hash = new StringBuffer();
+
+			for (int i = 0; i < byteArray.length; i++) {
+				hash.append(Integer.toString((byteArray[i] & 0xff) + 0x100, 16).substring(1));
+			}
+			result = hash.toString();
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
 }

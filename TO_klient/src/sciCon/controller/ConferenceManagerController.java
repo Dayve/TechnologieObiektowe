@@ -64,16 +64,16 @@ public class ConferenceManagerController implements Controller {
 	}
 
 	private void addUserLabelsWithRoles(ObservableList<Label> ol, ArrayList<User> group, String role) {
-
 		Label label = null;
-
 		for (User u : group) {
 			String title = u.getLogin() + " (" + u.getName() + " " + u.getSurname() + "), " + role;
 			label = new Label(FeedController.addNLsIfTooLong(title, 35));
 
 			label.setId(u.getId().toString());
 			label.setPrefWidth(usersLV.getPrefWidth());
-			deselectedUsers.put(u.getId(), u);
+			if(!selectedUsers.containsKey(u.getId())) {
+				deselectedUsers.put(u.getId(), u);
+			}
 			label.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				public void handle(MouseEvent t) {
 					Label selectedLabel = ((Label) usersLV.getSelectionModel().getSelectedItem());
@@ -196,7 +196,8 @@ public class ConferenceManagerController implements Controller {
 					SocketEvent se = new SocketEvent("reqSetRole", targetRole, selectedConferenceId, usersIds);
 					NetworkConnection.sendSocketEvent(se);
 
-					SocketEvent res = NetworkConnection.rcvSocketEvent();
+					SocketEvent res = NetworkConnection.rcvSocketEvent("setRoleSucceeded", 
+							"expellSucceeded", "setRoleFailed", "expellFailed");
 					String eventName = res.getName();
 
 					if (eventName.equals("setRoleSucceeded") || eventName.equals("expellSucceeded")) {
@@ -232,7 +233,6 @@ public class ConferenceManagerController implements Controller {
 					Stage st = (Stage) confManagerWindow.getScene().getWindow();
 					st.close();
 				}
-
 			}
 		});
 	}

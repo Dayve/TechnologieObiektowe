@@ -41,7 +41,7 @@
          <children>
             <ComboBox fx:id="conferenceFeedCB" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#filterFeed">
                <GridPane.margin>
-                  <Insets bottom="5.0" left="2.0" right="2.0" top="5.0" />
+                  <Insets bottom="5.0" left="4.0" right="2.0" top="5.0" />
                </GridPane.margin>
             </ComboBox>
             <ComboBox fx:id="conferenceFeedNumberCB" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1">
@@ -78,7 +78,7 @@
                   <Font size="13.0" />
                </font>
                <GridPane.margin>
-                  <Insets bottom="5.0" left="2.0" right="2.0" top="5.0" />
+                  <Insets bottom="5.0" left="2.0" right="4.0" top="5.0" />
                </GridPane.margin>
             </Button>
             <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#addConferenceBtn" text="Dodaj konferencję" GridPane.columnIndex="2">
@@ -128,7 +128,7 @@
             <Font size="13.0" />
          </font>
          <GridPane.margin>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+            <Insets bottom="2.0" left="4.0" right="2.0" top="2.0" />
          </GridPane.margin>
       </TextField>
       <TabPane fx:id="eventDetailsTP" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="ALL_TABS" tabMaxWidth="80.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.rowSpan="4">
@@ -172,22 +172,22 @@
       </GridPane>
       <ListView fx:id="conferenceFeedList" prefHeight="506.0" prefWidth="275.0" GridPane.rowIndex="3" GridPane.rowSpan="4">
          <GridPane.margin>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+            <Insets bottom="5.0" left="4.0" right="2.0" top="2.0" />
          </GridPane.margin>
       </ListView>
       <TableView fx:id="calendarTable" prefHeight="372.0" prefWidth="392.0" GridPane.columnIndex="2" GridPane.rowIndex="3">
          <GridPane.margin>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+            <Insets bottom="2.0" left="2.0" right="4.0" top="2.0" />
          </GridPane.margin>
       </TableView>
       <ListView fx:id="listOfSelectedDaysEvents" prefHeight="151.0" prefWidth="388.0" GridPane.columnIndex="2" GridPane.rowIndex="4" GridPane.rowSpan="3">
          <GridPane.margin>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+            <Insets bottom="5.0" left="2.0" right="4.0" top="2.0" />
          </GridPane.margin>
       </ListView>
       <TextArea fx:id="forumsMessage" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="50.0" promptText="Napisz wiadomość na forum" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="6">
          <GridPane.margin>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+            <Insets bottom="5.0" left="2.0" right="2.0" top="2.0" />
          </GridPane.margin>
          <font>
             <Font size="13.0" />

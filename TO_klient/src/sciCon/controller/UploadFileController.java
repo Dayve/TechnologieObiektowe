@@ -50,7 +50,6 @@ public class UploadFileController implements Controller {
 		);	
 	}
 	
-	
 	private void setSelectedFileInfoLabel(String newContent) {
 		chosenFileLabel.setText(newContent);
 	}
@@ -80,7 +79,7 @@ public class UploadFileController implements Controller {
 		SocketEvent se = new SocketEvent("fileSentToServer", examplePaper.getWholeBufferAsByteArray());
 		NetworkConnection.sendSocketEvent(se);
 		
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		SocketEvent res = NetworkConnection.rcvSocketEvent("fileReceivedByServer", "");
 		String eventName = res.getName();
 		
 		final String message;

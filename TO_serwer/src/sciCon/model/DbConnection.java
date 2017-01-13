@@ -252,6 +252,29 @@ public class DbConnection {
 		return succeeded;
 	}
 
+	
+	public Boolean removeUser(String login, String password) {
+		System.out.println("dbconnection, caller's login:" + login
+		+ ", password " + password);
+		Boolean succeeded = null;
+		String removeUserQuery = "delete from uzytkownik where login = (?) and haslo = (?)";
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(removeUserQuery);
+			pstmt.setString(1, login);
+			pstmt.setString(2, password);
+			int result = pstmt.executeUpdate();
+			System.out.println("result: " + result);
+			if(result > 0) {
+				succeeded = true;
+			}
+		} catch (SQLException e) {
+			succeeded = false;
+			e.printStackTrace();
+		}
+		return succeeded;
+	}
+	
 	public boolean addConference(Conference c) {
 		boolean succeeded = true;
 

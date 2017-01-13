@@ -86,6 +86,7 @@ public class ApplicationController implements Controller {
 	private static LinkedBlockingQueue<RequestType> requestQueue = new LinkedBlockingQueue<RequestType>();
 
 	@FXML public void initialize() {
+		new Thread(() -> reqCurrentUser()).start();
 		setupFeedFilterCBs();
 		setupTabPane();
 		reqConferenceFeed();
@@ -93,7 +94,6 @@ public class ApplicationController implements Controller {
 		setupForumTextArea();
 		setupMonthsYearsCBs();
 		setupCalendar();
-		new Thread(() -> reqCurrentUser()).start();
 
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
@@ -226,7 +226,6 @@ public class ApplicationController implements Controller {
 						// changed to something
 						// more appropriate once we extend requestType
 						fc.refreshConferenceTab(eventDetailsTP, fc.getSelectedConferenceId(), fc.getFeed());
-//						System.out.println("REQQ SIZE: " + requestQueue.size());
 						if (requestQueue.contains(RequestType.UPDATE_CONFERENCE_FEED)
 								|| checkedRequestsWithoutUpdate > 10) {
 							reqConferenceFeed();
@@ -248,6 +247,9 @@ public class ApplicationController implements Controller {
 						if (requestQueue.contains(RequestType.REQUEST_REMOVING_CONFERENCE)) {
 							reqRemoveConference();
 							requestQueue.remove(RequestType.REQUEST_REMOVING_CONFERENCE);
+						}
+						if(requestQueue.contains(RequestType.REQUEST_LOGOUT)) {
+							logout();
 						}
 					}
 				});
@@ -294,7 +296,8 @@ public class ApplicationController implements Controller {
 				SocketEvent se = new SocketEvent("reqSendForumMessage", userIdConferenceId, message);
 
 				NetworkConnection.sendSocketEvent(se);
-				SocketEvent res = NetworkConnection.rcvSocketEvent();
+				SocketEvent res = NetworkConnection.rcvSocketEvent("sendForumMessageSucceeded", 
+						"sendForumMessageFailed");
 				String eventName = res.getName();
 				if (!eventName.equals("sendForumMessageSucceeded")) {
 					Platform.runLater(new Runnable() {
@@ -410,7 +413,7 @@ public class ApplicationController implements Controller {
 //		System.out.println("POCZATEK REQUESTFEED");
 		SocketEvent e = new SocketEvent("reqConferenceFeed");
 		NetworkConnection.sendSocketEvent(e);
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		SocketEvent res = NetworkConnection.rcvSocketEvent("updateConferenceFeed");
 
 		String eventName = res.getName();
 		ArrayList<Conference> tempFeed;
@@ -476,7 +479,7 @@ public class ApplicationController implements Controller {
 	public static void reqCurrentUser() {
 		SocketEvent se = new SocketEvent("reqCurrentUser");
 		NetworkConnection.sendSocketEvent(se);
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		SocketEvent res = NetworkConnection.rcvSocketEvent("currentUserSucceeded");
 
 		String eventName = res.getName();
 		if (eventName.equals("currentUserSucceeded")) {
@@ -529,7 +532,8 @@ public class ApplicationController implements Controller {
 		SocketEvent se = new SocketEvent("reqJoinConference", userIdConferenceId);
 		NetworkConnection.sendSocketEvent(se);
 
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		SocketEvent res = NetworkConnection.rcvSocketEvent("joinConferenceSucceeded",
+				 "joinConferenceFailed");
 		String eventName = res.getName();
 		if (eventName.equals("joinConferenceSucceeded")) {
 			reqConferenceFeed();
@@ -568,7 +572,7 @@ public class ApplicationController implements Controller {
 		SocketEvent se = new SocketEvent("reqLeaveConference", userIdConferenceId);
 		NetworkConnection.sendSocketEvent(se);
 
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		SocketEvent res = NetworkConnection.rcvSocketEvent("leaveConferenceSucceeded", "leaveConferenceFailed");
 		String eventName = res.getName();
 		if (eventName.equals("leaveConferenceSucceeded")) {
 			reqConferenceFeed();
@@ -602,7 +606,7 @@ public class ApplicationController implements Controller {
 		SocketEvent se = new SocketEvent("reqRemoveConference", fc.getSelectedConferenceId());
 		NetworkConnection.sendSocketEvent(se);
 
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		SocketEvent res = NetworkConnection.rcvSocketEvent("removeConferenceSucceeded", "removeConferenceFailed");
 		String eventName = res.getName();
 		if (eventName.equals("removeConferenceSucceeded")) {
 			reqConferenceFeed();
@@ -627,6 +631,7 @@ public class ApplicationController implements Controller {
 		NetworkConnection.disconnect();
 		fc.clear();
 		Client.timer.cancel();
+		requestQueue.clear();
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
 				loadScene(applicationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);

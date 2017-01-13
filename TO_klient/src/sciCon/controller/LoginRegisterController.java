@@ -46,7 +46,7 @@ public class LoginRegisterController implements Controller {
 
 		try {
 			NetworkConnection.sendSocketEvent(se);
-			SocketEvent res = NetworkConnection.rcvSocketEvent();
+			SocketEvent res = NetworkConnection.rcvSocketEvent("loginSucceeded", "loginFailed");
 			String eventName = res.getName();
 			if (eventName.equals("loginFailed")) {
 				message = "Niepoprawny login lub hasło.";
@@ -80,7 +80,7 @@ public class LoginRegisterController implements Controller {
 			SocketEvent e = new SocketEvent("reqRegister", u);
 
 			NetworkConnection.sendSocketEvent(e);
-			SocketEvent res = NetworkConnection.rcvSocketEvent();
+			SocketEvent res = NetworkConnection.rcvSocketEvent("registerSucceeded", "registerFailed");
 
 			message = res.getObject(String.class);
 		} else {

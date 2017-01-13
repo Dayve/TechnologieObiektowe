@@ -87,7 +87,7 @@ public class SciConServer implements Runnable {
 			} else {
 
 				message = interpretValidationCode(validationCode, "Zarejestrowano",
-						"Login musi mieć od 3 do 30 znaków i składać się z liter, cyfr lub znaku \"_\".",
+						"Login musi mieć od 2 do 30 znaków i składać się z liter, cyfr lub znaku \"_\".",
 						"Hasło musi mieć od 6 do 40 znaków.", "Imię i nazwisko muszą mieć od 2 do 30 znaków.");
 
 				if (validationCode == 0) {
@@ -143,7 +143,7 @@ public class SciConServer implements Runnable {
 					}
 				}
 			}
-			
+
 			SocketEvent se = new SocketEvent(socketEvtName, message, resultingUser);
 			try {
 				objOut.writeObject(se);
@@ -309,12 +309,34 @@ public class SciConServer implements Runnable {
 			SocketEvent se = null;
 			UsersRole fetchedRole = dbConn.checkUsersRole(userId, conferenceId);
 			if (fetchedRole == UsersRole.NONE || fetchedRole == UsersRole.PENDING) {
-				se = new SocketEvent("sendForumMessageFailed");
+				se = new SocketEvent("sendForumFeedFailed");
 			} else {
 				ArrayList<Post> posts = dbConn.fetchConferencesPosts(conferenceId);
-				se = new SocketEvent("sendForumMessageSucceeded", posts);
+				se = new SocketEvent("sendForumFeedSucceeded", posts);
 			}
 
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void handleDeleteUser(User caller) {
+			System.out.println(
+					"sciconserver, caller's login:" + caller.getLogin() + ", password " + caller.getPassword());
+			SocketEvent se = null;
+			String evtName = "deleteUserFailed";
+			String message = "Nie udało się usunąć konta. Błąd serwera.";
+			Boolean succeeded = dbConn.removeUser(caller.getLogin(), caller.getPassword());
+			if (succeeded == null) {
+				message = "Podane hasło jest nieprawidłowe.";
+			} else if (succeeded) {
+				evtName = "deleteUserSucceeded";
+				message = "Usunięto konto. Sesja zostanie zamknięta.";
+			}
+
+			se = new SocketEvent(evtName, message);
 			try {
 				objOut.writeObject(se);
 			} catch (IOException e) {
@@ -334,6 +356,34 @@ public class SciConServer implements Runnable {
 			}
 		}
 
+		private void handleIncomingFile(byte[] receivedRawData) {
+			Paper receivedPaper = new Paper();
+			receivedPaper.createFromReceivedBytes(receivedRawData);
+
+			// TODO: Remove later:
+			System.out.println("> Server: Saving file on disk");
+//			receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION");
+
+			System.out.println("> Server: Saving file in the DB");
+			if (dbConn.addFile(receivedPaper)) {
+				try {
+					SocketEvent response = new SocketEvent("fileReceivedByServer");
+					System.out.println("> Server: Sending response: fileReceivedByServer");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			} else {
+				try {
+					SocketEvent response = new SocketEvent("errorWhileSavingFile");
+					System.out.println("> Server: Sending response: errorWhileSavingFile");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+		}
+
 		@Override public void run() {
 			try {
 				SocketEvent se = null;
@@ -350,13 +400,8 @@ public class SciConServer implements Runnable {
 					String eventName = se.getName();
 					switch (eventName) {
 						case "fileSentToServer": {
-							byte[] receivedPaper_rawData = se.getObject(byte[].class);
-
-							Paper receivedPaper = new Paper();
-							receivedPaper.createFromReceivedBytes(receivedPaper_rawData);
-							// receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION");
-
-							dbConn.addFile(receivedPaper);
+							byte[] receivedBytes = se.getObject(byte[].class);
+							handleIncomingFile(receivedBytes);
 							break;
 						}
 						// login request
@@ -435,6 +480,12 @@ public class SciConServer implements Runnable {
 							User.UsersRole role = se.getObject(UsersRole.class);
 							Integer conferenceId = se.getObject(Integer.class);
 							handleSetUsersRole(usersIds, role, conferenceId);
+							break;
+						}
+
+						case "reqDeleteUser": {
+							User caller = se.getObject(User.class);
+							handleDeleteUser(caller);
 							break;
 						}
 

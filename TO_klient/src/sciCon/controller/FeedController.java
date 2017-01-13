@@ -222,9 +222,9 @@ public class FeedController {
 		SocketEvent se = new SocketEvent("reqConferencesPosts", userIdConferenceId);
 
 		NetworkConnection.sendSocketEvent(se);
-		SocketEvent res = NetworkConnection.rcvSocketEvent();
+		SocketEvent res = NetworkConnection.rcvSocketEvent("sendForumFeedSucceeded", "sendForumFeedFailed");
 		String eventName = res.getName();
-		if (eventName.equals("sendForumMessageSucceeded")) {
+		if (eventName.equals("sendForumFeedSucceeded")) {
 			forumsFeed = res.getObject(ArrayList.class);
 			if (forumsFeed == null) {
 				return null;

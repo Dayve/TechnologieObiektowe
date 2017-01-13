@@ -49,7 +49,7 @@ public interface Validator {
 		String email = u.getEmail();
 		String organization = u.getOrganization();
 		
-		if (!(login.matches("[a-zA-Z0-9_]*")) || login.length() < 3) {
+		if (!(login.matches("[a-zA-Z0-9_]*")) || login.length() < 2) {
 			retCode |= 1;
 		}
 

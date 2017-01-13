@@ -22,12 +22,7 @@ import sciCon.model.User.UsersRole;
 import sciCon.model.Week;
 
 public class CalendarController implements Controller {
-	private FeedController feedController;
 	private LocalDate selectedDate; // currently selected (clicked) date
-
-	public CalendarController(FeedController fc) {
-		this.feedController = fc;
-	}
 
 	public void setCalendarsDate(LocalDate calendarsDate) {
 		this.selectedDate = calendarsDate;
@@ -117,7 +112,7 @@ public class CalendarController implements Controller {
 								if (isAnyConferenceAtDate(selectedDate, conferencesFeed)) {
 									// Perform an action after a day with
 									// assigned conference was clicked:
-									feedController.fillListViewWithSelectedDaysConferences(selectedDate,
+									fc.fillListViewWithSelectedDaysConferences(selectedDate,
 											conferencesFeed, tp, listOfSelectedDaysEvents, false);
 								} else {
 									listOfSelectedDaysEvents.getItems().clear();

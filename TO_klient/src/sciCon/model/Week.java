@@ -9,7 +9,7 @@ public class Week {
 				+ nd + "]";
 	}
 
-	public String pn, wt, sr, cz, pt, sb, nd;
+	private String pn, wt, sr, cz, pt, sb, nd;
 
 	public Week(List<String> initializerList) throws IllegalArgumentException {
 		super();

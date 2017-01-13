@@ -46,17 +46,16 @@ public class DbConnection {
 	/*
 	 * @return user if matching pair is found, if not: -1
 	 */
-	public User getUser(String _login, String _password) {
-
+	public User getUser(String login, String password) {
 		String loginQuery = "select id_uzytkownika, login, imie, nazwisko, email, organizacja"
 				+ " from uzytkownik where login = (?) and haslo = (?)";
 		Integer id = null;
 		User u = null;
-		String login = null, name = null, surname = null, email = null, organization = null;
+		String name, surname = null, email = null, organization = null;
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(loginQuery);
-			pstmt.setString(1, _login);
-			pstmt.setString(2, _password);
+			pstmt.setString(1, login);
+			pstmt.setString(2, password);
 			ResultSet rs = pstmt.executeQuery();
 			if (rs.next()) {
 				id = rs.getInt(1);
@@ -72,23 +71,6 @@ public class DbConnection {
 			e.printStackTrace();
 		}
 		return u;
-	}
-
-	private int maxEntry(String column, String table) {
-		int count = 0;
-		try {
-			String countQuery = "select max(" + column + ") from " + table;
-			PreparedStatement pstmt = conn.prepareStatement(countQuery);
-
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next()) {
-				count = rs.getInt(1);
-			}
-			pstmt.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return count;
 	}
 
 	public boolean addParticipant(int usersId, int conferencesId) {
@@ -279,24 +261,12 @@ public class DbConnection {
 
 		User organizer = c.getFirstOrganizer();
 
-//		int eventId = this.maxEntry("id_wydarzenia", "wydarzenie") + 1;
-//		int participantId = this.maxEntry("id_uczestnika", "uczestnik") + 1;
-
-//		String addConferenceQuery = "insert into wydarzenie values(?, ?, ?, ?, ?, ?, "
-//				+ "to_date(?,'YYYY-MM-DD HH24:MI'), to_date(?,'YYYY-MM-DD HH24:MI'))";
-//		String addOrganizerQuery = "insert into uczestnik values(?, ?, ?)";
-//		String addParticipantRoleQuery = "insert into rola_uczestnika values(?, 0)";
 		String addConferenceProcedure = "{call add_event(?, ?, ?, ?, ?, ?, ?, ?)}";
 
 		String insertStartTime = startTime.toString().replace('T', ' ');
 		String insertEndTime = endTime.toString().replace('T', ' ');
-		
-		System.out.println(insertStartTime);
-
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addConferenceProcedure);
-//			PreparedStatement pstmt = conn.prepareStatement(addConferenceQuery);
-//			pstmt.setInt(1, eventId);
 			pstmt.setInt(1, organizer.getId());
 			pstmt.setString(2, name);
 			pstmt.setString(3, subject);
@@ -307,19 +277,7 @@ public class DbConnection {
 			pstmt.setString(8, insertEndTime);
 			pstmt.executeUpdate();
 			pstmt.close();
-//
-//			pstmt = conn.prepareStatement(addOrganizerQuery);
-//			pstmt.setInt(1, participantId);
-//			pstmt.setInt(2, eventId);
-//			pstmt.setInt(3, organizer.getId());
-//			pstmt.executeUpdate();
-//			pstmt.close();
-//
-//			pstmt = conn.prepareStatement(addParticipantRoleQuery);
-//			pstmt.setInt(1, participantId);
-//			pstmt.executeUpdate();
 
-			pstmt.close();
 		} catch (SQLException e) {
 			succeeded = false;
 			System.out.println("Adding a conference to database has failed.");
@@ -358,7 +316,6 @@ public class DbConnection {
 			pstmt.setInt(1, conferenceId);
 			pstmt.setInt(2, userId);
 			pstmt.setString(3, message);
-//			pstmt.setString(4, LocalDateTime.now().toString());
 			pstmt.executeUpdate();
 			pstmt.close();
 		} catch (SQLException e) {
@@ -428,23 +385,21 @@ public class DbConnection {
 
 	public boolean registerUser(User u) {
 		boolean succeeded = true;
-		int id = 0;
-		id = this.maxEntry("id_uzytkownika", "uzytkownik") + 1;
 
 		String login = u.getLogin();
 		String name = u.getName();
 		String password = u.getPassword();
 		String surname = u.getSurname();
 
-		String registerQuery = "insert into uzytkownik(id_uzytkownika, login, haslo, imie, nazwisko) values(?,?,?,?,?)";
+		String registerQuery = "insert into uzytkownik(id_uzytkownika, login, haslo, imie, nazwisko)"
+				+ " values(null , ?, ?, ?, ?)";
 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(registerQuery);
-			pstmt.setInt(1, id);
-			pstmt.setString(2, login);
-			pstmt.setString(3, password);
-			pstmt.setString(4, name);
-			pstmt.setString(5, surname);
+			pstmt.setString(1, login);
+			pstmt.setString(2, password);
+			pstmt.setString(3, name);
+			pstmt.setString(4, surname);
 			pstmt.executeUpdate();
 			pstmt.close();
 			succeeded = true;
@@ -456,6 +411,40 @@ public class DbConnection {
 		return succeeded;
 	}
 
+	public User editUser(User u) {
+		String name = u.getName();
+		String password = u.getPassword();
+		String surname = u.getSurname();
+		String email = u.getEmail();
+		String organization = u.getOrganization();
+		String registerQuery = "update uzytkownik set haslo = (?), imie = (?),"
+				+ " nazwisko = (?), email = (?), organizacja = (?) where id_uzytkownika = (?)";
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(registerQuery);
+			pstmt.setString(1, password);
+			pstmt.setString(2, name);
+			pstmt.setString(3, surname);
+			if(email == null) {
+				pstmt.setNull(4, java.sql.Types.VARCHAR);
+			} else {
+				pstmt.setString(4, email);
+			}
+			if(organization == null) {
+				pstmt.setNull(5, java.sql.Types.VARCHAR);
+			} else {
+				pstmt.setString(5, organization);
+			}
+			pstmt.setInt(6, u.getId());
+			pstmt.executeUpdate();
+			pstmt.close();
+			return u;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	private ArrayList<ArrayList<User>> fetchAllConferenceParticipants(int conferenceId) {
 		ArrayList<ArrayList<User>> allParticipants = new ArrayList<ArrayList<User>>();
 		ArrayList<User> organizers = new ArrayList<User>();

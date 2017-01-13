@@ -69,7 +69,7 @@ public class ApplicationController implements Controller {
 	@FXML private TextField searchField;
 	@FXML private TextArea forumsMessage;
 
-	private CalendarController calendar = new CalendarController(fc);
+	private CalendarController calendar = new CalendarController();
 
 	public static User currentUser;
 	private String message = null;

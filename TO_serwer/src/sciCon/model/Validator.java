@@ -46,7 +46,9 @@ public interface Validator {
 		String password = u.getPassword();
 		String name = u.getName();
 		String surname = u.getSurname();
-
+		String email = u.getEmail();
+		String organization = u.getOrganization();
+		
 		if (!(login.matches("[a-zA-Z0-9_]*")) || login.length() < 3) {
 			retCode |= 1;
 		}
@@ -57,6 +59,15 @@ public interface Validator {
 
 		if (name.length() < 2 || surname.length() < 2) {
 			retCode |= 4;
+		}
+		
+		if (email != null && (email.length() > 40 ||
+				!email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$"))) {
+			retCode |= 8;
+		}
+		
+		if (organization != null && organization.length() > 100) {
+			retCode |= 16;
 		}
 
 		return retCode;

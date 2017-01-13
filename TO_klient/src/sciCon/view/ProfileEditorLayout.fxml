@@ -59,7 +59,7 @@
             <Font size="13.0" />
          </font>
       </Button>
-      <Button layoutX="155.0" layoutY="383.0" mnemonicParsing="false" onAction="#deleteAccountBtn" text="Usuń konto" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="157.0" AnchorPane.rightAnchor="157.0">
+      <Button layoutX="155.0" layoutY="383.0" mnemonicParsing="false" onAction="#deleteAccountBtn" text="Usuń konto" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="149.0" AnchorPane.rightAnchor="149.0">
          <font>
             <Font size="13.0" />
          </font>

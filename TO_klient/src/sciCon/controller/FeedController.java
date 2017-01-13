@@ -314,7 +314,7 @@ public class FeedController {
 				"\n\nCzas zakończenia:\n", "\n\nMiejsce:\n", "\n\nPlan:\n", "\n\nOpis:\n",
 				"\n\nUczestnicy: (wg roli)\n" };
 
-		String[] sectionContents = new String[] { c.getSubject(), Conference.userListToStr(c.getOrganizers()),
+		String[] sectionContents = new String[] { c.getSubject(), c.getOrganizersDescription(),
 				c.getStartTime().toString().replace("T", ", godz. "),
 				c.getEndTime().toString().replace("T", ", godz. "), c.getPlace(), c.getAgenda(), c.getDescription(),
 				c.getAllParticipantsListStr() };
@@ -430,8 +430,6 @@ public class FeedController {
 					tp.getTabs().add(tab);
 					openedTabsConferencesIds.put(currId, tab);
 					tp.getSelectionModel().select(tab);
-					System.out.println("opening tab: " + c.getId());
-					System.out.println(openedTabsConferencesIds.keySet());
 					break;
 				}
 			}

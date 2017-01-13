@@ -132,6 +132,15 @@ public class Conference implements Serializable {
 		this.id = id;
 	}
 
+	public String getOrganizersDescription() {
+		String str = new String();
+		for (User o : getOrganizers()) {
+			str += o.getName() + " " + o.getSurname() 
+			+ " (" + o.getLogin() + "), " + o.getEmail() + ", " + o.getOrganization() + "\n";
+		}
+		return str;
+	}
+	
 	public static String userListToStr(ArrayList<User> uL) {
 		String str = "";
 		Iterator<User> it = uL.iterator();

@@ -25,7 +25,6 @@ public class ProfileEditorController implements Controller {
 	@FXML private TextField newPasswordRepeatField;
 	@FXML private TextField organizationField;
 	private String login;
-	private String message;
 	
 	private void setTextField(TextInputControl textDestination, String text){
 		if(text == null) {
@@ -35,49 +34,62 @@ public class ProfileEditorController implements Controller {
 		textDestination.setText(text);
 	}
 	
-	@FXML public void initialize() {
-		ApplicationController.reqCurrentUser();
-		login = ApplicationController.currentUser.getLogin();
-		titleField.setText(login + ": edycja profilu");
-//		setTextField(titleField, ApplicationController.currentUser.getName());
+	private void refresh() {
+//		ApplicationController.reqCurrentUser();
 		setTextField(nameField, ApplicationController.currentUser.getName());
 		setTextField(surnameField, ApplicationController.currentUser.getSurname());
 		setTextField(emailField, ApplicationController.currentUser.getEmail());
 		setTextField(organizationField, ApplicationController.currentUser.getOrganization());
-		
-		
-//		nameField.setText(ApplicationController.currentUser.getName());
-//		surnameField.setText(ApplicationController.currentUser.getSurname());
-//		emailField.setText(ApplicationController.currentUser.getEmail());
-//		organizationField.setText(ApplicationController.currentUser.getOrganization());
+	}
+	@FXML public void initialize() {
+		refresh();
+		login = ApplicationController.currentUser.getLogin();
+		titleField.setText(login + ": edycja profilu");
 	}
 	
 	@FXML public void reqUpdateProfile() {
 		String currentPassword = doHash(currentPasswordField.getText());
-		String newPassword = doHash(newPasswordField.getText());
-		String reNewPassword = doHash(newPasswordRepeatField.getText());
+		String newPassword = newPasswordField.getText();
+		String reNewPassword = newPasswordField.getText();
 		String name = nameField.getText();
 		String surname = surnameField.getText();
 		String email = emailField.getText();
 		String organization = organizationField.getText();
+		String message;
 
-		if (newPassword.equals(reNewPassword)) {
+		if (newPassword.equals(reNewPassword) && 
+				(newPassword.length() >= 6 || newPassword.length() == 0)) {
+			/* if new password/ repeat new password fields are empty
+			 * then just pass null, otherwise demand at least 6 characters
+			 * and equal passwords and hash these passwords
+			 */ 
+			if(newPassword.length() > 0) {
+				newPassword = doHash(newPassword);
+				reNewPassword = doHash(reNewPassword);
+			} else {
+				newPassword = null;
+				reNewPassword = null;
+			}
 			User u = new User(ApplicationController.currentUser.getId(), 
 					login, newPassword, name, surname, email, organization);
 			SocketEvent e = new SocketEvent("reqUpdateProfile", u, currentPassword);
 
 			NetworkConnection.sendSocketEvent(e);
 			SocketEvent res = NetworkConnection.rcvSocketEvent();
-
 			message = res.getObject(String.class);
+			User newFetchedProfile = res.getObject(User.class);
+			if (newFetchedProfile != null) {
+				ApplicationController.currentUser = newFetchedProfile;
+			}
 		} else {
-			message = "Podane hasła nie są identyczne.";
+			message = "Podane hasła nie są identyczne lub nie dłuższe niż 5 znaków.";
 		}
 
 		// run in JavaFX after background thread finishes work
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
 				openDialogBox(profileEditorWindow, message);
+				refresh();
 			}
 		});
 	}

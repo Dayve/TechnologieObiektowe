@@ -151,22 +151,22 @@
                   <Font size="13.0" />
                </font>
                <GridPane.margin>
-                  <Insets bottom="2.0" left="5.0" right="5.0" top="2.0" />
+                  <Insets bottom="2.0" left="8.0" right="2.0" top="2.0" />
                </GridPane.margin></Button>
             <Button fx:id="nextMonth" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#changeMonthToNext" text="&gt;" GridPane.columnIndex="3" GridPane.halignment="LEFT">
                <font>
                   <Font size="13.0" />
                </font>
                <GridPane.margin>
-                  <Insets bottom="2.0" left="5.0" right="2.0" top="2.0" />
+                  <Insets bottom="2.0" left="2.0" right="8.0" top="2.0" />
                </GridPane.margin></Button>
             <ComboBox fx:id="monthsCB" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#changeMonthToChosen" GridPane.columnIndex="1" GridPane.halignment="CENTER">
                <GridPane.margin>
-                  <Insets bottom="2.0" left="5.0" right="5.0" top="2.0" />
+                  <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
                </GridPane.margin></ComboBox>
             <ComboBox fx:id="yearsCB" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#changeYearToChosen" GridPane.columnIndex="2" GridPane.halignment="CENTER">
                <GridPane.margin>
-                  <Insets bottom="2.0" left="5.0" right="5.0" top="2.0" />
+                  <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
                </GridPane.margin></ComboBox>
          </children>
       </GridPane>

@@ -107,6 +107,52 @@ public class SciConServer implements Runnable {
 			}
 		}
 
+		private void handleUpdateProfile(User u, String password) {
+			String socketEvtName = "updateProfileFailed";
+			String message = "Edycja profilu nie powiodła się. Podane obecne hasło jest niepoprawne.";
+			User fetchedUser = null;
+			User resultingUser = null;
+			fetchedUser = dbConn.getUser(u.getLogin(), password);
+			if (fetchedUser != null) {
+				if (u.getName() == null) {
+					u.setName(fetchedUser.getName());
+				}
+				if (u.getSurname() == null) {
+					u.setName(fetchedUser.getSurname());
+				}
+				if (u.getPassword() == null) {
+					u.setPassword(password);
+				}
+
+				int validationCode = isUserValid(u);
+
+				message = interpretValidationCode(validationCode, "Zaaktualizowano profil.",
+						"Login musi mieć od 3 do 30 znaków i składać się z liter, cyfr lub znaku \"_\".",
+						"Hasło musi mieć od 6 do 40 znaków.", "Imię i nazwisko muszą mieć od 2 do 30 znaków.",
+						"Adres e-mail jest w niepoprawnym formacie. Musi składać się z maksymalnie 40 znaków - "
+								+ "liter, cyfr lub \"_\", \".\", \"%\", \"+\", \"-\".",
+						"Nazwa organizacji nie może zawierać więcej niż 100 znaków.");
+
+				if (validationCode == 0) {
+					resultingUser = dbConn.editUser(u);
+					if (resultingUser == null) {
+						message = "Edycja profilu nie powiodła się. Błąd serwera.";
+					} else {
+						message = "Edycja profilu powiodła się.";
+						socketEvtName = "updateProfileSucceeded";
+					}
+				}
+			}
+			
+			SocketEvent se = new SocketEvent(socketEvtName, message, resultingUser);
+			try {
+				objOut.writeObject(se);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+
+		}
+
 		private void handleAddConference(Conference c) {
 
 			int validationCode = isConferenceValid(c);
@@ -308,11 +354,11 @@ public class SciConServer implements Runnable {
 
 							Paper receivedPaper = new Paper();
 							receivedPaper.createFromReceivedBytes(receivedPaper_rawData);
-							//receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION");
+							// receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION");
 
 							dbConn.addFile(receivedPaper);
 							break;
-}
+						}
 						// login request
 						case "reqLogin": {
 							User u = (User) se.getObject(User.class);
@@ -322,6 +368,13 @@ public class SciConServer implements Runnable {
 						case "reqRegister": {
 							User u = se.getObject(User.class);
 							handleRegistration(u);
+							break;
+						}
+
+						case "reqUpdateProfile": {
+							User u = se.getObject(User.class);
+							String password = se.getObject(String.class);
+							handleUpdateProfile(u, password);
 							break;
 						}
 						case "reqConferenceFeed": {

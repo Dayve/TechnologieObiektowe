@@ -628,6 +628,7 @@ public class ApplicationController implements Controller {
 	}
 
 	public void logout() {
+//		NetworkConnection.serverCommunicationTimer.cancel();
 		NetworkConnection.disconnect();
 		fc.clear();
 		Client.timer.cancel();

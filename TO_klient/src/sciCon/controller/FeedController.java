@@ -42,54 +42,56 @@ public class FeedController {
 
 	private Integer selectedConferenceId = null;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
-	private HashMap<Integer, Post> selectedConferencesPosts = new HashMap<Integer, Post>();
+	private HashMap<Integer, HashMap<Integer, Post>> eachConferencesPosts = new HashMap<Integer, HashMap<Integer, Post>>();
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
 	private Integer selectedPostsId = null;
-	Integer lastPostsId = null;
+	private Integer lastPostsId = null;
 	private MenuItem editMI = null;
 	private MenuItem deleteMI = null;
 	private ContextMenu forumsCM = null;
-	
+
 	public FeedController() {
 		editMI = new MenuItem("Edytuj");
 		deleteMI = new MenuItem("Usuń");
 		forumsCM = new ContextMenu();
 		forumsCM.getItems().addAll(editMI, deleteMI);
 	}
-	
+
 	private void setupForumEdition(ListView<TextFlow> forumsListView) {
 		ObservableList<TextFlow> ol = forumsListView.getItems();
-		if(ol.size() > 0) {
+		if (ol.size() > 0) {
 			lastPostsId = Integer.parseInt(ol.get(ol.size() - 1).getId());
-			System.out.println("last post: " + selectedConferencesPosts.get(lastPostsId).getContent());
+			System.out.println("last post: " + lastPostsId);
 		} else {
 			lastPostsId = null;
 		}
-		for(TextFlow tf: forumsListView.getItems()) {
+
+		for (TextFlow tf : forumsListView.getItems()) {
 			tf.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				@Override public void handle(MouseEvent me) {
 					if (me.getButton() == MouseButton.SECONDARY) {
 						selectedPostsId = Integer.parseInt(tf.getId());
 						User currUser = ApplicationController.currentUser;
-						UsersRole role = ApplicationController.usersRoleOnConference(currUser, 
-								selectedConferenceId);
-						/* enable/disable context menu depending on user's role
+						UsersRole role = ApplicationController.usersRoleOnConference(currUser, selectedConferenceId);
+						/*
+						 * enable/disable context menu depending on user's role
 						 * organizer - enable edit & delete all posts
 						 * participants - enable edit their posts & delete their
 						 * post if it's the last
 						 */
-						switch(role) {
+						switch (role) {
 							case ORGANIZER: {
 								editMI.setDisable(false);
 								deleteMI.setDisable(false);
 								break;
 							}
 							default: {
-								Integer postsAuthorsId = selectedConferencesPosts.get(selectedPostsId)
-										.getAuthorsId();
-								if(postsAuthorsId.equals(currUser.getId())) {
+								Integer postsAuthorsId = eachConferencesPosts.get(selectedConferenceId)
+										.get(selectedPostsId).getAuthorsId();
+								// current user is author of the post
+								if (postsAuthorsId.equals(currUser.getId())) {
 									editMI.setDisable(false);
-									if(selectedPostsId.equals(lastPostsId)) {
+									if (selectedPostsId.equals(lastPostsId)) {
 										deleteMI.setDisable(false);
 									} else {
 										deleteMI.setDisable(true);
@@ -108,10 +110,11 @@ public class FeedController {
 			});
 		}
 	}
-	
+
 	public void clear() {
 		feed.clear();
 		openedTabsConferencesIds.clear();
+		eachConferencesPosts.clear();
 		selectedConferenceId = null;
 	}
 
@@ -235,10 +238,9 @@ public class FeedController {
 					openConferenceTab(tp, cs);
 				}
 			});
-			
+
 			String myConferencesStyle = "-fx-font-weight: bold;";
-			switch (ApplicationController
-					.usersRoleOnConference(ApplicationController.currentUser, c.getId())) {
+			switch (ApplicationController.usersRoleOnConference(ApplicationController.currentUser, c.getId())) {
 				case PARTICIPANT:
 					label.setStyle(myConferencesStyle);
 					break;
@@ -284,6 +286,7 @@ public class FeedController {
 		ArrayList<Post> forumsFeed = null;
 		ArrayList<Post> postDifferentFromCurrent = new ArrayList<Post>();
 		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
+		HashMap<Integer, Post> thisConfPosts = eachConferencesPosts.get(selectedConferenceId);
 		userIdConferenceId.add(usersId);
 		userIdConferenceId.add(conferencesId);
 		SocketEvent se = new SocketEvent("reqConferencesPosts", userIdConferenceId);
@@ -298,19 +301,18 @@ public class FeedController {
 			}
 			for (int j = forumsFeed.size() - 1; j >= 0; j--) {
 				Post p = forumsFeed.get(j);
-				if (selectedConferencesPosts.containsKey(p.getPostsId())) {
-					if (!p.getContent().equals(selectedConferencesPosts.get(p.getPostsId()).getContent())) {
+
+				if (thisConfPosts.containsKey(p.getPostsId())) {
+					if (!p.getContent().equals(thisConfPosts.get(p.getPostsId()).getContent())) {
 						postDifferentFromCurrent.add(p);
 					} else {
 						break;
 					}
 				} else {
 					postDifferentFromCurrent.add(p);
+					thisConfPosts.put(p.getPostsId(), p);
 				}
 			}
-		}
-		for (Post p : postDifferentFromCurrent) {
-			System.out.println(p);
 		}
 		return postDifferentFromCurrent;
 	}
@@ -350,11 +352,10 @@ public class FeedController {
 				content.setStyle(regularStyle);
 				TextFlow flow = new TextFlow(date, author, content);
 				flow.setId(p.getPostsId().toString());
-				selectedConferencesPosts.put(p.getPostsId(), p);
 				flow.setPrefWidth(lv.getWidth());
 				lv.getItems().add(flow);
 			}
-			lv.setStyle("-fx-padding: 10 10 10 10;");
+//			lv.setStyle("-fx-padding: 10 10 10 10;");
 			return true;
 		} else {
 			return false;
@@ -397,7 +398,7 @@ public class FeedController {
 			currentSectionContent.setStyle(sectionContentStyle);
 			confDescriptionSections.add(currentSectionContent);
 		}
-		
+
 		flow.getChildren().addAll(confDescriptionSections);
 		flow.setPrefWidth(scPane.getWidth());
 		flow.setStyle("-fx-padding: 10 10 10 10;");
@@ -425,22 +426,30 @@ public class FeedController {
 		} else {
 
 			VBox vb = (VBox) openedTabsConferencesIds.get(tabsId).getContent();
-			
-			
+
 			if (vb.getChildren().size() >= 1) {
 				ScrollPane confInfoPane = (ScrollPane) vb.getChildren().get(0);
 				updateConfDescriptionScrollPane(confInfoPane, c);
 			}
-			
+
 			ListView<TextFlow> forumsListView = null;
-			
+
 			if (vb.getChildren().size() == 2) {
 				forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
-				if(updateForumsListViewWithPosts(forumsListView, c)) { // update and check if it succeeded
-					forumsListView.scrollTo(forumsListView.getItems().size()); // scroll to the last msg
+				if (updateForumsListViewWithPosts(forumsListView, c)) { // update
+																		// and
+																		// check
+																		// if it
+																		// succeeded
+					forumsListView.scrollTo(forumsListView.getItems().size()); // scroll
+																				// to
+																				// the
+																				// last
+																				// msg
 					// set context menus on text flows
 					setupForumEdition(forumsListView);
-				};
+				}
+				;
 			}
 		}
 	}
@@ -460,8 +469,10 @@ public class FeedController {
 	}
 
 	public void openConferenceTab(TabPane tp, ArrayList<Conference> confPool) {
-
 		Integer currId = getSelectedConferenceId();
+		if (!eachConferencesPosts.containsKey(currId)) {
+			eachConferencesPosts.put(currId, new HashMap<Integer, Post>());
+		}
 		if (!openedTabsConferencesIds.containsKey(currId)) {
 			for (Conference c : confPool) {
 				if (c.getId() == currId) {
@@ -481,7 +492,7 @@ public class FeedController {
 					double paneSize = tp.getHeight();
 					UsersRole currUsersRole = ApplicationController
 							.usersRoleOnConference(ApplicationController.currentUser, c.getId());
-					if(currUsersRole != UsersRole.NONE && currUsersRole != UsersRole.PENDING) {
+					if (currUsersRole != UsersRole.NONE && currUsersRole != UsersRole.PENDING) {
 						paneSize /= 2;
 						forumsListView = new ListView<TextFlow>();
 						updateForumsListViewWithPosts(forumsListView, c);
@@ -490,16 +501,16 @@ public class FeedController {
 						setupForumEdition(forumsListView);
 						vbox.getChildren().add(forumsListView);
 					}
-					
+
 					descriptionPane.setPrefHeight(paneSize);
 					descriptionPane.setFitToWidth(true);
 					vbox.getChildren().add(0, descriptionPane);
-					
-					
+
 					// VBOx is redundant only theoretically, the full hierarchy
 					// is:
-					// Tab[ VBox[ ScrollPane[ TextFlow[ Text, Text, Text, ... ]]]]
-					
+					// Tab[ VBox[ ScrollPane[ TextFlow[ Text, Text, Text, ...
+					// ]]]]
+
 					tab.setContent(vbox);
 					tp.getTabs().add(tab);
 					openedTabsConferencesIds.put(currId, tab);

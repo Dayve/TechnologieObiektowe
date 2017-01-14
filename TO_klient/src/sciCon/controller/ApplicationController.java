@@ -165,10 +165,10 @@ public class ApplicationController implements Controller {
 		conferenceFeedCB.getItems().addAll(feedOptions);
 		conferenceFeedCB.setValue("Nadchodzące konferencje");
 
-		ObservableList<String> feedNumberOptions = FXCollections.observableArrayList("20", "50", "...");
+		ObservableList<String> feedNumberOptions = FXCollections.observableArrayList("5", "15", "30", "60", "...");
 
 		conferenceFeedNumberCB.getItems().addAll(feedNumberOptions);
-		conferenceFeedNumberCB.setValue("50");
+		conferenceFeedNumberCB.setValue("15");
 
 		searchField.textProperty().addListener(obs -> {
 			refreshConferencesListView(searchField.getText());
@@ -320,11 +320,11 @@ public class ApplicationController implements Controller {
 		} else if (feedPeriodCB.equals("Nadchodzące konferencje")) {
 			filter = ConferenceFilter.FUTURE;
 		}
-		ArrayList<Conference> filtered = fc.filterFeed(fc.getFeed(), filter);
+		ArrayList<Conference> filtered = fc.filterFeed(fc.getFeed(), filter, conferenceFeedNumberCB.getValue());
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				fc.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter, CHAR_LIMIT_IN_TITLEPANE,
-						true);
+				fc.fillListWithLabels(conferenceFeedList, filtered, eventDetailsTP, filter, CHAR_LIMIT_IN_TITLEPANE, 
+						true, conferenceFeedNumberCB.getValue());
 				refreshConferencesListView(searchField.getText());
 			}
 		});
@@ -442,7 +442,7 @@ public class ApplicationController implements Controller {
 								listOfSelectedDaysEvents);
 						refreshConferencesListView(searchField.getText());
 						fc.fillListViewWithSelectedDaysConferences(calendar.getCalendarsDate(), feed, eventDetailsTP,
-								listOfSelectedDaysEvents, false);
+								listOfSelectedDaysEvents, false, conferenceFeedNumberCB.getValue());
 					}
 				});
 			}
@@ -463,7 +463,7 @@ public class ApplicationController implements Controller {
 		
 		ArrayList<Conference> filteringResults = new ArrayList<Conference>();
 
-		for(Conference conference : fc.filterFeed(fc.getFeed(), filter)) {
+		for(Conference conference : fc.filterFeed(fc.getFeed(), filter, conferenceFeedNumberCB.getValue())) {
 			if(conference.getName().toLowerCase().contains(searchBoxContent.toLowerCase()) ||
 				conference.getSubject().toLowerCase().contains(searchBoxContent.toLowerCase()))
 			{
@@ -474,7 +474,7 @@ public class ApplicationController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
 				fc.fillListWithLabels(conferenceFeedList, filteringResults, eventDetailsTP, filter,
-						CHAR_LIMIT_IN_TITLEPANE, true);
+						CHAR_LIMIT_IN_TITLEPANE, true, conferenceFeedNumberCB.getValue());
 			}
 		});
 }

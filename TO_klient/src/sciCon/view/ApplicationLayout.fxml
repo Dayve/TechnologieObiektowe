@@ -44,7 +44,7 @@
                   <Insets bottom="5.0" left="4.0" right="2.0" top="5.0" />
                </GridPane.margin>
             </ComboBox>
-            <ComboBox fx:id="conferenceFeedNumberCB" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1">
+            <ComboBox fx:id="conferenceFeedNumberCB" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#filterFeed" GridPane.columnIndex="1">
                <GridPane.margin>
                   <Insets bottom="5.0" left="2.0" right="2.0" top="5.0" />
                </GridPane.margin>

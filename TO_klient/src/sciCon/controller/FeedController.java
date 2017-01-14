@@ -164,7 +164,8 @@ public class FeedController {
 		return result.substring(0, result.length() - 1);
 	}
 
-	public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf) {
+	public ArrayList<Conference> filterFeed(ArrayList<Conference> feed, ConferenceFilter cf,
+			String numberComboBoxValue) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 		LocalDateTime now = LocalDateTime.now();
 		now.format(formatter);
@@ -194,11 +195,22 @@ public class FeedController {
 			default:
 				break;
 		}
-		return filtered;
+		Collections.sort(filtered, Conference.confDateComparator);
+		int howManyConferencesToShow = 0;
+
+		if (numberComboBoxValue.equals("..."))
+			howManyConferencesToShow = filtered.size();
+		else {
+			howManyConferencesToShow = (filtered.size() < Integer.parseInt(numberComboBoxValue) ? filtered.size()
+					: Integer.parseInt(numberComboBoxValue));
+		}
+
+		return new ArrayList<Conference>(
+				filtered.subList(0, howManyConferencesToShow > 0 ? howManyConferencesToShow : 0));
 	}
 
 	public void fillListViewWithSelectedDaysConferences(LocalDate selectedDate, ArrayList<Conference> feed, TabPane tp,
-			ListView<Label> listOfSelectedDaysEvents, boolean showDate) {
+			ListView<Label> listOfSelectedDaysEvents, boolean showDate, String numberCBvalue) {
 		ArrayList<Conference> selectedDayConferences = new ArrayList<Conference>();
 		listOfSelectedDaysEvents.getItems().clear();
 		for (Conference c : feed) {
@@ -208,14 +220,13 @@ public class FeedController {
 		}
 		if (selectedDayConferences != null) {
 			fillListWithLabels(listOfSelectedDaysEvents, selectedDayConferences, tp, ConferenceFilter.ALL,
-					ApplicationController.CHAR_LIMIT_IN_TITLEPANE, showDate);
+					ApplicationController.CHAR_LIMIT_IN_TITLEPANE, showDate, numberCBvalue);
 		}
 	}
 
 	public void fillListWithLabels(ListView<Label> lv, ArrayList<Conference> cs, TabPane tp, ConferenceFilter cf,
-			int charLimit, boolean showDate) {
-		ArrayList<Conference> filtered = filterFeed(cs, cf);
-		Collections.sort(filtered, Conference.confDateComparator);
+			int charLimit, boolean showDate, String numberCBvalue) {
+		ArrayList<Conference> filtered = filterFeed(cs, cf, numberCBvalue);
 		ObservableList<Label> ol = FXCollections.observableArrayList();
 		lv.getItems().clear();
 		Label label = null;
@@ -298,7 +309,7 @@ public class FeedController {
 			if (forumsFeed == null) {
 				return null;
 			}
-			
+
 			for (int j = forumsFeed.size() - 1; j >= 0; j--) {
 				Post p = forumsFeed.get(j);
 

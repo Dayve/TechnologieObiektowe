@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.Paper;
+import sciCon.model.ServerResponseTimeout;
 import sciCon.model.SocketEvent;
 
 public class UploadFileController implements Controller {
@@ -29,6 +30,8 @@ public class UploadFileController implements Controller {
 	private File chosenFile = null;
 	
 	private static Integer selectedConferenceId = new Integer(-1);
+	
+	public static FileManagerController caller = null;
 	
 	
 	public static void setSelectedConferenceId(Integer givenId) {
@@ -79,6 +82,7 @@ public class UploadFileController implements Controller {
 		
 		if (eventName.equals("fileReceivedByServer")) {
 			message = "Zapisano plik na serwerze.";
+			caller.fetchCurrentlyStoredFiles();
 		} else {
 			message = "Nie udało się zapisać pliku na serwerze.";
 		}

@@ -113,7 +113,7 @@ public class CalendarController implements Controller {
 									// Perform an action after a day with
 									// assigned conference was clicked:
 									fc.fillListViewWithSelectedDaysConferences(selectedDate,
-											conferencesFeed, tp, listOfSelectedDaysEvents, false);
+											conferencesFeed, tp, listOfSelectedDaysEvents, false, "...");
 								} else {
 									listOfSelectedDaysEvents.getItems().clear();
 								}

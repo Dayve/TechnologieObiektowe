@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import sciCon.model.Conference;
 import sciCon.model.DbConnection;
+import sciCon.model.FileInfo;
 import sciCon.model.Paper;
 import sciCon.model.Post;
 import sciCon.model.SocketEvent;
@@ -359,13 +360,8 @@ public class SciConServer implements Runnable {
 		private void handleIncomingFile(byte[] receivedRawData) {
 			Paper receivedPaper = new Paper();
 			receivedPaper.createFromReceivedBytes(receivedRawData);
-
-			// TODO: Remove later:
-			System.out.println("> Server: Saving file on disk");
-//			receivedPaper.saveAsFile("/home/dayve/Pulpit/TO_TEST_DESTINATION");
-
-			System.out.println("> Server: Saving file in the DB");
-			if (dbConn.addFile(receivedPaper)) {
+			
+			if(dbConn.addFile(receivedPaper)) {
 				try {
 					SocketEvent response = new SocketEvent("fileReceivedByServer");
 					System.out.println("> Server: Sending response: fileReceivedByServer");
@@ -373,7 +369,8 @@ public class SciConServer implements Runnable {
 				} catch (IOException ioError) {
 					ioError.printStackTrace();
 				}
-			} else {
+			}
+			else {
 				try {
 					SocketEvent response = new SocketEvent("errorWhileSavingFile");
 					System.out.println("> Server: Sending response: errorWhileSavingFile");
@@ -383,6 +380,72 @@ public class SciConServer implements Runnable {
 				}
 			}
 		}
+		
+		
+		private void handleFetchFileInfos(Conference forConference) {
+			ArrayList<FileInfo> fileInfoList = dbConn.getFileInfos(forConference.getId());
+			if(fileInfoList != null) {
+				try {
+					SocketEvent response = new SocketEvent("fileListFetched", fileInfoList);
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+			else {
+				try {
+					SocketEvent response = new SocketEvent("fileListFetchError");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+		}
+		
+		
+		private void handleFileSending(Integer fileID) {
+			Paper fetchedFile = dbConn.getSpecificFile(fileID);
+			
+			if(fetchedFile != null) {
+				try {
+					SocketEvent response = new SocketEvent("fileSent", fetchedFile.getWholeBufferAsByteArray());
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+			else {
+				try {
+					SocketEvent response = new SocketEvent("fileSendingError");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+		}
+		
+		
+		private void handleFileRemoving(Integer fileID) {
+			boolean success = dbConn.removeSpecificFile(fileID);
+			
+			if(success) {
+				try {
+					SocketEvent response = new SocketEvent("fileRemoved");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+			else {
+				try {
+					SocketEvent response = new SocketEvent("fileRemovingError");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+		}
+
 
 		@Override public void run() {
 			try {
@@ -404,6 +467,21 @@ public class SciConServer implements Runnable {
 							handleIncomingFile(receivedBytes);
 							break;
 						}
+						case "reqestFileList": {
+							Conference forConference = se.getObject(Conference.class);
+							handleFetchFileInfos(forConference);
+							break;
+						}
+						case "reqestSendingChosenFile": {
+							Integer givenFileID = se.getObject(Integer.class);
+							handleFileSending(givenFileID);
+							break;
+						}
+						case "reqestRemovingChosenFile": {
+							Integer givenFileID = se.getObject(Integer.class);
+							handleFileRemoving(givenFileID);
+							break;
+}
 						// login request
 						case "reqLogin": {
 							User u = (User) se.getObject(User.class);

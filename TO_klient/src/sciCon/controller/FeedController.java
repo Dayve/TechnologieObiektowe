@@ -61,7 +61,6 @@ public class FeedController {
 		ObservableList<TextFlow> ol = forumsListView.getItems();
 		if (ol.size() > 0) {
 			lastPostsId = Integer.parseInt(ol.get(ol.size() - 1).getId());
-			System.out.println("last post: " + lastPostsId);
 		} else {
 			lastPostsId = null;
 		}
@@ -327,7 +326,6 @@ public class FeedController {
 			for (User u : selectedConfUsersList) {
 				usersById.put(u.getId(), u);
 			}
-
 			// Styles:
 			String boldStyle = new String("-fx-font-weight:bold;"), // for the
 																	// author's
@@ -336,24 +334,24 @@ public class FeedController {
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 			for (int j = newPosts.size() - 1; j >= 0; j--) {
-
 				Post p = newPosts.get(j);
 				// add date and \n (regular font)
 				Text date = new Text(p.getTime().format(formatter) + "\n");
 				date.setStyle(regularStyle);
+				if(usersById.containsKey(p.getAuthorsId())) {
+					User u = usersById.get(p.getAuthorsId());
+					// add author's text (bold)
+					Text author = new Text(u.getLogin() + ": ");
+					author.setStyle(boldStyle);
 
-				User u = usersById.get(p.getAuthorsId());
-				// add author's text (bold)
-				Text author = new Text(u.getLogin() + ": ");
-				author.setStyle(boldStyle);
-
-				// add post's content (regular font)
-				Text content = new Text(p.getContent());
-				content.setStyle(regularStyle);
-				TextFlow flow = new TextFlow(date, author, content);
-				flow.setId(p.getPostsId().toString());
-				flow.setPrefWidth(lv.getWidth());
-				lv.getItems().add(flow);
+					// add post's content (regular font)
+					Text content = new Text(p.getContent());
+					content.setStyle(regularStyle);
+					TextFlow flow = new TextFlow(date, author, content);
+					flow.setId(p.getPostsId().toString());
+					flow.setPrefWidth(lv.getWidth());
+					lv.getItems().add(flow);
+				}
 			}
 //			lv.setStyle("-fx-padding: 10 10 10 10;");
 			return true;
@@ -406,7 +404,6 @@ public class FeedController {
 	}
 
 	public void refreshConferenceTab(TabPane tp, Integer tabsId, ArrayList<Conference> confPool) {
-//		int tabsId = Integer.parseInt(t.getId());
 		Conference c = null;
 		// tabsId could be null if ApplicationController tried to refresh forum
 		// but there weren't any tabs selected
@@ -424,32 +421,50 @@ public class FeedController {
 			tp.getTabs().remove(openedTabsConferencesIds.get(tabsId));
 			openedTabsConferencesIds.remove(tabsId);
 		} else {
-
+			ScrollPane confInfoPane = null;
 			VBox vb = (VBox) openedTabsConferencesIds.get(tabsId).getContent();
-
-			if (vb.getChildren().size() >= 1) {
-				ScrollPane confInfoPane = (ScrollPane) vb.getChildren().get(0);
-				updateConfDescriptionScrollPane(confInfoPane, c);
+			if(vb.getChildren().size() == 0) {
+				confInfoPane = new ScrollPane();
+				vb.getChildren().add(confInfoPane);
+			} else {
+				confInfoPane = (ScrollPane) vb.getChildren().get(0);
 			}
+			updateConfDescriptionScrollPane(confInfoPane, c);
 
-			ListView<TextFlow> forumsListView = null;
-
-			if (vb.getChildren().size() == 2) {
-				forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
-				if (updateForumsListViewWithPosts(forumsListView, c)) { // update
-																		// and
-																		// check
-																		// if it
-																		// succeeded
-					forumsListView.scrollTo(forumsListView.getItems().size()); // scroll
-																				// to
-																				// the
-																				// last
-																				// msg
-					// set context menus on text flows
-					setupForumEdition(forumsListView);
+			switch (ApplicationController.usersRoleOnConference(ApplicationController.currentUser, c.getId())) {
+				case PARTICIPANT:
+				case ORGANIZER:
+				case PRELECTOR:
+				case SPONSOR: {
+					ListView<TextFlow> forumsListView = null;
+					/*
+					 * if there's no forum's list view and there should be, create a new one
+					 */
+					if (vb.getChildren().size() == 1) {
+						forumsListView = new ListView<TextFlow>();
+						vb.getChildren().add(forumsListView);
+					} else if (vb.getChildren().size() == 2) {
+						// just get existing forum to update later
+						forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
+					}
+					// update and check if it succeeded
+					if (updateForumsListViewWithPosts(forumsListView, c)) {
+						forumsListView.scrollTo(forumsListView.getItems().size()); 
+						// scroll to the last msg set context menus on text flows
+						setupForumEdition(forumsListView);
+					}
+					break;
 				}
-				;
+				case PENDING:
+				case NONE: {
+					if (vb.getChildren().size() == 2) {
+						vb.getChildren().remove(1);
+						confInfoPane.setPrefHeight(tp.getHeight());
+					}
+					break;
+				}
+				default:
+					break;
 			}
 		}
 	}
@@ -472,8 +487,7 @@ public class FeedController {
 		Integer currId = getSelectedConferenceId();
 		if (!eachConferencesPosts.containsKey(currId)) {
 			eachConferencesPosts.put(currId, new HashMap<Integer, Post>());
-		}
-		if (!openedTabsConferencesIds.containsKey(currId)) {
+			eachConferencesPosts.get(currId).clear();
 			for (Conference c : confPool) {
 				if (c.getId() == currId) {
 					Tab tab = new Tab();
@@ -519,6 +533,7 @@ public class FeedController {
 				}
 			}
 		} else {
+//			eachConferencesPosts.get(currId).clear();
 			tp.getSelectionModel().select(openedTabsConferencesIds.get(currId));
 		}
 	}

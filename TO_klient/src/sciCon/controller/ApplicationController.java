@@ -20,7 +20,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -36,6 +35,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import sciCon.Client;
 import sciCon.model.Conference;
@@ -353,6 +353,7 @@ public class ApplicationController implements Controller {
 							joinLeaveManageConfBtn.setDisable(true);
 						}
 						joinLeaveManageConfBtn.setText("Zarządzaj");
+						GridPane.setRowSpan(eventDetailsTP, 4);
 						forumsMessage.setVisible(true);
 						break;
 					}
@@ -366,6 +367,7 @@ public class ApplicationController implements Controller {
 							new Thread(() -> leaveConferenceBtn()).start();
 						});
 						joinLeaveManageConfBtn.setText("Wycofaj się");
+						GridPane.setRowSpan(eventDetailsTP, 4);
 						forumsMessage.setVisible(true);
 						break;
 					}
@@ -374,6 +376,7 @@ public class ApplicationController implements Controller {
 						filesMenuButton.setDisable(true);
 						removeConfBtn.setDisable(true);
 						forumsMessage.setVisible(false);
+						GridPane.setRowSpan(eventDetailsTP, 5);
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> joinConferenceBtn()).start();
 						});
@@ -385,6 +388,7 @@ public class ApplicationController implements Controller {
 						filesMenuButton.setDisable(true);
 						removeConfBtn.setDisable(true);
 						forumsMessage.setVisible(false);
+						GridPane.setRowSpan(eventDetailsTP, 5);
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> leaveConferenceBtn()).start();
 						});
@@ -456,22 +460,24 @@ public class ApplicationController implements Controller {
 		} else if (periodFilterFromComboBox.equals("Nadchodzące konferencje")) {
 			filter = ConferenceFilter.FUTURE;
 		}
+		
+		ArrayList<Conference> filteringResults = new ArrayList<Conference>();
 
-		FilteredList<Conference> searchBarFilteredData = new FilteredList<>(
-				FXCollections.observableArrayList(fc.filterFeed(fc.getFeed(), filter)),
-				s -> s.getName().toLowerCase().contains(searchBoxContent.toLowerCase()));
-
-		ArrayList<Conference> searchBarFilteredData_ArrayList = new ArrayList<Conference>();
-		for (Conference con : searchBarFilteredData)
-			searchBarFilteredData_ArrayList.add(con);
-
+		for(Conference conference : fc.filterFeed(fc.getFeed(), filter)) {
+			if(conference.getName().toLowerCase().contains(searchBoxContent.toLowerCase()) ||
+				conference.getSubject().toLowerCase().contains(searchBoxContent.toLowerCase()))
+			{
+				filteringResults.add(conference);
+			}
+		}
+	
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				fc.fillListWithLabels(conferenceFeedList, searchBarFilteredData_ArrayList, eventDetailsTP, filter,
+				fc.fillListWithLabels(conferenceFeedList, filteringResults, eventDetailsTP, filter,
 						CHAR_LIMIT_IN_TITLEPANE, true);
 			}
 		});
-	}
+}
 
 	
 	// sends request for the current user object and puts it in currentUser
@@ -518,6 +524,7 @@ public class ApplicationController implements Controller {
 			Platform.runLater(new Runnable() {
 				@Override public void run() {
 					openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_JOINING_CONFERENCE);
+					fc.refreshConferenceTab(eventDetailsTP, fc.getSelectedConferenceId(), fc.getFeed());
 				}
 			});
 		}
@@ -558,6 +565,7 @@ public class ApplicationController implements Controller {
 			Platform.runLater(new Runnable() {
 				@Override public void run() {
 					openConfirmationWindow(applicationWindow, message, RequestType.REQUEST_LEAVING_CONFERENCE);
+					fc.refreshConferenceTab(eventDetailsTP, fc.getSelectedConferenceId(), fc.getFeed());
 				}
 			});
 		}

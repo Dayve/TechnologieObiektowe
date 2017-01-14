@@ -28,10 +28,10 @@ public class UploadFileController implements Controller {
 	private FileChooser fileChooser = new FileChooser();
 	private File chosenFile = null;
 	
-	private static int selectedConferenceId = -1;
+	private static Integer selectedConferenceId = new Integer(-1);
 	
 	
-	public static void setSelectedConferenceId(int givenId) {
+	public static void setSelectedConferenceId(Integer givenId) {
 		selectedConferenceId = givenId;
 	}
 	
@@ -47,8 +47,9 @@ public class UploadFileController implements Controller {
 		            }
 		        }
 		    }
-		);	
+		);
 	}
+	
 	
 	private void setSelectedFileInfoLabel(String newContent) {
 		chosenFileLabel.setText(newContent);
@@ -60,26 +61,18 @@ public class UploadFileController implements Controller {
 	}
 	
 	
-	private void readAndSendFile() {
-		if(selectedConferenceId == -1) {
-			System.out.println("No conference selected (conference ID not set)");
-			return;
-		}
-		if(ApplicationController.currentUser == null) {
-			System.out.println("Can't fetch current user data (ApplicationController.currentUser is null)");
-			return;
-		}
-		
+	private void readAndSendFile() {	
 		Paper examplePaper = new Paper();
-		System.out.println("File author: " + ApplicationController.currentUser.getName());
 		
 		examplePaper.createFromExistingFile(chosenFile.getAbsolutePath(), 
-				ApplicationController.currentUser, selectedConferenceId, fileDescriptionBox.getText());
+				ApplicationController.currentUser.getName() + " " + ApplicationController.currentUser.getSurname(),
+				ApplicationController.currentUser.getId(),
+				selectedConferenceId, fileDescriptionBox.getText());
 		
 		SocketEvent se = new SocketEvent("fileSentToServer", examplePaper.getWholeBufferAsByteArray());
 		NetworkConnection.sendSocketEvent(se);
 		
-		SocketEvent res = NetworkConnection.rcvSocketEvent("fileReceivedByServer", "");
+		SocketEvent res = NetworkConnection.rcvSocketEvent("fileReceivedByServer", "errorWhileSavingFile");
 		String eventName = res.getName();
 		
 		final String message;
@@ -93,6 +86,7 @@ public class UploadFileController implements Controller {
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
 				openDialogBox(fileUploadWindow, message);
+				closeWindow(fileUploadWindow);
 			}
 		});
 	}

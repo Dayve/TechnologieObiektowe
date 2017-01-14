@@ -252,20 +252,18 @@ public class DbConnection {
 		return succeeded;
 	}
 
-	
 	public Boolean removeUser(String login, String password) {
-		System.out.println("dbconnection, caller's login:" + login
-		+ ", password " + password);
+		System.out.println("dbconnection, caller's login:" + login + ", password " + password);
 		Boolean succeeded = null;
 		String removeUserQuery = "delete from uzytkownik where login = (?) and haslo = (?)";
-		
+
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(removeUserQuery);
 			pstmt.setString(1, login);
 			pstmt.setString(2, password);
 			int result = pstmt.executeUpdate();
 			System.out.println("result: " + result);
-			if(result > 0) {
+			if (result > 0) {
 				succeeded = true;
 			}
 		} catch (SQLException e) {
@@ -274,7 +272,7 @@ public class DbConnection {
 		}
 		return succeeded;
 	}
-	
+
 	public boolean addConference(Conference c) {
 		boolean succeeded = true;
 
@@ -331,8 +329,7 @@ public class DbConnection {
 		boolean succeeded = true;
 
 		String addPostQuery = "insert into post (id_posta, id_wydarzenia,"
-				+ " id_uzytkownika, tresc, data_utworzenia, data_edycji) "
-				+ "values (null, ?, ?, ?, sysdate, sysdate)";
+				+ " id_uzytkownika, tresc, data_utworzenia, data_edycji) " + "values (null, ?, ?, ?, sysdate, sysdate)";
 
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addPostQuery);
@@ -351,21 +348,21 @@ public class DbConnection {
 
 	public boolean addFile(Paper receivedPaper) {
 		boolean succeeded = true;
-		
+
 		String addFileQuery = "insert into plik (id_pliku, id_wydarzenia, id_uzytkownika, nazwa, tresc, opis) "
 				+ "values (null, ?, ?, ?, ?, ?)";
-		
+
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addFileQuery);
 			pstmt.setInt(1, receivedPaper.fileInfo.getTargetConferenceId());
-			pstmt.setInt(2, receivedPaper.fileInfo.getAuthor().getId());
+			pstmt.setInt(2, receivedPaper.fileInfo.getAuthorsId());
 			pstmt.setString(3, receivedPaper.fileInfo.getFilename());
-			
+
 			InputStream in = new ByteArrayInputStream(receivedPaper.getRawFileData());
 			pstmt.setBinaryStream(4, in, receivedPaper.getRawFileData().length);
-			
+
 			pstmt.setString(5, receivedPaper.fileInfo.getDescription());
-			
+
 			pstmt.executeUpdate();
 			pstmt.close();
 		} catch (SQLException e) {
@@ -373,16 +370,91 @@ public class DbConnection {
 			System.out.println("Adding a participant to database has failed.");
 			e.printStackTrace();
 		}
+
+		return succeeded;
+	}
+	
+	public ArrayList<FileInfo> getFileInfos(Integer conferenceId) {
+		String getFileInfosQuery = "select plik.id_pliku, plik.id_uzytkownika, uzytkownik.imie, uzytkownik.nazwisko, plik.nazwa, plik.opis"
+				+ " from plik join uzytkownik on plik.id_uzytkownika = uzytkownik.id_uzytkownika"
+				+ " where plik.id_wydarzenia = (?)";
+
+		Integer authorsId = null, thisFileID = null;
+		String authorsName = null, authorsSurname = null, filename = null, fileDescription = null;
 		
+		ArrayList<FileInfo> resultingList = new ArrayList<FileInfo>();
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(getFileInfosQuery);
+			pstmt.setString(1, conferenceId.toString());
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()) {
+				thisFileID = rs.getInt(1);
+				authorsId = rs.getInt(2);
+				authorsName = rs.getString(3);
+				authorsSurname = rs.getString(4);
+				filename = rs.getString(5);
+				fileDescription = rs.getString(6);
+				
+				String authorsPersonalData = authorsName + " " + authorsSurname;
+				
+				resultingList.add(new FileInfo(thisFileID.intValue(), filename, fileDescription, authorsPersonalData, authorsId, conferenceId));
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultingList;
+	}
+	
+	
+	public Paper getSpecificFile(Integer fileID) {
+		String getFileInfosQuery = "select tresc from plik where id_pliku = (?)";
+		
+		byte[] rawFileContent = null;
+		Paper fetchedFile = new Paper();
+		
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(getFileInfosQuery);
+			pstmt.setString(1, fileID.toString());
+			
+			ResultSet rs = pstmt.executeQuery();
+
+			if (rs.next()) {
+				rawFileContent = rs.getBytes(1);
+			}
+			
+			fetchedFile.createFromRawFileBytes(rawFileContent);
+			pstmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return fetchedFile;
+	}
+	
+	
+	public boolean removeSpecificFile(Integer fileID) {
+		boolean succeeded = true;
+
+		String removeFileQuery = "delete from plik where id_pliku = (?)";
+
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(removeFileQuery);
+			pstmt.setInt(1, fileID);
+			pstmt.executeUpdate();
+			pstmt.close();
+		} catch (SQLException e) {
+			succeeded = false;
+			e.printStackTrace();
+		}
 		return succeeded;
 }
-	
+
 	public ArrayList<Post> fetchConferencesPosts(Integer conferenceId) {
 		ArrayList<Post> posts = new ArrayList<Post>();
 		String fetchPostsQuery = "select id_posta, id_uzytkownika, "
-				+ "tresc, to_char(data_utworzenia,'yyyy-mm-dd hh24:mi:ss') FROM" + 
-				" post WHERE id_wydarzenia = ? ORDER BY data_utworzenia",
-				message = null, timeStr = null;
+				+ "tresc, to_char(data_utworzenia,'yyyy-mm-dd hh24:mi:ss') FROM"
+				+ " post WHERE id_wydarzenia = ? ORDER BY data_utworzenia", message = null, timeStr = null;
 		Integer postsId = null, usersId = null;
 		LocalDateTime time = null;
 		try {
@@ -442,18 +514,18 @@ public class DbConnection {
 		String organization = u.getOrganization();
 		String registerQuery = "update uzytkownik set haslo = (?), imie = (?),"
 				+ " nazwisko = (?), email = (?), organizacja = (?) where id_uzytkownika = (?)";
-		
+
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(registerQuery);
 			pstmt.setString(1, password);
 			pstmt.setString(2, name);
 			pstmt.setString(3, surname);
-			if(email == null) {
+			if (email == null) {
 				pstmt.setNull(4, java.sql.Types.VARCHAR);
 			} else {
 				pstmt.setString(4, email);
 			}
-			if(organization == null) {
+			if (organization == null) {
 				pstmt.setNull(5, java.sql.Types.VARCHAR);
 			} else {
 				pstmt.setString(5, organization);
@@ -467,7 +539,7 @@ public class DbConnection {
 			return null;
 		}
 	}
-	
+
 	private ArrayList<ArrayList<User>> fetchAllConferenceParticipants(int conferenceId) {
 		ArrayList<ArrayList<User>> allParticipants = new ArrayList<ArrayList<User>>();
 		ArrayList<User> organizers = new ArrayList<User>();
@@ -479,12 +551,12 @@ public class DbConnection {
 
 		Integer userId = null, statusId = null;
 		String login = null, name = null, surname = null, email = null, organization = null,
-//				fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika, uzytkownik.login, uzytkownik.imie, "
-//						+ "uzytkownik.nazwisko, uzytkownik.email, uzytkownik.organizacja, "
-//						+ "rola_uczestnika.id_roli FROM uzytkownik JOIN uczestnik ON "
-//						+ "uzytkownik.id_uzytkownika = uczestnik.id_uzytkownika JOIN rola_uczestnika "
-//						+ "ON uczestnik.id_uczestnika = rola_uczestnika.id_udzialu WHERE uczestnik.id_uczestnika "
-//						+ "IN (SELECT id_uczestnika FROM uczestnik WHERE id_wydarzenia = (?))";
+				//				fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika, uzytkownik.login, uzytkownik.imie, "
+				//						+ "uzytkownik.nazwisko, uzytkownik.email, uzytkownik.organizacja, "
+				//						+ "rola_uczestnika.id_roli FROM uzytkownik JOIN uczestnik ON "
+				//						+ "uzytkownik.id_uzytkownika = uczestnik.id_uzytkownika JOIN rola_uczestnika "
+				//						+ "ON uczestnik.id_uczestnika = rola_uczestnika.id_udzialu WHERE uczestnik.id_uczestnika "
+				//						+ "IN (SELECT id_uczestnika FROM uczestnik WHERE id_wydarzenia = (?))";
 				fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika, uzytkownik.login, uzytkownik.imie, "
 						+ "uzytkownik.nazwisko, uzytkownik.email, uzytkownik.organizacja, "
 						+ "uczestnik.id_roli FROM uzytkownik JOIN uczestnik ON uzytkownik.id_uzytkownika = "

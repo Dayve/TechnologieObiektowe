@@ -36,7 +36,7 @@ public class Paper implements Serializable {
 	private int fileInfoSize;
 	private int rawFileInfoOffset;
 	
-	public FileInfo fileInfo;
+	public FileInfo fileInfo = null;
 	
 	
 	public byte[] getWholeBufferAsByteArray() {
@@ -64,10 +64,26 @@ public class Paper implements Serializable {
 		
 		return fileInfoBytes;
 	}
+	
+	
+	public void createFromRawFileBytes(byte[] fileContents) {
+		buffer = ByteBuffer.allocate(Integer.BYTES*2 + fileContents.length);
+		buffer.order(ByteOrder.LITTLE_ENDIAN);
+		
+		fileInfoSize = 0;
+		fileSize = fileContents.length;
+		
+		buffer.putInt(fileInfoSize);
+		buffer.putInt(fileSize);
+		// No FileInfo bytes
+		buffer.put(fileContents);
+		
+		rawDataOffset = Integer.BYTES;
+	}
 
 	
 	public void createFromReceivedBytes(byte[] receivedBytes) {
-		buffer = ByteBuffer.allocate(receivedBytes.length + 8);
+		buffer = ByteBuffer.allocate(receivedBytes.length);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		buffer.put(receivedBytes);
 		
@@ -80,37 +96,34 @@ public class Paper implements Serializable {
 		fileSize = buffer.getInt(fetchPointer);
 		fetchPointer += Integer.BYTES;
 		
-		// Fetch file info:
-		byte[] fileInfoAsBytes = new byte[fileInfoSize];
-		
-		rawFileInfoOffset = fetchPointer;
-		
-		for(int i=0 ; i<fileInfoSize ; ++i, ++fetchPointer) {
-			fileInfoAsBytes[i] = buffer.get(fetchPointer);
+		if(fileInfoSize > 0) {
+			// Fetch file info:
+			byte[] fileInfoAsBytes = new byte[fileInfoSize];
+			
+			rawFileInfoOffset = fetchPointer;
+			
+			for(int i=0 ; i<fileInfoSize ; ++i, ++fetchPointer) {
+				fileInfoAsBytes[i] = buffer.get(fetchPointer);
+			}
+			
+			try {
+				fileInfo = (FileInfo) deserialize(fileInfoAsBytes);
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		
-		try {
-			fileInfo = (FileInfo) deserialize(fileInfoAsBytes);
-			System.out.println("Received file metadata:\n" + fileInfo);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		System.out.println("Received file size:\n" + fileSize + " bytes");
 		
 		// Enable fetching the actual file contents:
 		rawDataOffset = fetchPointer;
 	}
 	
 	
-	public void createFromExistingFile(String pathWithFilename, User author, int givenConferenceId, String desc) {
+	public void createFromExistingFile(String pathWithFilename, String authorsName, int authorsId, int givenConferenceId, String desc) {
 		File file = new File(pathWithFilename);		
-		fileInfo = new FileInfo(file.getName(), desc, author, givenConferenceId);
-		System.out.println("Sent file metadata:\n" + fileInfo);
-		
-		
+		fileInfo = new FileInfo(file.getName(), desc, authorsName, authorsId, givenConferenceId);
+
 		byte[] fileInfoAsBytes = null;
 		
 		try {
@@ -121,10 +134,10 @@ public class Paper implements Serializable {
 		
 		fileSize = new Long(file.length()).intValue(); // Up to 2,14 GB
 		byte[] fileBytes = new byte[fileSize];
-		System.out.println("Sent file size:\n" + fileSize + " bytes");
+
 		fileInfoSize = fileInfoAsBytes.length;
 		
-		buffer = ByteBuffer.allocate(Integer.BYTES*2 + fileInfoSize + fileSize + 8);
+		buffer = ByteBuffer.allocate(Integer.BYTES*2 + fileInfoSize + fileSize);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 		
 		rawDataOffset = Integer.BYTES*2 + fileInfoSize;
@@ -149,12 +162,9 @@ public class Paper implements Serializable {
 	}
 	
 	
-	public void saveAsFile(String path) {
-		// Add forwardslash if needed:
-		if(path.charAt(path.length() - 1) != '/') path += "/";
-		
+	public void saveAsFile(String pathWithFilename) {	
 		try {			
-			OutputStream out = new FileOutputStream(path + fileInfo.getFilename());
+			OutputStream out = new FileOutputStream(pathWithFilename);
 			out.write(getRawFileData(), 0, fileSize);
 			out.close();
 		}

@@ -16,11 +16,14 @@ import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -41,7 +44,71 @@ public class FeedController {
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
 	private HashMap<Integer, Post> selectedConferencesPosts = new HashMap<Integer, Post>();
 	private HashMap<Integer, Tab> openedTabsConferencesIds = new HashMap<Integer, Tab>();
-
+	private Integer selectedPostsId = null;
+	Integer lastPostsId = null;
+	private MenuItem editMI = null;
+	private MenuItem deleteMI = null;
+	private ContextMenu forumsCM = null;
+	
+	public FeedController() {
+		editMI = new MenuItem("Edytuj");
+		deleteMI = new MenuItem("Usuń");
+		forumsCM = new ContextMenu();
+		forumsCM.getItems().addAll(editMI, deleteMI);
+	}
+	
+	private void setupForumEdition(ListView<TextFlow> forumsListView) {
+		ObservableList<TextFlow> ol = forumsListView.getItems();
+		if(ol.size() > 0) {
+			lastPostsId = Integer.parseInt(ol.get(ol.size() - 1).getId());
+			System.out.println("last post: " + selectedConferencesPosts.get(lastPostsId).getContent());
+		} else {
+			lastPostsId = null;
+		}
+		for(TextFlow tf: forumsListView.getItems()) {
+			tf.setOnMouseClicked(new EventHandler<MouseEvent>() {
+				@Override public void handle(MouseEvent me) {
+					if (me.getButton() == MouseButton.SECONDARY) {
+						selectedPostsId = Integer.parseInt(tf.getId());
+						User currUser = ApplicationController.currentUser;
+						UsersRole role = ApplicationController.usersRoleOnConference(currUser, 
+								selectedConferenceId);
+						/* enable/disable context menu depending on user's role
+						 * organizer - enable edit & delete all posts
+						 * participants - enable edit their posts & delete their
+						 * post if it's the last
+						 */
+						switch(role) {
+							case ORGANIZER: {
+								editMI.setDisable(false);
+								deleteMI.setDisable(false);
+								break;
+							}
+							default: {
+								Integer postsAuthorsId = selectedConferencesPosts.get(selectedPostsId)
+										.getAuthorsId();
+								if(postsAuthorsId.equals(currUser.getId())) {
+									editMI.setDisable(false);
+									if(selectedPostsId.equals(lastPostsId)) {
+										deleteMI.setDisable(false);
+									} else {
+										deleteMI.setDisable(true);
+									}
+								} else {
+									editMI.setDisable(true);
+									deleteMI.setDisable(true);
+								}
+								break;
+							}
+						}
+						forumsCM.hide();
+						forumsCM.show(tf, me.getScreenX(), me.getScreenY());
+					}
+				}
+			});
+		}
+	}
+	
 	public void clear() {
 		feed.clear();
 		openedTabsConferencesIds.clear();
@@ -355,18 +422,24 @@ public class FeedController {
 			// if there's no such conference found remove its tab
 			tp.getTabs().remove(openedTabsConferencesIds.get(tabsId));
 			openedTabsConferencesIds.remove(tabsId);
-			
 		} else {
 
 			VBox vb = (VBox) openedTabsConferencesIds.get(tabsId).getContent();
+			
+			
 			if (vb.getChildren().size() >= 1) {
 				ScrollPane confInfoPane = (ScrollPane) vb.getChildren().get(0);
 				updateConfDescriptionScrollPane(confInfoPane, c);
 			}
+			
+			ListView<TextFlow> forumsListView = null;
+			
 			if (vb.getChildren().size() == 2) {
-				ListView<TextFlow> forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
+				forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
 				if(updateForumsListViewWithPosts(forumsListView, c)) { // update and check if it succeeded
 					forumsListView.scrollTo(forumsListView.getItems().size()); // scroll to the last msg
+					// set context menus on text flows
+					setupForumEdition(forumsListView);
 				};
 			}
 		}
@@ -404,17 +477,18 @@ public class FeedController {
 					VBox vbox = new VBox();
 					ScrollPane descriptionPane = new ScrollPane();
 					updateConfDescriptionScrollPane(descriptionPane, c);
-					ListView<TextFlow> forumPane;
+					ListView<TextFlow> forumsListView;
 					double paneSize = tp.getHeight();
 					UsersRole currUsersRole = ApplicationController
 							.usersRoleOnConference(ApplicationController.currentUser, c.getId());
 					if(currUsersRole != UsersRole.NONE && currUsersRole != UsersRole.PENDING) {
 						paneSize /= 2;
-						forumPane = new ListView<TextFlow>();
-						updateForumsListViewWithPosts(forumPane, c);
-						forumPane.setPrefHeight(paneSize);
-						forumPane.scrollTo(forumPane.getItems().size());
-						vbox.getChildren().add(forumPane);
+						forumsListView = new ListView<TextFlow>();
+						updateForumsListViewWithPosts(forumsListView, c);
+						forumsListView.setPrefHeight(paneSize);
+						forumsListView.scrollTo(forumsListView.getItems().size());
+						setupForumEdition(forumsListView);
+						vbox.getChildren().add(forumsListView);
 					}
 					
 					descriptionPane.setPrefHeight(paneSize);

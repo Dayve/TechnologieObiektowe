@@ -22,7 +22,7 @@ public class LoginRegisterController implements Controller {
 	@FXML private TextField surnameField;
 	@FXML private TextField passwordField;
 	@FXML private TextField passwordRepeatField;
-	private boolean flag;
+	private String eventName = null;
 
 	private String message;
 
@@ -36,30 +36,29 @@ public class LoginRegisterController implements Controller {
 	}
 
 	public void reqLogin() {
+		if(NetworkConnection.isConnected()) {
+			String login = loginField.getText();
+			String password = doHash(passwordField.getText());
 
-		String login = loginField.getText();
-		String password = doHash(passwordField.getText());
-		flag = false;
+			User u = new User(login, password);
+			SocketEvent se = new SocketEvent("reqLogin", u);
 
-		User u = new User(login, password);
-		SocketEvent se = new SocketEvent("reqLogin", u);
-
-		try {
 			NetworkConnection.sendSocketEvent(se);
 			SocketEvent res = NetworkConnection.rcvSocketEvent("loginSucceeded", "loginFailed");
-			String eventName = res.getName();
+			eventName = res.getName();
 			if (eventName.equals("loginFailed")) {
 				message = "Niepoprawny login lub hasło.";
-			} else if (eventName.equals("loginSucceeded")) {
-				flag = true;
-				// run in JavaFX after background thread finishes work
 			}
-		} catch (NullPointerException e) {
-			message = "Nie można ustanowić połączenia z serwerem.";
 		}
+
+		// run in JavaFX after background thread finishes work
+
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
-				if (flag) {
+				if (eventName == null) {
+					message = "Nie można ustanowić połączenia z serwerem.";
+				}
+				if (eventName != null && eventName.equals("loginSucceeded")) {
 					loadScene(loginWindow, "view/ApplicationLayout.fxml", 1200, 675, true, 1200, 675);
 				} else {
 					openDialogBox(loginWindow, message);
@@ -94,7 +93,6 @@ public class LoginRegisterController implements Controller {
 			}
 		});
 	}
-	
 
 	@FXML private void registerBtn() {
 		new Thread(() -> reqRegister()).start();

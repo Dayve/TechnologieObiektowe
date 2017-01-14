@@ -501,19 +501,19 @@ public class SciConServer implements Runnable {
 				System.out.println("Somebody just disconnected.");
 			} catch (Exception e) {
 				e.printStackTrace();
-			} finally {
-				try {
-					// remove user who was logged in from loggedUsers hashmap
-					if (loggedUser != null) {
-						loggedUsers.remove(loggedUser.getId());
-					}
-					s.close();
-					objIn.close();
-					objOut.close();
-				} catch (Exception e) {
-					e.printStackTrace();
+			}
+			try {
+				// remove user who was logged in from loggedUsers hashmap
+				if (loggedUser != null) {
+					loggedUsers.remove(loggedUser.getId());
 				}
+				s.close();
+				objIn.close();
+				objOut.close();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
+
 	}
 }

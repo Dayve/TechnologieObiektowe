@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class NetworkConnection {
 
-	private static Timer serverCommunicationTimer = null;
+	public static Timer serverCommunicationTimer = null;
 
 	private static AtomicInteger incomingEventCheckCounter = new AtomicInteger(0);
 	public static AtomicInteger numberOfClientJobs = new AtomicInteger(0);
@@ -29,6 +29,13 @@ public class NetworkConnection {
 		numberOfClientJobs.incrementAndGet();
 	}
 
+	public static boolean isConnected() {
+		if(serverCommunicationTimer == null) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 	public static SocketEvent rcvSocketEvent(String... desiredSignatures) {
 		return rcvSocketEvent(15, desiredSignatures);
 	}
@@ -82,7 +89,6 @@ public class NetworkConnection {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
 				try {
 					if (NetworkConnection.numberOfClientJobs.get() > 0) {
 						eventsFromServer.add((SocketEvent) objIn.readObject());
@@ -93,7 +99,6 @@ public class NetworkConnection {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
 				NetworkConnection.incomingEventCheckCounter.incrementAndGet();
 			}
 		}, 0, 100);

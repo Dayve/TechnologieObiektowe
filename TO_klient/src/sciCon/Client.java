@@ -7,6 +7,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import sciCon.model.Controller;
+import sciCon.model.NetworkConnection;
 
 public class Client extends Application implements Controller {
 
@@ -28,6 +29,9 @@ public class Client extends Application implements Controller {
 	@Override public void stop() {
 		if (timer != null) {
 			timer.cancel();
+		}
+		if(NetworkConnection.serverCommunicationTimer != null) {
+			NetworkConnection.serverCommunicationTimer.cancel();
 		}
 		Platform.exit();
 	}

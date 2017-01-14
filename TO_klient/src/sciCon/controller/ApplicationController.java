@@ -375,8 +375,8 @@ public class ApplicationController implements Controller {
 						joinLeaveManageConfBtn.setDisable(false);
 						filesMenuButton.setDisable(true);
 						removeConfBtn.setDisable(true);
-						forumsMessage.setVisible(false);
 						GridPane.setRowSpan(eventDetailsTP, 5);
+						forumsMessage.setVisible(false);
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> joinConferenceBtn()).start();
 						});
@@ -387,8 +387,8 @@ public class ApplicationController implements Controller {
 						joinLeaveManageConfBtn.setDisable(false);
 						filesMenuButton.setDisable(true);
 						removeConfBtn.setDisable(true);
-						forumsMessage.setVisible(false);
 						GridPane.setRowSpan(eventDetailsTP, 5);
+						forumsMessage.setVisible(false);
 						joinLeaveManageConfBtn.setOnAction((event) -> {
 							new Thread(() -> leaveConferenceBtn()).start();
 						});

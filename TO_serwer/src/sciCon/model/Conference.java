@@ -3,6 +3,7 @@ package sciCon.model;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 
 public class Conference implements Serializable {
@@ -119,7 +120,7 @@ public class Conference implements Serializable {
 				participants, pending);
 		this.id = id;
 	}
-
+	
 	@Override public String toString() {
 		String organizersStr = "";
 		Iterator<User> it = organizers.iterator();

@@ -133,7 +133,7 @@
       </TextField>
       <TabPane fx:id="eventDetailsTP" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="ALL_TABS" tabMaxWidth="80.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.rowSpan="4">
          <GridPane.margin>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+            <Insets bottom="5.0" left="2.0" right="2.0" top="2.0" />
          </GridPane.margin></TabPane>
       <GridPane GridPane.columnIndex="2" GridPane.rowIndex="2">
         <columnConstraints>
@@ -187,7 +187,7 @@
       </ListView>
       <TextArea fx:id="forumsMessage" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="50.0" promptText="Napisz wiadomość na forum" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="6">
          <GridPane.margin>
-            <Insets bottom="5.0" left="2.0" right="2.0" top="2.0" />
+            <Insets bottom="5.0" left="2.0" right="2.0" />
          </GridPane.margin>
          <font>
             <Font size="13.0" />

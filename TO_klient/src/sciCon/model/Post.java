@@ -2,6 +2,7 @@ package sciCon.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 
 public class Post implements Serializable{
 	private static final long serialVersionUID = -949648934513386484L;
@@ -16,7 +17,6 @@ public class Post implements Serializable{
 		this.message = message;
 		this.time = time;
 	}
-
 	
 	public Integer getPostsId() {
 		return postsId;
@@ -37,4 +37,10 @@ public class Post implements Serializable{
 	public LocalDateTime getTime() {
 		return time;
 	}
+	
+	public static Comparator<Post> postDateComparator = new Comparator<Post>() {
+		public int compare(Post p1, Post p2) {
+			return p2.getTime().compareTo(p1.getTime());
+		}
+	};
 }

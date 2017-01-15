@@ -346,7 +346,8 @@ public class SciConServer implements Runnable {
 					"sciconserver, caller's login:" + caller.getLogin() + ", password " + caller.getPassword());
 			SocketEvent se = null;
 			String evtName = "deleteUserFailed";
-			String message = "Nie udało się usunąć konta. Błąd serwera.";
+			String message = "Nie udało się usunąć konta. Sprawdź, "
+					+ "czy nie jesteś jedynym organizatorem któregoś z wydarzeń.";
 			Boolean succeeded = dbConn.removeUser(caller.getLogin(), caller.getPassword());
 			if (succeeded == null) {
 				message = "Podane hasło jest nieprawidłowe.";

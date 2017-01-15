@@ -59,7 +59,7 @@ public class LoginRegisterController implements Controller {
 					message = "Nie można ustanowić połączenia z serwerem.";
 				}
 				if (eventName != null && eventName.equals("loginSucceeded")) {
-					loadScene(loginWindow, "view/ApplicationLayout.fxml", 1200, 675, true, 1200, 675);
+					loadScene(loginWindow, "view/ApplicationLayout.fxml", 1165, 675, true, 1165, 675);
 				} else {
 					openDialogBox(loginWindow, message);
 				}

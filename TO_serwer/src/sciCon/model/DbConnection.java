@@ -253,19 +253,40 @@ public class DbConnection {
 	}
 
 	public Boolean removeUser(String login, String password) {
-		System.out.println("dbconnection, caller's login:" + login + ", password " + password);
 		Boolean succeeded = null;
+		Integer conferencesId = null;
+		String getTargetsConferences = "SELECT id_wydarzenia FROM uczestnik WHERE " +
+		"id_uzytkownika = (SELECT id_uzytkownika FROM uzytkownik WHERE login = (?) AND haslo = (?))"
+		+ " AND id_roli = 1";
+		String countUsersConferencesAdminsNumbers = "SELECT COUNT(*) FROM "
+				+ "uczestnik WHERE id_roli = 1 AND id_wydarzenia = (?)";
 		String removeUserQuery = "delete from uzytkownik where login = (?) and haslo = (?)";
-
 		try {
-			PreparedStatement pstmt = conn.prepareStatement(removeUserQuery);
+			PreparedStatement pstmt = conn.prepareStatement(getTargetsConferences);
+			PreparedStatement pstmt2 = null;
 			pstmt.setString(1, login);
 			pstmt.setString(2, password);
-			int result = pstmt.executeUpdate();
-			System.out.println("result: " + result);
-			if (result > 0) {
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+				conferencesId = rs.getInt(1);
+				pstmt2 = conn.prepareStatement(countUsersConferencesAdminsNumbers);
+				pstmt2.setInt(1, conferencesId);
+				ResultSet rs2 = pstmt2.executeQuery();
+				while(rs2.next()) {
+					if(rs2.getInt(1) < 2) {
+						return false;
+					}
+				}
+				pstmt2.close();
+			}
+			pstmt.close();
+			pstmt = conn.prepareStatement(removeUserQuery);
+			pstmt.setString(1, login);
+			pstmt.setString(2, password);
+			if(pstmt.executeUpdate() == 1) {
 				succeeded = true;
 			}
+			pstmt.close();
 		} catch (SQLException e) {
 			succeeded = false;
 			e.printStackTrace();
@@ -348,21 +369,19 @@ public class DbConnection {
 	public boolean editPost(User caller, Post post) {
 		boolean succeeded = true;
 		Integer callersId = caller.getId();
-		String callersSignature = caller.getName() + " " + caller.getSurname() + " ("
-				+ caller.getLogin() + ")";
+		String callersSignature = caller.getName() + " " + caller.getSurname() + " (" + caller.getLogin() + ")";
 		Integer postsId = post.getPostsId();
 		Integer authorsId = post.getAuthorsId();
 		String postsMessage = post.getContent();
-		
-		String checkIfPostBelongsToUserQuery = "SELECT 1 FROM "
-				+ "post WHERE id_uzytkownika = (?) AND id_posta = (?)";
+
+		String checkIfPostBelongsToUserQuery = "SELECT 1 FROM " + "post WHERE id_uzytkownika = (?) AND id_posta = (?)";
 		String checkIfUserIsConferenceAdmin = "SELECT 1 FROM uczestnik "
 				+ "WHERE id_uzytkownika = (?) AND id_roli = 1 AND id_wydarzenia "
 				+ "= (SELECT id_wydarzenia FROM post WHERE id_posta = (?))";
 		String editPostProcedure = "{call edit_post(?, ?, ?)}";
 		try {
 			PreparedStatement pstmt = null;
-			if(callersId.equals(authorsId)) {
+			if (callersId.equals(authorsId)) {
 				System.out.println("callerid equals");
 				pstmt = conn.prepareStatement(checkIfPostBelongsToUserQuery);
 			} else {
@@ -377,7 +396,7 @@ public class DbConnection {
 				pstmt.setInt(1, postsId);
 				pstmt.setString(2, postsMessage);
 				pstmt.setString(3, callersSignature);
-				if(pstmt.executeUpdate() < 1) {
+				if (pstmt.executeUpdate() < 1) {
 					succeeded = false;
 				}
 				pstmt.close();
@@ -391,7 +410,7 @@ public class DbConnection {
 		}
 		return succeeded;
 	}
-	
+
 	public boolean addFile(Paper receivedPaper) {
 		boolean succeeded = true;
 

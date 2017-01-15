@@ -26,6 +26,13 @@ public class Post implements Serializable{
 		this(null, authorsId, message, time);
 	}
 	
+	public Post(Post postToEdit) {
+		this.postsId = postToEdit.postsId;
+		this.authorsId = postToEdit.authorsId;
+		this.message = postToEdit.message;
+		this.time = postToEdit.time;
+	}
+
 	public Integer getAuthorsId() {
 		return authorsId;
 	}
@@ -38,6 +45,12 @@ public class Post implements Serializable{
 		return time;
 	}
 	
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+
+
 	public static Comparator<Post> postDateComparator = new Comparator<Post>() {
 		public int compare(Post p1, Post p2) {
 			return p2.getTime().compareTo(p1.getTime());

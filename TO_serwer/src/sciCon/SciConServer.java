@@ -298,8 +298,26 @@ public class SciConServer implements Runnable {
 			} else {
 				se = new SocketEvent("sendForumMessageSucceeded");
 			}
-
+			
 			try {
+				objOut.writeObject(se);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		private void handleEditForumMessage(User caller, Post post) {
+			SocketEvent se = null;
+			if (dbConn.editPost(caller, post)) {
+				System.out.println("sukces");
+				se = new SocketEvent("editPostSucceeded");
+			} else {
+				System.out.println("niesukces");
+				se = new SocketEvent("editPostFailed");
+			}
+			
+			try {
+				System.out.println("wysyłam (name):" + se.getName());
 				objOut.writeObject(se);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -360,8 +378,8 @@ public class SciConServer implements Runnable {
 		private void handleIncomingFile(byte[] receivedRawData) {
 			Paper receivedPaper = new Paper();
 			receivedPaper.createFromReceivedBytes(receivedRawData);
-			
-			if(dbConn.addFile(receivedPaper)) {
+
+			if (dbConn.addFile(receivedPaper)) {
 				try {
 					SocketEvent response = new SocketEvent("fileReceivedByServer");
 					System.out.println("> Server: Sending response: fileReceivedByServer");
@@ -369,8 +387,7 @@ public class SciConServer implements Runnable {
 				} catch (IOException ioError) {
 					ioError.printStackTrace();
 				}
-			}
-			else {
+			} else {
 				try {
 					SocketEvent response = new SocketEvent("errorWhileSavingFile");
 					System.out.println("> Server: Sending response: errorWhileSavingFile");
@@ -380,19 +397,17 @@ public class SciConServer implements Runnable {
 				}
 			}
 		}
-		
-		
+
 		private void handleFetchFileInfos(Conference forConference) {
 			ArrayList<FileInfo> fileInfoList = dbConn.getFileInfos(forConference.getId());
-			if(fileInfoList != null) {
+			if (fileInfoList != null) {
 				try {
 					SocketEvent response = new SocketEvent("fileListFetched", fileInfoList);
 					objOut.writeObject(response);
 				} catch (IOException ioError) {
 					ioError.printStackTrace();
 				}
-			}
-			else {
+			} else {
 				try {
 					SocketEvent response = new SocketEvent("fileListFetchError");
 					objOut.writeObject(response);
@@ -401,20 +416,18 @@ public class SciConServer implements Runnable {
 				}
 			}
 		}
-		
-		
+
 		private void handleFileSending(Integer fileID) {
 			Paper fetchedFile = dbConn.getSpecificFile(fileID);
-			
-			if(fetchedFile != null) {
+
+			if (fetchedFile != null) {
 				try {
 					SocketEvent response = new SocketEvent("fileSent", fetchedFile.getWholeBufferAsByteArray());
 					objOut.writeObject(response);
 				} catch (IOException ioError) {
 					ioError.printStackTrace();
 				}
-			}
-			else {
+			} else {
 				try {
 					SocketEvent response = new SocketEvent("fileSendingError");
 					objOut.writeObject(response);
@@ -423,20 +436,18 @@ public class SciConServer implements Runnable {
 				}
 			}
 		}
-		
-		
+
 		private void handleFileRemoving(Integer fileID) {
 			boolean success = dbConn.removeSpecificFile(fileID);
-			
-			if(success) {
+
+			if (success) {
 				try {
 					SocketEvent response = new SocketEvent("fileRemoved");
 					objOut.writeObject(response);
 				} catch (IOException ioError) {
 					ioError.printStackTrace();
 				}
-			}
-			else {
+			} else {
 				try {
 					SocketEvent response = new SocketEvent("fileRemovingError");
 					objOut.writeObject(response);
@@ -446,6 +457,25 @@ public class SciConServer implements Runnable {
 			}
 		}
 
+		private void handlePostRemoving(Integer postID) {
+			boolean success = dbConn.removeSpecificPost(postID);
+
+			if (success) {
+				try {
+					SocketEvent response = new SocketEvent("postRemoved");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			} else {
+				try {
+					SocketEvent response = new SocketEvent("postRemovingError");
+					objOut.writeObject(response);
+				} catch (IOException ioError) {
+					ioError.printStackTrace();
+				}
+			}
+		}
 
 		@Override public void run() {
 			try {
@@ -462,6 +492,12 @@ public class SciConServer implements Runnable {
 					// name tells server what to do
 					String eventName = se.getName();
 					switch (eventName) {
+						case "reqEditPost": {
+							User caller = se.getObject(User.class);
+							Post post = se.getObject(Post.class);
+							handleEditForumMessage(caller, post);
+							break;
+						}
 						case "fileSentToServer": {
 							byte[] receivedBytes = se.getObject(byte[].class);
 							handleIncomingFile(receivedBytes);
@@ -481,7 +517,13 @@ public class SciConServer implements Runnable {
 							Integer givenFileID = se.getObject(Integer.class);
 							handleFileRemoving(givenFileID);
 							break;
-}
+						}
+
+						case "reqestRemovingChosenPost": {
+							Integer givenPostID = se.getObject(Integer.class);
+							handlePostRemoving(givenPostID);
+							break;
+						}
 						// login request
 						case "reqLogin": {
 							User u = (User) se.getObject(User.class);
@@ -575,7 +617,9 @@ public class SciConServer implements Runnable {
 							break;
 					}
 				}
-			} catch (SocketException e) {
+			} catch (
+
+			SocketException e) {
 				System.out.println("Somebody just disconnected.");
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -330,7 +330,6 @@ public class DbConnection {
 
 		String addPostQuery = "insert into post (id_posta, id_wydarzenia,"
 				+ " id_uzytkownika, tresc, data_utworzenia, data_edycji) " + "values (null, ?, ?, ?, sysdate, sysdate)";
-
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(addPostQuery);
 			pstmt.setInt(1, conferenceId);
@@ -346,6 +345,53 @@ public class DbConnection {
 		return succeeded;
 	}
 
+	public boolean editPost(User caller, Post post) {
+		boolean succeeded = true;
+		Integer callersId = caller.getId();
+		String callersSignature = caller.getName() + " " + caller.getSurname() + " ("
+				+ caller.getLogin() + ")";
+		Integer postsId = post.getPostsId();
+		Integer authorsId = post.getAuthorsId();
+		String postsMessage = post.getContent();
+		
+		String checkIfPostBelongsToUserQuery = "SELECT 1 FROM "
+				+ "post WHERE id_uzytkownika = (?) AND id_posta = (?)";
+		String checkIfUserIsConferenceAdmin = "SELECT 1 FROM uczestnik "
+				+ "WHERE id_uzytkownika = (?) AND id_roli = 1 AND id_wydarzenia "
+				+ "= (SELECT id_wydarzenia FROM post WHERE id_posta = (?))";
+		String editPostProcedure = "{call edit_post(?, ?, ?)}";
+		try {
+			PreparedStatement pstmt = null;
+			if(callersId.equals(authorsId)) {
+				System.out.println("callerid equals");
+				pstmt = conn.prepareStatement(checkIfPostBelongsToUserQuery);
+			} else {
+				System.out.println("callerid doesnt equal");
+				pstmt = conn.prepareStatement(checkIfUserIsConferenceAdmin);
+			}
+			pstmt.setInt(1, callersId);
+			pstmt.setInt(2, postsId);
+			ResultSet rs = pstmt.executeQuery();
+			if (rs.isBeforeFirst()) {
+				pstmt = conn.prepareStatement(editPostProcedure);
+				pstmt.setInt(1, postsId);
+				pstmt.setString(2, postsMessage);
+				pstmt.setString(3, callersSignature);
+				if(pstmt.executeUpdate() < 1) {
+					succeeded = false;
+				}
+				pstmt.close();
+			} else {
+				succeeded = false;
+			}
+		} catch (SQLException e) {
+			succeeded = false;
+			System.out.println("Editing post in database has failed.");
+			e.printStackTrace();
+		}
+		return succeeded;
+	}
+	
 	public boolean addFile(Paper receivedPaper) {
 		boolean succeeded = true;
 
@@ -373,7 +419,7 @@ public class DbConnection {
 
 		return succeeded;
 	}
-	
+
 	public ArrayList<FileInfo> getFileInfos(Integer conferenceId) {
 		String getFileInfosQuery = "select plik.id_pliku, plik.id_uzytkownika, uzytkownik.imie, uzytkownik.nazwisko, plik.nazwa, plik.opis"
 				+ " from plik join uzytkownik on plik.id_uzytkownika = uzytkownik.id_uzytkownika"
@@ -381,24 +427,25 @@ public class DbConnection {
 
 		Integer authorsId = null, thisFileID = null;
 		String authorsName = null, authorsSurname = null, filename = null, fileDescription = null;
-		
+
 		ArrayList<FileInfo> resultingList = new ArrayList<FileInfo>();
-		
+
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(getFileInfosQuery);
 			pstmt.setString(1, conferenceId.toString());
 			ResultSet rs = pstmt.executeQuery();
-			while(rs.next()) {
+			while (rs.next()) {
 				thisFileID = rs.getInt(1);
 				authorsId = rs.getInt(2);
 				authorsName = rs.getString(3);
 				authorsSurname = rs.getString(4);
 				filename = rs.getString(5);
 				fileDescription = rs.getString(6);
-				
+
 				String authorsPersonalData = authorsName + " " + authorsSurname;
-				
-				resultingList.add(new FileInfo(thisFileID.intValue(), filename, fileDescription, authorsPersonalData, authorsId, conferenceId));
+
+				resultingList.add(new FileInfo(thisFileID.intValue(), filename, fileDescription, authorsPersonalData,
+						authorsId, conferenceId));
 			}
 			pstmt.close();
 		} catch (SQLException e) {
@@ -406,24 +453,23 @@ public class DbConnection {
 		}
 		return resultingList;
 	}
-	
-	
+
 	public Paper getSpecificFile(Integer fileID) {
 		String getFileInfosQuery = "select tresc from plik where id_pliku = (?)";
-		
+
 		byte[] rawFileContent = null;
 		Paper fetchedFile = new Paper();
-		
+
 		try {
 			PreparedStatement pstmt = conn.prepareStatement(getFileInfosQuery);
 			pstmt.setString(1, fileID.toString());
-			
+
 			ResultSet rs = pstmt.executeQuery();
 
 			if (rs.next()) {
 				rawFileContent = rs.getBytes(1);
 			}
-			
+
 			fetchedFile.createFromRawFileBytes(rawFileContent);
 			pstmt.close();
 		} catch (SQLException e) {
@@ -431,8 +477,7 @@ public class DbConnection {
 		}
 		return fetchedFile;
 	}
-	
-	
+
 	public boolean removeSpecificFile(Integer fileID) {
 		boolean succeeded = true;
 
@@ -448,7 +493,24 @@ public class DbConnection {
 			e.printStackTrace();
 		}
 		return succeeded;
-}
+	}
+
+	public boolean removeSpecificPost(Integer postID) {
+		boolean succeeded = true;
+
+		String removePostQuery = "delete from post where id_posta = (?)";
+
+		try {
+			PreparedStatement pstmt = conn.prepareStatement(removePostQuery);
+			pstmt.setInt(1, postID);
+			pstmt.executeUpdate();
+			pstmt.close();
+		} catch (SQLException e) {
+			succeeded = false;
+			e.printStackTrace();
+		}
+		return succeeded;
+	}
 
 	public ArrayList<Post> fetchConferencesPosts(Integer conferenceId) {
 		ArrayList<Post> posts = new ArrayList<Post>();
@@ -551,12 +613,18 @@ public class DbConnection {
 
 		Integer userId = null, statusId = null;
 		String login = null, name = null, surname = null, email = null, organization = null,
-				//				fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika, uzytkownik.login, uzytkownik.imie, "
-				//						+ "uzytkownik.nazwisko, uzytkownik.email, uzytkownik.organizacja, "
-				//						+ "rola_uczestnika.id_roli FROM uzytkownik JOIN uczestnik ON "
-				//						+ "uzytkownik.id_uzytkownika = uczestnik.id_uzytkownika JOIN rola_uczestnika "
-				//						+ "ON uczestnik.id_uczestnika = rola_uczestnika.id_udzialu WHERE uczestnik.id_uczestnika "
-				//						+ "IN (SELECT id_uczestnika FROM uczestnik WHERE id_wydarzenia = (?))";
+				// fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika,
+				// uzytkownik.login, uzytkownik.imie, "
+				// + "uzytkownik.nazwisko, uzytkownik.email,
+				// uzytkownik.organizacja, "
+				// + "rola_uczestnika.id_roli FROM uzytkownik JOIN uczestnik ON
+				// "
+				// + "uzytkownik.id_uzytkownika = uczestnik.id_uzytkownika JOIN
+				// rola_uczestnika "
+				// + "ON uczestnik.id_uczestnika = rola_uczestnika.id_udzialu
+				// WHERE uczestnik.id_uczestnika "
+				// + "IN (SELECT id_uczestnika FROM uczestnik WHERE
+				// id_wydarzenia = (?))";
 				fetchParticipantsQuery = "SELECT uzytkownik.id_uzytkownika, uzytkownik.login, uzytkownik.imie, "
 						+ "uzytkownik.nazwisko, uzytkownik.email, uzytkownik.organizacja, "
 						+ "uczestnik.id_roli FROM uzytkownik JOIN uczestnik ON uzytkownik.id_uzytkownika = "

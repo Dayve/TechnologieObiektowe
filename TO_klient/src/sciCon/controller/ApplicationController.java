@@ -101,6 +101,7 @@ public class ApplicationController implements Controller {
 				setupTabResizeEvent();
 			}
 		});
+		fc.mainApplicationWindow = applicationWindow;
 	}
 
 	// static method allowing other controllers to make requests
@@ -151,6 +152,7 @@ public class ApplicationController implements Controller {
 
 				} else {
 					fc.setSelectedConferenceId(null);
+					fc.refreshConferenceTab(eventDetailsTP, fc.getSelectedConferenceId(), fc.getFeed());
 					checkUsersParticipation();
 				}
 			}

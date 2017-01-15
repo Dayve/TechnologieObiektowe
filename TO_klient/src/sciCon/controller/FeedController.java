@@ -11,11 +11,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -31,14 +34,16 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import sciCon.model.Conference;
-import sciCon.model.Controller.ConferenceFilter;
+import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.Post;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
 import sciCon.model.User.UsersRole;
 
-public class FeedController {
+public class FeedController implements Controller {
+
+	public Parent mainApplicationWindow;
 
 	private Integer selectedConferenceId = null;
 	private ArrayList<Conference> feed = new ArrayList<Conference>();
@@ -55,16 +60,31 @@ public class FeedController {
 		deleteMI = new MenuItem("Usuń");
 		forumsCM = new ContextMenu();
 		forumsCM.getItems().addAll(editMI, deleteMI);
+
+		deleteMI.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent t) {
+				sendRequestToRemovePost(selectedPostsId);
+			}
+		});
+		
+		editMI.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent t) {
+				openModifyPostWindow(mainApplicationWindow, 
+						eachConferencesPosts.get(selectedConferenceId).get(selectedPostsId));
+			}
+		});
 	}
 
-	private void setupForumEdition(ListView<TextFlow> forumsListView) {
+	private void getLastPostsId(ListView<TextFlow> forumsListView) {
 		ObservableList<TextFlow> ol = forumsListView.getItems();
 		if (ol.size() > 0) {
 			lastPostsId = Integer.parseInt(ol.get(ol.size() - 1).getId());
 		} else {
 			lastPostsId = null;
 		}
+	}
 
+	private void setupForumEdition(ListView<TextFlow> forumsListView) {
 		for (TextFlow tf : forumsListView.getItems()) {
 			tf.setOnMouseClicked(new EventHandler<MouseEvent>() {
 				@Override public void handle(MouseEvent me) {
@@ -143,6 +163,27 @@ public class FeedController {
 
 	public Integer getSelectedConferenceId() {
 		return selectedConferenceId;
+	}
+
+	private void sendRequestToRemovePost(Integer givenPostID) {
+		SocketEvent se = new SocketEvent("reqestRemovingChosenPost", givenPostID);
+		NetworkConnection.sendSocketEvent(se);
+
+		SocketEvent res = NetworkConnection.rcvSocketEvent("postRemoved", "postRemovingError");
+
+		String eventName = res.getName();
+		final String message;
+
+		if (eventName.equals("postRemoved")) {
+			message = "Usunięto wybrany post z bazy danych";
+		} else {
+			message = "Wystąpił błąd. Nie można usunąć postu";
+		}
+		Platform.runLater(new Runnable() {
+			@Override public void run() {
+				openDialogBox(mainApplicationWindow, message);
+			}
+		});
 	}
 
 	public static String addNLsIfTooLong(String givenString, int limit) {
@@ -316,6 +357,9 @@ public class FeedController {
 				if (thisConfPosts.containsKey(p.getPostsId())) {
 					if (!p.getContent().equals(thisConfPosts.get(p.getPostsId()).getContent())) {
 						postDifferentFromCurrent.add(p);
+						// replace a post with the one with updated content
+						thisConfPosts.remove(p.getPostsId());
+						thisConfPosts.put(p.getPostsId(), p);
 					}
 				} else {
 					postDifferentFromCurrent.add(p);
@@ -329,6 +373,7 @@ public class FeedController {
 	private boolean updateForumsListViewWithPosts(ListView<TextFlow> lv, Conference c) {
 		ArrayList<Post> newPosts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId());
 		if (newPosts.size() > 0) {
+			ObservableList<TextFlow> existingPosts = lv.getItems();
 			ArrayList<User> selectedConfUsersList = new ArrayList<User>();
 			selectedConfUsersList.addAll(c.getOrganizers());
 			selectedConfUsersList.addAll(c.getParticipantsList());
@@ -345,6 +390,16 @@ public class FeedController {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 			for (int j = newPosts.size() - 1; j >= 0; j--) {
 				Post p = newPosts.get(j);
+				// if post already exists, get it's handle and modify it instead of adding
+				TextFlow existingTF = null;
+				String stringPostsId = p.getPostsId().toString();
+				for(TextFlow tf: existingPosts) {
+					if(tf.getId().equals(stringPostsId)) {
+						existingTF = tf;
+						break;
+					}
+				}
+				
 				// add date and \n (regular font)
 				Text date = new Text(p.getTime().format(formatter) + "\n");
 				date.setStyle(regularStyle);
@@ -360,7 +415,12 @@ public class FeedController {
 					TextFlow flow = new TextFlow(date, author, content);
 					flow.setId(p.getPostsId().toString());
 					flow.setPrefWidth(lv.getWidth());
-					lv.getItems().add(flow);
+					if(existingTF != null) {
+						existingTF = new TextFlow(flow);
+					} else {
+						lv.getItems().add(flow);
+					}
+					
 				}
 			}
 //			lv.setStyle("-fx-padding: 10 10 10 10;");
@@ -433,10 +493,6 @@ public class FeedController {
 			eachConferencesPosts.remove(tabsId);
 		} else {
 			ScrollPane confInfoPane = null;
-//			System.out.println("tabs ids size: " + tp.getTabs().size()); 
-//			System.out.println("selected conf id:" + selectedConferenceId);
-//			System.out.println("selected tabs id: " + tabsId);
-//			System.out.println("opened conferences ids:" + openedTabsConferencesIds.keySet());
 			VBox vb = (VBox) openedTabsConferencesIds.get(tabsId).getContent();
 			if (vb.getChildren().size() == 0) {
 				confInfoPane = new ScrollPane();
@@ -463,6 +519,10 @@ public class FeedController {
 						// just get existing forum to update later
 						forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
 					}
+					getLastPostsId(forumsListView); // update last post's id
+//					for(TextFlow tf: forumsListView.getItems()) {
+//						tf.setPrefWidth(forumsListView.getWidth());
+//					}
 					// update and check if it succeeded
 					if (updateForumsListViewWithPosts(forumsListView, c)) {
 						forumsListView.scrollTo(forumsListView.getItems().size());
@@ -551,9 +611,12 @@ public class FeedController {
 				}
 			}
 		} else {
-			System.out.println("!eachConferencesPosts.containsKey");
-//			eachConferencesPosts.get(currId).clear();
 			tp.getSelectionModel().select(openedTabsConferencesIds.get(currId));
+			VBox vb = (VBox) openedTabsConferencesIds.get(selectedConferenceId).getContent();
+			if (vb.getChildren().size() > 1) {
+				ListView<TextFlow> forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
+				getLastPostsId(forumsListView);
+			}
 		}
 	}
 }

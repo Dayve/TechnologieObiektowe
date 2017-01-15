@@ -15,6 +15,7 @@ import sciCon.Client;
 import sciCon.controller.ConfirmationWindowController;
 import sciCon.controller.DialogController;
 import sciCon.controller.FeedController;
+import sciCon.controller.ModifyPostController;
 
 public interface Controller {
 	public enum ConferenceFilter {
@@ -22,7 +23,9 @@ public interface Controller {
 	};
 
 	public enum RequestType {
-		UPDATE_CONFERENCE_FEED, REQUEST_JOINING_CONFERENCE, REQUEST_LEAVING_CONFERENCE, REQUEST_REMOVING_CONFERENCE, REQUEST_LOGOUT
+		UPDATE_CONFERENCE_FEED, REQUEST_JOINING_CONFERENCE, 
+		REQUEST_LEAVING_CONFERENCE, REQUEST_REMOVING_CONFERENCE, 
+		REQUEST_LOGOUT
 	};
 
 	public final FeedController fc = new FeedController();
@@ -62,7 +65,7 @@ public interface Controller {
 			String title) {
 		openNewWindow(new FXMLLoader(), sourceWindow, path, minW, minH, resizable, false, title);
 	}
-	
+
 	default public void openNewWindow(Parent sourceWindow, String path, int minW, int minH, boolean resizable,
 			boolean modal, String title) {
 		openNewWindow(new FXMLLoader(), sourceWindow, path, minW, minH, resizable, modal, title);
@@ -71,6 +74,30 @@ public interface Controller {
 	default public void openNewWindow(FXMLLoader loader, Parent sourceWindow, String path, int minW, int minH,
 			boolean resizable, String title) {
 		openNewWindow(loader, sourceWindow, path, minW, minH, resizable, false, title);
+	}
+
+	default public void openModifyPostWindow(Parent sourceWindow, Post postToEdit) {
+		Stage sourceStage = (Stage) sourceWindow.getScene().getWindow();
+		FXMLLoader loader = new FXMLLoader();
+		loader.setLocation(Client.class.getResource("view/ModifyPostLayout.fxml"));
+		Stage newStage = new Stage();
+		Scene newScene = null;
+		try {
+			newScene = new Scene(loader.load());
+			newScene.getStylesheets().add(Client.class.getResource("application.css").toExternalForm());
+			newStage.setMaxHeight(250);
+			newStage.setMaxWidth(300);
+			newStage.initModality(Modality.WINDOW_MODAL);
+			newStage.initOwner(sourceStage);
+			newStage.setScene(newScene);
+			newStage.setResizable(false);
+			newStage.setTitle("Edytuj post");
+			ModifyPostController controller = loader.<ModifyPostController>getController();
+			controller.setPostToEdit(postToEdit);
+			newStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	default public void openNewWindow(FXMLLoader loader, Parent sourceWindow, String path, int minW, int minH,
@@ -103,13 +130,13 @@ public interface Controller {
 	default public void openConfirmationWindow(Parent window, String message, RequestType requestType) {
 		openConfirmationWindow(window, "view/ConfirmationLayout.fxml", message, requestType, "Powiadomienie");
 	}
-	
+
 	default public void openConfirmationWindow(Parent window, String path, String title) {
-		openConfirmationWindow(window, path, null , null, title);
+		openConfirmationWindow(window, path, null, null, title);
 	}
-	
-	default public void openConfirmationWindow(Parent window, String path, String message, 
-			RequestType requestType, String title) {
+
+	default public void openConfirmationWindow(Parent window, String path, String message, RequestType requestType,
+			String title) {
 		Stage sourceStage = (Stage) window.getScene().getWindow();
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Client.class.getResource(path));
@@ -125,7 +152,7 @@ public interface Controller {
 			newStage.setScene(newScene);
 			newStage.setResizable(false);
 			newStage.setTitle(title);
-			if(requestType != null) {
+			if (requestType != null) {
 				ConfirmationWindowController controller = loader.<ConfirmationWindowController>getController();
 				controller.setConfirmationMessage(message);
 				controller.setRequestType(requestType);
@@ -170,7 +197,7 @@ public interface Controller {
 		Stage stage = (Stage) window.getScene().getWindow();
 		stage.close();
 	}
-	
+
 	default public void closeWindow(Event event) {
 		Parent window = (Parent) event.getSource();
 		Stage stage = (Stage) window.getScene().getWindow();

@@ -75,6 +75,14 @@ public class FeedController implements Controller {
 		});
 	}
 
+	public void refreshSelectedTab(TabPane tp) {
+		eachConferencesPosts.remove(selectedConferenceId);
+		Tab t = openedTabsConferencesIds.get(selectedConferenceId);
+		tp.getSelectionModel().select(null);
+		tp.getSelectionModel().select(t);
+	}
+	
+	
 	private void getLastPostsId(ListView<TextFlow> forumsListView) {
 		ObservableList<TextFlow> ol = forumsListView.getItems();
 		if (ol.size() > 0) {
@@ -333,9 +341,9 @@ public class FeedController implements Controller {
 		}
 	}
 
-	@SuppressWarnings("unchecked") private ArrayList<Post> reqForumsFeed(Integer usersId, Integer conferencesId) {
+	@SuppressWarnings("unchecked") private ArrayList<Post> reqForumsFeed(Integer usersId, Integer conferencesId, ListView<TextFlow> lv) {
 		ArrayList<Post> forumsFeed = null;
-		ArrayList<Post> postDifferentFromCurrent = new ArrayList<Post>();
+		ArrayList<Post> postsDifferentFromCurrent = new ArrayList<Post>();
 		ArrayList<Integer> userIdConferenceId = new ArrayList<Integer>();
 		HashMap<Integer, Post> thisConfPosts = eachConferencesPosts.get(selectedConferenceId);
 		userIdConferenceId.add(usersId);
@@ -356,22 +364,30 @@ public class FeedController implements Controller {
 
 				if (thisConfPosts.containsKey(p.getPostsId())) {
 					if (!p.getContent().equals(thisConfPosts.get(p.getPostsId()).getContent())) {
-						postDifferentFromCurrent.add(p);
+						postsDifferentFromCurrent.add(p);
 						// replace a post with the one with updated content
-						thisConfPosts.remove(p.getPostsId());
-						thisConfPosts.put(p.getPostsId(), p);
+						thisConfPosts.clear();
+						lv.getItems().clear();
+						return reqForumsFeed(usersId, conferencesId, lv);
+//						thisConfPosts.remove(p.getPostsId());
+//						thisConfPosts.put(p.getPostsId(), p);
 					}
 				} else {
-					postDifferentFromCurrent.add(p);
+					postsDifferentFromCurrent.add(p);
 					thisConfPosts.put(p.getPostsId(), p);
 				}
 			}
+			if(thisConfPosts.size() > forumsFeed.size() + postsDifferentFromCurrent.size()) {
+				thisConfPosts.clear();
+				lv.getItems().clear();
+				return reqForumsFeed(usersId, conferencesId, lv);
+			}
 		}
-		return postDifferentFromCurrent;
+		return postsDifferentFromCurrent;
 	}
 
 	private boolean updateForumsListViewWithPosts(ListView<TextFlow> lv, Conference c) {
-		ArrayList<Post> newPosts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId());
+		ArrayList<Post> newPosts = reqForumsFeed(ApplicationController.currentUser.getId(), c.getId(), lv);
 		if (newPosts.size() > 0) {
 			ObservableList<TextFlow> existingPosts = lv.getItems();
 			ArrayList<User> selectedConfUsersList = new ArrayList<User>();
@@ -420,7 +436,6 @@ public class FeedController implements Controller {
 					} else {
 						lv.getItems().add(flow);
 					}
-					
 				}
 			}
 //			lv.setStyle("-fx-padding: 10 10 10 10;");
@@ -492,6 +507,10 @@ public class FeedController implements Controller {
 			openedTabsConferencesIds.remove(tabsId);
 			eachConferencesPosts.remove(tabsId);
 		} else {
+			if(openedTabsConferencesIds.containsKey(tabsId) && 
+					!eachConferencesPosts.containsKey(tabsId)) {
+				eachConferencesPosts.put(tabsId, new HashMap<Integer, Post>());
+			}
 			ScrollPane confInfoPane = null;
 			VBox vb = (VBox) openedTabsConferencesIds.get(tabsId).getContent();
 			if (vb.getChildren().size() == 0) {

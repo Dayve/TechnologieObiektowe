@@ -10,8 +10,6 @@ import sciCon.model.SocketEvent;
 import java.io.File;
 import java.util.ArrayList;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -19,12 +17,9 @@ import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -204,6 +199,7 @@ public class FileManagerController implements Controller {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public void fetchCurrentlyStoredFiles() {
 		SocketEvent se = new SocketEvent("reqestFileList", browsedConference);
 		NetworkConnection.sendSocketEvent(se);

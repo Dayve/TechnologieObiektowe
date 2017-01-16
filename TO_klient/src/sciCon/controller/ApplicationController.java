@@ -256,7 +256,7 @@ public class ApplicationController implements Controller {
 					}
 				});
 			}
-		}, 0, 1000);
+		}, 0, 200);
 	}
 
 	public static UsersRole usersRoleOnConference(User user, Integer conferenceId) {
@@ -416,7 +416,6 @@ public class ApplicationController implements Controller {
 	// compares it with current data and if there is difference, updates
 	// information
 	@SuppressWarnings("unchecked") @FXML public void reqConferenceFeed() {
-//		System.out.println("POCZATEK REQUESTFEED");
 		SocketEvent e = new SocketEvent("reqConferenceFeed");
 		NetworkConnection.sendSocketEvent(e);
 		SocketEvent res = NetworkConnection.rcvSocketEvent("updateConferenceFeed");

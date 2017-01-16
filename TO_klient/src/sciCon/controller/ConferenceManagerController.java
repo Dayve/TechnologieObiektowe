@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -22,7 +21,6 @@ import javafx.stage.Stage;
 import sciCon.model.Conference;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
-import sciCon.model.Paper;
 import sciCon.model.SocketEvent;
 import sciCon.model.User;
 import sciCon.model.User.UsersRole;

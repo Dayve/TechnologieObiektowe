@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import sciCon.model.Controller;
 import sciCon.model.NetworkConnection;
 import sciCon.model.Paper;
-import sciCon.model.ServerResponseTimeout;
 import sciCon.model.SocketEvent;
 
 public class UploadFileController implements Controller {

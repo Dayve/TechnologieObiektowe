@@ -488,6 +488,7 @@ public class FeedController implements Controller {
 		scPane.setContent(flow);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void refreshConferenceTab(TabPane tp, Integer tabsId, ArrayList<Conference> confPool) {
 		Conference c = null;
 		// tabsId could be null if ApplicationController tried to refresh forum
@@ -633,6 +634,7 @@ public class FeedController implements Controller {
 			tp.getSelectionModel().select(openedTabsConferencesIds.get(currId));
 			VBox vb = (VBox) openedTabsConferencesIds.get(selectedConferenceId).getContent();
 			if (vb.getChildren().size() > 1) {
+				@SuppressWarnings("unchecked")
 				ListView<TextFlow> forumsListView = (ListView<TextFlow>) vb.getChildren().get(1);
 				getLastPostsId(forumsListView);
 			}

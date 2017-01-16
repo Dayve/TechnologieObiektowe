@@ -2,7 +2,6 @@ package sciCon.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 
 public class Post implements Serializable{
 	private static final long serialVersionUID = -949648934513386484L;

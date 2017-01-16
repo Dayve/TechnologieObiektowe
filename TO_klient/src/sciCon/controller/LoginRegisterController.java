@@ -36,10 +36,9 @@ public class LoginRegisterController implements Controller {
 	}
 
 	public void reqLogin() {
-		if(NetworkConnection.isConnected()) {
 			String login = loginField.getText();
 			String password = doHash(passwordField.getText());
-
+			
 			User u = new User(login, password);
 			SocketEvent se = new SocketEvent("reqLogin", u);
 
@@ -49,7 +48,6 @@ public class LoginRegisterController implements Controller {
 			if (eventName.equals("loginFailed")) {
 				message = "Niepoprawny login lub hasło.";
 			}
-		}
 
 		// run in JavaFX after background thread finishes work
 

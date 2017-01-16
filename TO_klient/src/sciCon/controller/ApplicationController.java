@@ -643,6 +643,10 @@ public class ApplicationController implements Controller {
 		fc.clear();
 		Client.timer.cancel();
 		requestQueue.clear();
+		NetworkConnection.serverCommunicationTimer.cancel();
+		NetworkConnection.serverCommunicationTimer = null;
+		new Thread(() -> NetworkConnection.connect("localhost", 8080)).start();
+		
 		Platform.runLater(new Runnable() {
 			@Override public void run() {
 				loadScene(applicationWindow, "view/LoginLayout.fxml", 320, 250, false, 0, 0);

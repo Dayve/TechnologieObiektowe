@@ -29,34 +29,28 @@ public class NetworkConnection {
 		numberOfClientJobs.incrementAndGet();
 	}
 
-	public static boolean isConnected() {
-		if(serverCommunicationTimer == null) {
-			return false;
-		} else {
-			return true;
-		}
-	}
 	public static SocketEvent rcvSocketEvent(String... desiredSignatures) {
 		return rcvSocketEvent(15, desiredSignatures);
 	}
 
 	public static SocketEvent rcvSocketEvent(int howManyPeriodsToWait, String... desiredSignatures) {
 		NetworkConnection.incomingEventCheckCounter.set(0);
-		
-		while(incomingEventCheckCounter.get() <= howManyPeriodsToWait) {
-			for(SocketEvent receivedEvent : eventsFromServer) {
-				for(String desiredSignature:desiredSignatures) {
-					if(receivedEvent.getName().equals(desiredSignature)){ 
-						//System.out.println("RETURNING: event returned");
-						
+
+		while (incomingEventCheckCounter.get() <= howManyPeriodsToWait) {
+			for (SocketEvent receivedEvent : eventsFromServer) {
+				for (String desiredSignature : desiredSignatures) {
+					if (receivedEvent.getName().equals(desiredSignature)) {
+						// System.out.println("RETURNING: event returned");
+
 						SocketEvent temp = receivedEvent;
 						eventsFromServer.remove(receivedEvent);
-						
+
 						return temp;
 					}
 				}
 			}
-		} return null;
+		}
+		return null;
 	}
 
 	public static void connect(String address, int port) {
@@ -76,32 +70,36 @@ public class NetworkConnection {
 			e.printStackTrace();
 		}
 
-		serverCommunicationTimer = new Timer();
+		if (serverCommunicationTimer == null) {
+			serverCommunicationTimer = new Timer();
 
-		serverCommunicationTimer.scheduleAtFixedRate(new TimerTask() {
-			@Override public void run() {
-				try {
-					if (!eventsToServer.isEmpty()) {
-						// System.out.println(" ->
-						// objOut.writeObject(eventsToServer.poll());");
-						objOut.writeObject(eventsToServer.poll());
+			System.out.println("creating timer" + serverCommunicationTimer);
+
+			serverCommunicationTimer.scheduleAtFixedRate(new TimerTask() {
+				@Override public void run() {
+					try {
+						if (!eventsToServer.isEmpty()) {
+							// System.out.println(" ->
+							// objOut.writeObject(eventsToServer.poll());");
+							objOut.writeObject(eventsToServer.poll());
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				try {
-					if (NetworkConnection.numberOfClientJobs.get() > 0) {
-						eventsFromServer.add((SocketEvent) objIn.readObject());
-						NetworkConnection.numberOfClientJobs.decrementAndGet();
+					try {
+						if (NetworkConnection.numberOfClientJobs.get() > 0) {
+							eventsFromServer.add((SocketEvent) objIn.readObject());
+							NetworkConnection.numberOfClientJobs.decrementAndGet();
+						}
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
+					NetworkConnection.incomingEventCheckCounter.incrementAndGet();
 				}
-				NetworkConnection.incomingEventCheckCounter.incrementAndGet();
-			}
-		}, 0, 100);
+			}, 0, 100);
+		}
 	}
 
 	public static void disconnect() {
